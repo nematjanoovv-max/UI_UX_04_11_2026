@@ -6,7 +6,7 @@ class TelegramBotService {
     this.botInfo = null;
     this.isRunning = false;
     this.pollOffset = 0;
-    this.userSessions = new Map(); // chat_id => session data (cart, order flow, etc)
+    this.userSessions = new Map(); // chat_id => session state
     this.adminChatIds = new Set();
   }
 
@@ -15,8 +15,8 @@ class TelegramBotService {
   }
 
   async callApi(method, body = {}) {
-    if (!this.token || this.token === "BU_YERGA_BOT_TOKENNI_QO'YING") {
-      return { ok: false, description: 'BOT_TOKEN sozlanmagan' };
+    if (!this.token) {
+      return { ok: false, description: 'BOT_TOKEN mavjud emas' };
     }
 
     try {
@@ -34,8 +34,8 @@ class TelegramBotService {
   }
 
   async init(externalUrl = null) {
-    if (!this.token || this.token === "BU_YERGA_BOT_TOKENNI_QO'YING") {
-      console.log('[BOT] BOT_TOKEN berilmagan yoki placeholder. Bot demo rejimida.');
+    if (!this.token) {
+      console.log('[BOT] BOT_TOKEN berilmagan. Bot nofaol.');
       return { ok: false, message: 'BOT_TOKEN not provided' };
     }
 
@@ -45,13 +45,18 @@ class TelegramBotService {
         this.botInfo = res.result;
         console.log(`[BOT] Muvaffaqiyatli ulandi: @${this.botInfo.username} (${this.botInfo.first_name})`);
 
+        // Load existing admin users from DB
+        try {
+          const db = getDb();
+          const admins = db.query('SELECT telegram_id FROM users WHERE role = "admin" AND telegram_id IS NOT NULL');
+          admins.forEach(a => this.adminChatIds.add(Number(a.telegram_id)));
+        } catch (_) {}
+
         if (externalUrl && (externalUrl.startsWith('https://') || externalUrl.startsWith('http://'))) {
-          // Webhook setup
           const webhookUrl = `${externalUrl}/api/telegram-webhook`;
           console.log(`[BOT] Webhook o'rnatilmoqda: ${webhookUrl}`);
           await this.callApi('setWebhook', { url: webhookUrl });
         } else {
-          // Long polling
           await this.callApi('deleteWebhook');
           this.startPolling();
         }
@@ -70,7 +75,7 @@ class TelegramBotService {
   startPolling() {
     if (this.isRunning) return;
     this.isRunning = true;
-    console.log('[BOT] Long-polling boshlandi...');
+    console.log('[BOT] Mukammal Long-polling boshlandi...');
 
     const pollLoop = async () => {
       while (this.isRunning) {
@@ -101,7 +106,6 @@ class TelegramBotService {
     this.isRunning = false;
   }
 
-  // Update Router (for Webhook or Long-Polling)
   async handleUpdate(update) {
     if (update.message) {
       await this.handleMessage(update.message);
@@ -110,7 +114,6 @@ class TelegramBotService {
     }
   }
 
-  // Session Helper
   getSession(chatId) {
     if (!this.userSessions.has(chatId)) {
       this.userSessions.set(chatId, {
@@ -122,69 +125,75 @@ class TelegramBotService {
     return this.userSessions.get(chatId);
   }
 
-  // Message Handler
+  // ----------------------------------------------------------------------
+  // MESSAGE HANDLER
+  // ----------------------------------------------------------------------
   async handleMessage(msg) {
     const chatId = msg.chat.id;
     const text = msg.text ? msg.text.trim() : '';
     const db = getDb();
     const session = this.getSession(chatId);
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system.vercel.app';
+    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
 
-    // Save or update user in DB
-    const userRole = (text === '/admin_bot' || this.adminChatIds.has(chatId)) ? 'admin' : 'client';
+    // Register / update user in database
+    const fullName = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
     try {
-      const existingUser = db.get('SELECT id, role FROM users WHERE telegram_id = ?', [String(chatId)]);
-      if (!existingUser) {
+      const existing = db.get('SELECT id, role FROM users WHERE telegram_id = ?', [String(chatId)]);
+      if (!existing) {
         db.run('INSERT INTO users (telegram_id, full_name, role) VALUES (?, ?, ?)', [
           String(chatId),
-          [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi',
-          userRole
+          fullName,
+          'client'
         ]);
       }
-    } catch (e) {
-      // ignore unique constraint
-    }
+    } catch (_) {}
 
-    // Contact sharing for Courier or Client Order
+    // Contact sharing
     if (msg.contact) {
       const phone = msg.contact.phone_number.startsWith('+') ? msg.contact.phone_number : `+${msg.contact.phone_number}`;
+
+      // Courier registration by phone
       if (session.step === 'courier_phone') {
-        // Link courier by phone or add new
         const courier = db.get('SELECT id, name FROM couriers WHERE phone LIKE ?', [`%${phone.slice(-9)}%`]);
         if (courier) {
           db.run('UPDATE couriers SET telegram_id = ? WHERE id = ?', [String(chatId), courier.id]);
-          await this.sendMessage(chatId, `🎉 *Tabriklaymiz, ${courier.name}!* Siz tizimga kuryer sifatida muvaffaqiyatli bog'landingiz.\n\nEndi sizga yangi buyurtmalar avtomatik ravishda yuboriladi!`, {
+          await this.sendMessage(chatId, `🎉 *Tabriklaymiz, ${courier.name}!* Akkauntingiz muvaffaqiyatli kuryer tizimiga bog'landi.`, {
+            parse_mode: 'Markdown',
             reply_markup: {
-              keyboard: [
-                [{ text: '📋 Biriktirilgan buyurtmalarim' }, { text: '🟢 Holatim: Bo\'sh (Free)' }],
-                [{ text: '🏠 Asosiy menyu' }]
-              ],
+              keyboard: this.getCourierKeyboard(),
               resize_keyboard: true
             }
           });
         } else {
-          // Create new courier
           db.run('INSERT INTO couriers (name, phone, telegram_id, vehicle_type, status) VALUES (?, ?, ?, ?, ?)', [
-            [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Yangi Kuryer',
+            fullName,
             phone,
             String(chatId),
             'Skuter',
             'free'
           ]);
-          await this.sendMessage(chatId, `✅ *Siz yangi kuryer sifatida ro'yxatdan o'tdingiz!* Sizga yangi buyurtmalar kelganda shu yerda bildirishnoma olasiz.`);
+          await this.sendMessage(chatId, `✅ *Kuryer sifatida ro'yxatdan o'tdingiz!* Yangi buyurtmalar avtomatik ravishda shu yerga yuboriladi.`, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              keyboard: this.getCourierKeyboard(),
+              resize_keyboard: true
+            }
+          });
         }
         session.step = null;
         return;
       }
 
+      // Order checkout phone step
       if (session.step === 'order_phone') {
         session.orderData.phone = phone;
         session.step = 'order_address';
-        await this.sendMessage(chatId, `📍 Endi yetkazib berish manzilini yozib yuboring (yoki lokatsiya tugmasi orqali joylashuvingizni ulashing):`, {
+        await this.sendMessage(chatId, `📍 *Ajoyib! Endi yetkazib berish manzilini kiriting:*\n\nPastdagi *"📍 Joylashuvni ulashish"* tugmasini bosing yoki manzilni matn ko'rinishida yozib yuboring:`, {
+          parse_mode: 'Markdown',
           reply_markup: {
             keyboard: [
-              [{ text: '📍 Joylashuvni yuborish', request_location: true }],
-              [{ text: '❌ Bekor qilish' }]
+              [{ text: '📍 Joylashuvni ulashish', request_location: true }],
+              [{ text: '❌ Buyurtmani bekor qilish' }]
             ],
             resize_keyboard: true
           }
@@ -193,23 +202,23 @@ class TelegramBotService {
       }
     }
 
-    // Location sharing for Order
+    // Location sharing
     if (msg.location && session.step === 'order_address') {
       session.orderData.latitude = msg.location.latitude;
       session.orderData.longitude = msg.location.longitude;
-      session.orderData.address = `Geo-lokatsiya: ${msg.location.latitude.toFixed(5)}, ${msg.location.longitude.toFixed(5)}`;
-      await this.finalizeBotOrder(chatId, session);
+      session.orderData.address = `Geo-lokatsiya (${msg.location.latitude.toFixed(5)}, ${msg.location.longitude.toFixed(5)})`;
+      await this.askPaymentMethod(chatId, session);
       return;
     }
 
-    // Commands & Text Handlers
+    // Commands
     if (text === '/start' || text === '🏠 Asosiy menyu') {
       session.step = null;
       await this.sendWelcomeMessage(chatId, msg.from.first_name, webAppUrl);
       return;
     }
 
-    if (text === '🍔 Menyu va Buyurtma berish' || text === '/menu') {
+    if (text === '🍔 Menyu va Buyurtma' || text === '/menu') {
       await this.sendCategoryList(chatId);
       return;
     }
@@ -224,39 +233,75 @@ class TelegramBotService {
       return;
     }
 
-    if (text === '📞 Bog\'lanish' || text === '/contact') {
-      await this.sendMessage(chatId, `📞 *Smart Delivery — Yordam markazi:*\n\n☎️ Telefon: +998 71 200-00-00\n⏰ Ish vaqti: 24/7 uzluksiz\n💬 Telegram Support: @SmartDeliverySupportBot\n🌐 Web: ${webAppUrl}`, {
+    if (text === '📜 Buyurtmalar tarixi') {
+      await this.sendOrderHistory(chatId);
+      return;
+    }
+
+    if (text === '🛵 Kuryer kabineti' || text === '/courier') {
+      await this.handleCourierCommand(chatId, fullName);
+      return;
+    }
+
+    if (text === '👑 Admin panel' || text === '/admin_bot') {
+      this.adminChatIds.add(chatId);
+      db.run('UPDATE users SET role = "admin" WHERE telegram_id = ?', [String(chatId)]);
+      await this.sendAdminDashboard(chatId);
+      return;
+    }
+
+    if (text === '📞 Bog\'lanish va Yordam' || text === '/contact') {
+      await this.sendMessage(chatId, `📞 *Smart Delivery — 24/7 Yordam Markazi:*\n\n` +
+        `☎️ Telefon: *+998 71 200-00-00*\n` +
+        `💬 Qo'llab-quvvatlash: @Smart_deliveryyy_bot\n` +
+        `🌐 Rasmiy saytimiz: ${webAppUrl}\n` +
+        `⏰ Ish tartibi: Dam olish kunlarisiz, 24 soat uzluksiz xizmat`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🌐 Web-saytni ochish', web_app: { url: webAppUrl } }],
+            [{ text: '🍔 Menyudan tanlash', callback_data: 'back_to_cats' }]
+          ]
+        }
+      });
+      return;
+    }
+
+    // Courier workspace controls
+    if (text === '📋 Faol buyurtmalarim') {
+      await this.sendCourierActiveOrders(chatId);
+      return;
+    }
+
+    if (text === '🟢 Holatim: Bo\'sh (Free)') {
+      db.run('UPDATE couriers SET status = "free" WHERE telegram_id = ?', [String(chatId)]);
+      await this.sendMessage(chatId, '✅ *Holatingiz yangilandi:* Siz hozir yangi buyurtmalarni qabul qilishga tayyorsiz (🟢 Bo\'sh).', {
         parse_mode: 'Markdown'
       });
       return;
     }
 
-    if (text === '/courier' || text === '🛵 Kuryer rejimi') {
-      await this.handleCourierCommand(chatId);
+    if (text === '🟡 Holatim: Band (Busy)') {
+      db.run('UPDATE couriers SET status = "busy" WHERE telegram_id = ?', [String(chatId)]);
+      await this.sendMessage(chatId, '🟡 *Holatingiz yangilandi:* Band rejimidasiz.', { parse_mode: 'Markdown' });
       return;
     }
 
-    if (text === '📋 Biriktirilgan buyurtmalarim') {
-      await this.sendCourierActiveOrders(chatId);
+    if (text === '⚪️ Offline bo\'lish') {
+      db.run('UPDATE couriers SET status = "offline" WHERE telegram_id = ?', [String(chatId)]);
+      await this.sendMessage(chatId, '⚪️ *Offline rejimiga o\'tdingiz.* Sizga buyurtmalar biriktirilmaydi.', { parse_mode: 'Markdown' });
       return;
     }
 
-    if (text.startsWith('🟢 Holatim:')) {
-      db.run('UPDATE couriers SET status = "free" WHERE telegram_id = ?', [String(chatId)]);
-      await this.sendMessage(chatId, '✅ Holatingiz: *Bo\'sh (Buyurtma qabul qilishga tayyor)* deb yangilandi.');
+    if (text === '📊 Kuryer statistikasi') {
+      await this.sendCourierStats(chatId);
       return;
     }
 
-    if (text === '/admin_bot' || text === '👑 Admin panel') {
-      this.adminChatIds.add(chatId);
-      await this.sendAdminOverview(chatId);
-      return;
-    }
-
-    if (text === '❌ Bekor qilish') {
+    if (text === '❌ Buyurtmani bekor qilish') {
       session.step = null;
       session.orderData = {};
-      await this.sendMessage(chatId, '❌ Buyurtma bekor qilindi.', {
+      await this.sendMessage(chatId, '❌ Buyurtma jarayoni bekor qilindi.', {
         reply_markup: {
           keyboard: this.getMainKeyboard(webAppUrl),
           resize_keyboard: true
@@ -265,15 +310,16 @@ class TelegramBotService {
       return;
     }
 
-    // Step-by-step checkout text input
+    // Multi-step Checkout text inputs
     if (session.step === 'order_name') {
       session.orderData.name = text;
       session.step = 'order_phone';
-      await this.sendMessage(chatId, `📱 Rahmat, endi telefon raqamingizni yuboring:`, {
+      await this.sendMessage(chatId, `📱 Rahmat, *${text}*! Endi telefon raqamingizni yuboring:\n\nPastdagi tugmani bosing yoki raqamingizni yozib yuboring (Masalan: +998901234567):`, {
+        parse_mode: 'Markdown',
         reply_markup: {
           keyboard: [
-            [{ text: '📱 Telefon raqamni yuborish', request_contact: true }],
-            [{ text: '❌ Bekor qilish' }]
+            [{ text: '📱 Telefon raqamni ulashish', request_contact: true }],
+            [{ text: '❌ Buyurtmani bekor qilish' }]
           ],
           resize_keyboard: true
         }
@@ -284,11 +330,11 @@ class TelegramBotService {
     if (session.step === 'order_phone') {
       session.orderData.phone = text;
       session.step = 'order_address';
-      await this.sendMessage(chatId, `📍 Manzilingizni to'liq yozing (Masalan: Chilonzor 9, 14-uy, 28-x):`, {
+      await this.sendMessage(chatId, `📍 Manzilingizni yozing (Masalan: Chilonzor 9, 14-uy, 28-x) yoki joylashuv tugmasini bosing:`, {
         reply_markup: {
           keyboard: [
-            [{ text: '📍 Joylashuvni yuborish', request_location: true }],
-            [{ text: '❌ Bekor qilish' }]
+            [{ text: '📍 Joylashuvni ulashish', request_location: true }],
+            [{ text: '❌ Buyurtmani bekor qilish' }]
           ],
           resize_keyboard: true
         }
@@ -298,12 +344,12 @@ class TelegramBotService {
 
     if (session.step === 'order_address') {
       session.orderData.address = text;
-      await this.finalizeBotOrder(chatId, session);
+      await this.askPaymentMethod(chatId, session);
       return;
     }
 
-    // Default response
-    await this.sendMessage(chatId, `Kechirasiz, buyruq tushunarsiz bo'ldi. Quyidagi menyudan foydalaning:`, {
+    // Default friendly message
+    await this.sendMessage(chatId, `👋 Kechirasiz, buyruq tushunarsiz bo'ldi. Quyidagi menyudan foydalaning:`, {
       reply_markup: {
         keyboard: this.getMainKeyboard(webAppUrl),
         resize_keyboard: true
@@ -311,7 +357,9 @@ class TelegramBotService {
     });
   }
 
-  // Callback Query Handler (Inline buttons)
+  // ----------------------------------------------------------------------
+  // CALLBACK QUERY HANDLER (INLINE BUTTONS)
+  // ----------------------------------------------------------------------
   async handleCallbackQuery(cb) {
     const chatId = cb.message.chat.id;
     const messageId = cb.message.message_id;
@@ -319,15 +367,16 @@ class TelegramBotService {
     const db = getDb();
     const session = this.getSession(chatId);
 
-    // Answer callback
     await this.callApi('answerCallbackQuery', { callback_query_id: cb.id });
 
+    // Category navigation
     if (data.startsWith('cat_')) {
       const catId = Number(data.split('_')[1]);
       await this.sendProductsByCategory(chatId, catId);
       return;
     }
 
+    // Add product to cart
     if (data.startsWith('add_')) {
       const prodId = Number(data.split('_')[1]);
       const product = db.get('SELECT id, name, price FROM products WHERE id = ?', [prodId]);
@@ -338,15 +387,46 @@ class TelegramBotService {
         } else {
           session.cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
         }
-        await this.sendMessage(chatId, `✅ *${product.name}* savatchaga qo'shildi! (Jami savatda: ${session.cart.reduce((a, b) => a + b.qty, 0)} dona)`, {
+        const totalItems = session.cart.reduce((a, b) => a + b.qty, 0);
+        await this.sendMessage(chatId, `✅ *"${product.name}"* savatchaga qo'shildi!\n(Savatda: *${totalItems} dona*)`, {
+          parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [
-              [{ text: '🛒 Savatchaga o\'tish', callback_data: 'view_cart' }],
+              [{ text: `🛒 Savatchani ko'rish (${totalItems} ta)`, callback_data: 'view_cart' }],
               [{ text: '➕ Yana taom tanlash', callback_data: 'back_to_cats' }]
             ]
           }
         });
       }
+      return;
+    }
+
+    // Quantity update in cart: inc_ / dec_ / rem_
+    if (data.startsWith('cart_inc_')) {
+      const prodId = Number(data.split('_')[2]);
+      const item = session.cart.find(i => i.id === prodId);
+      if (item) item.qty += 1;
+      await this.editCartSummary(chatId, messageId, session);
+      return;
+    }
+
+    if (data.startsWith('cart_dec_')) {
+      const prodId = Number(data.split('_')[2]);
+      const item = session.cart.find(i => i.id === prodId);
+      if (item) {
+        item.qty -= 1;
+        if (item.qty <= 0) {
+          session.cart = session.cart.filter(i => i.id !== prodId);
+        }
+      }
+      await this.editCartSummary(chatId, messageId, session);
+      return;
+    }
+
+    if (data.startsWith('cart_rem_')) {
+      const prodId = Number(data.split('_')[2]);
+      session.cart = session.cart.filter(i => i.id !== prodId);
+      await this.editCartSummary(chatId, messageId, session);
       return;
     }
 
@@ -362,39 +442,71 @@ class TelegramBotService {
 
     if (data === 'clear_cart') {
       session.cart = [];
-      await this.sendMessage(chatId, '🗑 Savatcha tozalandi.');
+      await this.sendMessage(chatId, '🗑 Savatchangiz tozalandi.');
       return;
     }
 
+    // Checkout trigger
     if (data === 'checkout') {
       if (!session.cart || session.cart.length === 0) {
-        await this.sendMessage(chatId, 'Savatchangiz bo\'sh!');
+        await this.sendMessage(chatId, '⚠️ Savatchangiz bo\'sh. Avval menyudan taom tanlang.');
         return;
       }
       session.step = 'order_name';
       session.orderData = {};
-      await this.sendMessage(chatId, `📝 Buyurtmani rasmiylashtirish:\n\nIltimos, ismingizni yozib yuboring:`, {
+      const user = db.get('SELECT full_name FROM users WHERE telegram_id = ?', [String(chatId)]);
+
+      const buttons = [[{ text: '❌ Buyurtmani bekor qilish' }]];
+      if (user?.full_name) {
+        buttons.unshift([{ text: `👤 Ismimni ishlatish: ${user.full_name}` }]);
+      }
+
+      await this.sendMessage(chatId, `📝 *Buyurtmani rasmiylashtirish (1/3)*\n\nIltimos, ismingizni yozib yuboring:`, {
+        parse_mode: 'Markdown',
         reply_markup: {
-          keyboard: [[{ text: '❌ Bekor qilish' }]],
+          keyboard: buttons,
           resize_keyboard: true
         }
       });
       return;
     }
 
-    // Courier action: Accept / Deliver
+    // Payment method selected
+    if (data.startsWith('pay_')) {
+      const method = data.split('_')[1];
+      session.orderData.payment_method = method;
+      await this.showOrderConfirmation(chatId, session);
+      return;
+    }
+
+    // Final Order Confirm
+    if (data === 'confirm_order_final') {
+      await this.finalizeBotOrder(chatId, session);
+      return;
+    }
+
+    if (data === 'cancel_order_final') {
+      session.step = null;
+      session.orderData = {};
+      await this.sendMessage(chatId, '❌ Buyurtma bekor qilindi.');
+      return;
+    }
+
+    // Courier Accept / Deliver actions
     if (data.startsWith('courier_accept_')) {
       const orderId = Number(data.split('_')[2]);
       const courier = db.get('SELECT id, name FROM couriers WHERE telegram_id = ?', [String(chatId)]);
       if (!courier) {
-        await this.sendMessage(chatId, '❌ Siz kuryer sifatida ro\'yxatdan o\'tmagansiz.');
+        await this.sendMessage(chatId, '❌ Kuryer akkaunti topilmadi.');
         return;
       }
+
       db.run('UPDATE orders SET status = "on_way", courier_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [courier.id, orderId]);
       db.run('UPDATE couriers SET status = "busy" WHERE id = ?', [courier.id]);
 
-      const order = db.get('SELECT order_number, customer_phone FROM orders WHERE id = ?', [orderId]);
-      await this.sendMessage(chatId, `🚀 *Buyurtma #${order?.order_number || orderId} qabul qilindi!*\nSiz yo'lga chiqdingiz. Manzilga yetib borgach "Yetkazib berdim" tugmasini bosing.`, {
+      const order = db.get('SELECT * FROM orders WHERE id = ?', [orderId]);
+      await this.sendMessage(chatId, `🚀 *Buyurtma #${order?.order_number || orderId} qabul qilindi!*\n\nSiz hozir mijoz tomon yo'ldasiz. Manzilga yetib borgach *"Yetkazib berdim"* tugmasini bosing:`, {
+        parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
             [{ text: '🏁 Yetkazib berdim (Tugatish)', callback_data: `courier_delivered_${orderId}` }]
@@ -407,37 +519,63 @@ class TelegramBotService {
     if (data.startsWith('courier_delivered_')) {
       const orderId = Number(data.split('_')[2]);
       const courier = db.get('SELECT id, name FROM couriers WHERE telegram_id = ?', [String(chatId)]);
-      
+
       db.run('UPDATE orders SET status = "delivered", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [orderId]);
       if (courier) {
         db.run('UPDATE couriers SET status = "free", total_delivered = total_delivered + 1 WHERE id = ?', [courier.id]);
       }
 
       const order = db.get('SELECT order_number FROM orders WHERE id = ?', [orderId]);
-      await this.sendMessage(chatId, `🎉 *Barakalla!* #${order?.order_number || orderId} buyurtma muvaffaqiyatli yetkazildi! Holatingiz yana "Bo'sh" (Free) ga o'tkazildi.`);
+      await this.sendMessage(chatId, `🎉 *Barakalla! Buyurtma #${order?.order_number || orderId} yetkazildi!*\n\nHolatingiz yana *"🟢 Bo'sh"* rejimiga o'tkazildi.`, {
+        parse_mode: 'Markdown'
+      });
       return;
     }
 
-    // Admin action: Quick confirm
-    if (data.startsWith('admin_confirm_')) {
-      const orderId = Number(data.split('_')[2]);
-      db.run('UPDATE orders SET status = "confirmed", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [orderId]);
-      await this.sendMessage(chatId, `✅ Buyurtma ID ${orderId} tasdiqlandi!`);
+    // Reorder from history
+    if (data.startsWith('reorder_')) {
+      const orderId = Number(data.split('_')[1]);
+      const items = db.query('SELECT product_id, product_name, quantity, unit_price FROM order_items WHERE order_id = ?', [orderId]);
+      if (items.length > 0) {
+        session.cart = items.map(i => ({
+          id: i.product_id,
+          name: i.product_name,
+          price: i.unit_price,
+          qty: i.quantity
+        }));
+        await this.sendMessage(chatId, `🔄 Buyurtma tarkibi savatchangizga yuklandi!`, {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🛒 Savatchaga o\'tish', callback_data: 'view_cart' }]
+            ]
+          }
+        });
+      }
+      return;
+    }
+
+    // Refresh order track status
+    if (data.startsWith('refresh_track_')) {
+      const orderNum = data.split('_')[2];
+      await this.sendSingleOrderTrack(chatId, orderNum, messageId);
       return;
     }
   }
 
-  // Welcome message with Reply Keyboard
+  // ----------------------------------------------------------------------
+  // WELCOME & KEYBOARDS
+  // ----------------------------------------------------------------------
   async sendWelcomeMessage(chatId, firstName, webAppUrl) {
-    const welcomeText = `Salom, *${firstName || 'Qadrli Mijoz'}*! 👋\n\n` +
-      `*Smart Delivery* — tezkor va aqlli taom yetkazib berish xizmatiga xush kelibsiz! 🚀\n\n` +
-      `⚡️ *Nimalar qila olasiz?*\n` +
-      `• Menyudan sarxil va issiq taomlarni tanlash\n` +
-      `• Zamonaviy Web-sayt yoki WebApp orqali bir zumda buyurtma berish\n` +
-      `• Real-time rejimida kuryer va buyurtmangizni xarita orqali jonli kuzatish!\n\n` +
-      `Kerakli bo'limni tanlang:`;
+    const text = `Assalomu alaykum, *${firstName || 'Qadrli Mijoz'}*! 👋\n\n` +
+      `*Smart Delivery* — tezkor, issiq va zamonaviy taom yetkazib berish xizmatiga xush kelibsiz! 🚀\n\n` +
+      `⚡️ *Qulayliklarimiz:*\n` +
+      `• 🍔 Mazali va sara taomlar menyusi\n` +
+      `• 🌐 Zamonaviy Telegram WebApp integratsiyasi\n` +
+      `• 📍 Real-time rejimida buyurtma va kuryerni jonli kuzatish\n` +
+      `• 🛵 Tezkor yetkazish: 25-35 daqiqa\n\n` +
+      `Quyidagi menyudan kerakli bo'limni tanlang:`;
 
-    await this.sendMessage(chatId, welcomeText, {
+    await this.sendMessage(chatId, text, {
       parse_mode: 'Markdown',
       reply_markup: {
         keyboard: this.getMainKeyboard(webAppUrl),
@@ -448,13 +586,26 @@ class TelegramBotService {
 
   getMainKeyboard(webAppUrl) {
     return [
-      [{ text: '🍔 Menyu va Buyurtma berish' }],
-      [{ text: '🌐 Web-sayt orqali buyurtma (WebApp)', web_app: { url: webAppUrl } }],
+      [{ text: '🍔 Menyu va Buyurtma' }],
+      [{ text: '🌐 WebApp orqali buyurtma', web_app: { url: webAppUrl } }],
       [{ text: '📦 Buyurtmam holati' }, { text: '🛒 Savatcha' }],
-      [{ text: '🛵 Kuryer rejimi' }, { text: '📞 Bog\'lanish' }]
+      [{ text: '📜 Buyurtmalar tarixi' }, { text: '🛵 Kuryer kabineti' }],
+      [{ text: '👑 Admin panel' }, { text: '📞 Bog\'lanish va Yordam' }]
     ];
   }
 
+  getCourierKeyboard() {
+    return [
+      [{ text: '📋 Faol buyurtmalarim' }],
+      [{ text: '🟢 Holatim: Bo\'sh (Free)' }, { text: '🟡 Holatim: Band (Busy)' }],
+      [{ text: '📊 Kuryer statistikasi' }, { text: '⚪️ Offline bo\'lish' }],
+      [{ text: '🏠 Asosiy menyu' }]
+    ];
+  }
+
+  // ----------------------------------------------------------------------
+  // MENU & PRODUCTS
+  // ----------------------------------------------------------------------
   async sendCategoryList(chatId) {
     const db = getDb();
     const categories = db.query('SELECT * FROM categories ORDER BY sort_order ASC');
@@ -482,27 +633,27 @@ class TelegramBotService {
     const products = db.query('SELECT * FROM products WHERE category_id = ? AND is_available = 1', [categoryId]);
 
     if (products.length === 0) {
-      await this.sendMessage(chatId, 'Hozircha ushbu kategoriyada taomlar mavjud emas.');
+      await this.sendMessage(chatId, 'Ushbu kategoriyada hozircha taomlar mavjud emas.');
       return;
     }
 
-    await this.sendMessage(chatId, `✨ *${category ? category.name : 'Menyu'} taomlari:*`, { parse_mode: 'Markdown' });
+    await this.sendMessage(chatId, `✨ *${category?.name || 'Menyu'} sarxil taomlari:*`, { parse_mode: 'Markdown' });
 
     for (const p of products) {
-      const caption = `*${p.name}*\n` +
+      const caption = `*${p.name}*\n\n` +
         `📝 ${p.description || ''}\n` +
         `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
         `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
 
       const inline_keyboard = [
-        [{ text: `➕ Savatchaga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
+        [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
       ];
 
       if (p.image_url) {
         await this.callApi('sendPhoto', {
           chat_id: chatId,
           photo: p.image_url,
-          caption: caption,
+          caption,
           parse_mode: 'Markdown',
           reply_markup: { inline_keyboard }
         });
@@ -514,49 +665,123 @@ class TelegramBotService {
       }
     }
 
-    await this.sendMessage(chatId, `Tanlab bo'lgach savatchaga o'ting:`, {
+    await this.sendMessage(chatId, `Tanlab bo'lgach savatchaga o'ting yoki boshqa kategoriyani ko'ring:`, {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🛒 Savatchani ko\'rish', callback_data: 'view_cart' }],
+          [{ text: '🛒 Savatchaga o\'tish', callback_data: 'view_cart' }],
           [{ text: '⬅️ Kategoriyalarga qaytish', callback_data: 'back_to_cats' }]
         ]
       }
     });
   }
 
-  async sendCartSummary(chatId, session) {
+  // ----------------------------------------------------------------------
+  // INTERACTIVE CART & QUANTITY MANAGEMENT
+  // ----------------------------------------------------------------------
+  formatCartTextAndButtons(session) {
     if (!session.cart || session.cart.length === 0) {
-      await this.sendMessage(chatId, `🛒 *Savatchangiz bo'sh!*\n\nMenyudan sevimli taomlaringizni tanlang.`, {
-        parse_mode: 'Markdown',
-        reply_markup: {
-          inline_keyboard: [[{ text: '🍔 Menyu ochish', callback_data: 'back_to_cats' }]]
-        }
-      });
-      return;
+      return {
+        text: `🛒 *Sizning savatchangiz bo'sh!*\n\nMenyudan sevimli taomlaringizni tanlang.`,
+        inline_keyboard: [[{ text: '🍔 Menyu ochish', callback_data: 'back_to_cats' }]]
+      };
     }
 
     let total = 0;
     let text = `🛒 *Sizning savatchangiz:*\n\n`;
+    const inline_keyboard = [];
 
     session.cart.forEach((item, index) => {
       const itemTotal = item.price * item.qty;
       total += itemTotal;
-      text += `${index + 1}. *${item.name}* x ${item.qty} = ${itemTotal.toLocaleString()} so'm\n`;
+      text += `${index + 1}. *${item.name}*\n   ${item.qty} dona x ${item.price.toLocaleString()} = *${itemTotal.toLocaleString()} so'm*\n`;
+
+      inline_keyboard.push([
+        { text: `➖`, callback_data: `cart_dec_${item.id}` },
+        { text: `${item.name.slice(0, 15)} (${item.qty})`, callback_data: 'noop' },
+        { text: `➕`, callback_data: `cart_inc_${item.id}` },
+        { text: `🗑`, callback_data: `cart_rem_${item.id}` }
+      ]);
     });
 
     const deliveryFee = total >= 150000 ? 0 : 15000;
     const grandTotal = total + deliveryFee;
 
-    text += `\n📦 Mahsulotlar: *${total.toLocaleString()} so'm*`;
-    text += `\n🛵 Yetkazib berish: *${deliveryFee === 0 ? 'Tekin (Aksiya)' : deliveryFee.toLocaleString() + ' so\'m'}*`;
-    text += `\n💰 *Jami to'lov: ${grandTotal.toLocaleString()} so'm*`;
+    text += `\n─────────────\n`;
+    text += `📦 Mahsulotlar: *${total.toLocaleString()} so'm*\n`;
+    text += `🛵 Yetkazib berish: *${deliveryFee === 0 ? '0 so\'m (Tekin aksiya 🎉)' : deliveryFee.toLocaleString() + ' so\'m'}*\n`;
+    if (deliveryFee > 0) {
+      text += `💡 *Maslahat:* Yana ${(150000 - total).toLocaleString()} so'mlik buyurtma bersangiz, yetkazib berish tekin bo'ladi!\n`;
+    }
+    text += `💰 *JAMI TO'LOV: ${grandTotal.toLocaleString()} so'm*`;
 
+    inline_keyboard.push([{ text: '🚀 Buyurtmani rasmiylashtirish', callback_data: 'checkout' }]);
+    inline_keyboard.push([
+      { text: '🗑 Tozalash', callback_data: 'clear_cart' },
+      { text: '➕ Yana taom qo\'shish', callback_data: 'back_to_cats' }
+    ]);
+
+    return { text, inline_keyboard };
+  }
+
+  async sendCartSummary(chatId, session) {
+    const { text, inline_keyboard } = this.formatCartTextAndButtons(session);
     await this.sendMessage(chatId, text, {
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard }
+    });
+  }
+
+  async editCartSummary(chatId, messageId, session) {
+    const { text, inline_keyboard } = this.formatCartTextAndButtons(session);
+    await this.callApi('editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard }
+    });
+  }
+
+  // ----------------------------------------------------------------------
+  // CHECKOUT WORKFLOW
+  // ----------------------------------------------------------------------
+  async askPaymentMethod(chatId, session) {
+    await this.sendMessage(chatId, `💳 *To'lov turini tanlang:*`, {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🚀 Buyurtma berish', callback_data: 'checkout' }],
-          [{ text: '🗑 Savatchani tozalash', callback_data: 'clear_cart' }, { text: '➕ Yana taom qo\'shish', callback_data: 'back_to_cats' }]
+          [{ text: '💵 Naqd pul (kuryerga)', callback_data: 'pay_Naqd' }],
+          [{ text: '💳 Click orqali', callback_data: 'pay_Click' }, { text: '📱 Payme orqali', callback_data: 'pay_Payme' }],
+          [{ text: '💳 Uzcard / Humo karta', callback_data: 'pay_Karta' }]
+        ]
+      }
+    });
+  }
+
+  async showOrderConfirmation(chatId, session) {
+    const items = session.cart;
+    const subtotal = items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const deliveryFee = subtotal >= 150000 ? 0 : 15000;
+    const total = subtotal + deliveryFee;
+
+    let itemsText = items.map(i => `• ${i.name} x ${i.qty} = ${(i.price * i.qty).toLocaleString()} so'm`).join('\n');
+
+    const summary = `📋 *BUYURTMA XULOSASI:*\n\n` +
+      `👤 Mijoz: *${session.orderData.name}*\n` +
+      `📞 Tel: *${session.orderData.phone}*\n` +
+      `📍 Manzil: *${session.orderData.address}*\n` +
+      `💳 To'lov turi: *${session.orderData.payment_method}*\n\n` +
+      `🍱 *Taomlar:*\n${itemsText}\n\n` +
+      `🛵 Yetkazib berish: *${deliveryFee === 0 ? 'Tekin' : deliveryFee.toLocaleString() + ' so\'m'}*\n` +
+      `💰 *Jami summa: ${total.toLocaleString()} so'm*\n\n` +
+      `Barcha ma'lumotlar to'g'rimi?`;
+
+    await this.sendMessage(chatId, summary, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '✅ Tasdiqlash va Yuborish', callback_data: 'confirm_order_final' }],
+          [{ text: '❌ Bekor qilish', callback_data: 'cancel_order_final' }]
         ]
       }
     });
@@ -585,7 +810,7 @@ class TelegramBotService {
       session.orderData.longitude || null,
       totalAmount,
       deliveryFee,
-      'Naqd',
+      session.orderData.payment_method || 'Naqd',
       'new',
       'telegram_bot',
       'Telegram bot orqali rasmiylashtirildi'
@@ -599,18 +824,17 @@ class TelegramBotService {
       `, [orderId, item.id, item.name, item.qty, item.price, item.price * item.qty]);
     }
 
-    // Reset session cart
     session.cart = [];
     session.step = null;
     session.orderData = {};
 
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system.vercel.app';
+    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
 
     await this.sendMessage(chatId, `🎉 *Buyurtmangiz muvaffaqiyatli qabul qilindi!*\n\n` +
       `🆔 Buyurtma raqami: *${orderNumber}*\n` +
-      `💰 Jami summa: *${totalAmount.toLocaleString()} so'm*\n` +
+      `💰 Jami to'lov: *${totalAmount.toLocaleString()} so'm*\n` +
       `⏳ Holati: *Yangi (Operator tasdiqlashi kutilmoqda)*\n\n` +
-      `Buyurtmangiz holatini istalgan payt *'📦 Buyurtmam holati'* bo'limidan yoki Web-saytimizda *${orderNumber}* raqamini kiritib kuzatib borishingiz mumkin!`, {
+      `Buyurtmangiz tayyorlanish jarayonini pastdagi *"📦 Buyurtmam holati"* orqali jonli kuzatishingiz mumkin.`, {
       parse_mode: 'Markdown',
       reply_markup: {
         keyboard: this.getMainKeyboard(webAppUrl),
@@ -618,7 +842,6 @@ class TelegramBotService {
       }
     });
 
-    // Notify admins
     this.notifyAdminsNewOrder({
       id: orderId,
       order_number: orderNumber,
@@ -629,16 +852,18 @@ class TelegramBotService {
     });
   }
 
+  // ----------------------------------------------------------------------
+  // LIVE TRACKING IN BOT
+  // ----------------------------------------------------------------------
   async sendUserActiveOrders(chatId) {
     const db = getDb();
-    // Search by telegram_id or recent
     const orders = db.query(`
       SELECT o.*, c.name as courier_name, c.phone as courier_phone, c.vehicle_type
       FROM orders o
       LEFT JOIN couriers c ON o.courier_id = c.id
       WHERE o.status != 'cancelled'
       ORDER BY o.id DESC
-      LIMIT 3
+      LIMIT 2
     `);
 
     if (orders.length === 0) {
@@ -646,57 +871,127 @@ class TelegramBotService {
       return;
     }
 
-    let text = `📦 *Oxirgi buyurtmalaringiz holati:*\n\n`;
-    const statusMap = {
-      new: '🟡 Yangi (Qabul qilindi)',
-      confirmed: '🔵 Tasdiqlandi',
-      preparing: '👨‍🍳 Oshxonada tayyorlanmoqda',
-      on_way: '🛵 Yo\'lda (Kuryer eltmoqda)',
-      delivered: '✅ Yetkazib berildi',
-      cancelled: '❌ Bekor qilingan'
-    };
-
     for (const o of orders) {
-      text += `🆔 *${o.order_number}*\n` +
-        `📊 Holat: *${statusMap[o.status] || o.status}*\n` +
-        `💰 Summa: *${Number(o.total_amount).toLocaleString()} so'm*\n` +
-        `📍 Manzil: ${o.delivery_address}\n`;
-
-      if (o.courier_name) {
-        text += `🛵 Kuryer: *${o.courier_name}* (${o.vehicle_type || 'Skuter'}, 📞 ${o.courier_phone})\n`;
-      }
-      text += `─────────────\n`;
+      await this.sendSingleOrderTrack(chatId, o.order_number);
     }
-
-    await this.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   }
 
-  async handleCourierCommand(chatId) {
+  async sendSingleOrderTrack(chatId, orderNumber, messageIdToEdit = null) {
+    const db = getDb();
+    const o = db.get(`
+      SELECT o.*, c.name as courier_name, c.phone as courier_phone, c.vehicle_type
+      FROM orders o
+      LEFT JOIN couriers c ON o.courier_id = c.id
+      WHERE o.order_number = ?
+    `, [orderNumber]);
+
+    if (!o) return;
+
+    const progressMap = {
+      new: { bar: '🟢⚪️⚪️⚪️⚪️ (20%)', text: '1. Qabul qilindi' },
+      confirmed: { bar: '🟢🟢⚪️⚪️⚪️ (40%)', text: '2. Tasdiqlandi' },
+      preparing: { bar: '🟢🟢🟢⚪️⚪️ (60%)', text: '3. Oshxonada pishirilmoqda 👨‍🍳' },
+      on_way: { bar: '🟢🟢🟢🟢⚪️ (80%)', text: '4. Kuryer yo\'lda 🛵' },
+      delivered: { bar: '🟢🟢🟢🟢🟢 (100%)', text: '5. Yetkazib berildi ✅' },
+      cancelled: { bar: '🔴 Bekor qilingan', text: 'Bekor qilingan' }
+    };
+
+    const statusInfo = progressMap[o.status] || { bar: '⚪️', text: o.status };
+
+    let msg = `📦 *BUYURTMA HOLATI: ${o.order_number}*\n\n` +
+      `📊 Bosqich: *${statusInfo.text}*\n` +
+      `📈 Jarayon: \`${statusInfo.bar}\`\n\n` +
+      `📍 Manzil: ${o.delivery_address}\n` +
+      `💰 Summa: *${Number(o.total_amount).toLocaleString()} so'm* (${o.payment_method})\n`;
+
+    if (o.courier_name) {
+      msg += `\n🛵 *Biriktirilgan Kuryer:*\n` +
+        `👤 Ismi: *${o.courier_name}*\n` +
+        `📞 Telefon: *${o.courier_phone}*\n` +
+        `🚗 Transport: *${o.vehicle_type || 'Skuter'}*\n`;
+    }
+
+    const inline_keyboard = [
+      [{ text: '🔄 Holatni yangilash', callback_data: `refresh_track_${o.order_number}` }]
+    ];
+
+    if (messageIdToEdit) {
+      await this.callApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageIdToEdit,
+        text: msg,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard }
+      });
+    } else {
+      await this.sendMessage(chatId, msg, {
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard }
+      });
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // ORDER HISTORY
+  // ----------------------------------------------------------------------
+  async sendOrderHistory(chatId) {
+    const db = getDb();
+    const orders = db.query(`
+      SELECT * FROM orders
+      ORDER BY id DESC
+      LIMIT 5
+    `);
+
+    if (orders.length === 0) {
+      await this.sendMessage(chatId, 'Sizda hali o\'tgan buyurtmalar yo\'q.');
+      return;
+    }
+
+    let text = `📜 *Oxirgi buyurtmalaringiz tarixi:*\n\n`;
+    for (const o of orders) {
+      text += `🆔 *${o.order_number}* • ${new Date(o.created_at).toLocaleDateString('uz-UZ')}\n` +
+        `Holati: *${o.status.toUpperCase()}* | Summa: *${Number(o.total_amount).toLocaleString()} so'm*\n` +
+        `Manzil: ${o.delivery_address.slice(0, 30)}...\n─────────────\n`;
+    }
+
+    await this.sendMessage(chatId, text, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔄 Oxirgi buyurtmani qayta berish', callback_data: `reorder_${orders[0].id}` }]
+        ]
+      }
+    });
+  }
+
+  // ----------------------------------------------------------------------
+  // ADVANCED COURIER WORKSPACE
+  // ----------------------------------------------------------------------
+  async handleCourierCommand(chatId, fullName) {
     const db = getDb();
     const courier = db.get('SELECT * FROM couriers WHERE telegram_id = ?', [String(chatId)]);
 
     if (courier) {
-      await this.sendMessage(chatId, `👋 Xush kelibsiz, *${courier.name}* (Kuryer)!\n\n` +
-        `📊 Holat: *${courier.status === 'free' ? '🟢 Bo\'sh (Free)' : '🟡 Band (Busy)'}*\n` +
-        `🛵 Transport: *${courier.vehicle_type}*\n` +
-        `📦 Yetkazilgan jami: *${courier.total_delivered} ta buyurtma*`, {
+      await this.sendMessage(chatId, `👋 Xush kelibsiz, *${courier.name}* (Kuryer kabineti)!\n\n` +
+        `📊 Hozirgi holatingiz: *${courier.status === 'free' ? '🟢 Bo\'sh (Buyurtma kutilmoqda)' : courier.status === 'busy' ? '🟡 Band (Yetkazish jarayonida)' : '⚪️ Offline'}*\n` +
+        `🛵 Transportingiz: *${courier.vehicle_type}*\n` +
+        `📦 Yetkazilgan buyurtmalar: *${courier.total_delivered} ta*\n\n` +
+        `Boshqaruv uchun pastdagi tugmalardan foydalaning:`, {
         parse_mode: 'Markdown',
         reply_markup: {
-          keyboard: [
-            [{ text: '📋 Biriktirilgan buyurtmalarim' }, { text: '🟢 Holatim: Bo\'sh (Free)' }],
-            [{ text: '🏠 Asosiy menyu' }]
-          ],
+          keyboard: this.getCourierKeyboard(),
           resize_keyboard: true
         }
       });
     } else {
       const session = this.getSession(chatId);
       session.step = 'courier_phone';
-      await this.sendMessage(chatId, `🛵 *Smart Delivery Kuryer tizimiga ulanish:*\n\nIltimos, kuryer akkauntingizni tizim bilan bog'lash uchun quyidagi tugma orqali telefon raqamingizni yuboring:`, {
+      await this.sendMessage(chatId, `🛵 *Smart Delivery Kuryer Tizimi:*\n\n` +
+        `Tizimga kuryer sifatida ulanish uchun telefon raqamingizni yuboring:`, {
         parse_mode: 'Markdown',
         reply_markup: {
           keyboard: [
-            [{ text: '📱 Kuryer telefon raqamini yuborish', request_contact: true }],
+            [{ text: '📱 Telefon raqamni yuborish', request_contact: true }],
             [{ text: '🏠 Asosiy menyu' }]
           ],
           resize_keyboard: true
@@ -709,7 +1004,7 @@ class TelegramBotService {
     const db = getDb();
     const courier = db.get('SELECT id, name FROM couriers WHERE telegram_id = ?', [String(chatId)]);
     if (!courier) {
-      await this.sendMessage(chatId, 'Siz kuryer sifatida ro\'yxatdan o\'tmagansiz. /courier bosing.');
+      await this.sendMessage(chatId, 'Kuryer sifatida ro\'yxatdan o\'tmagansiz.');
       return;
     }
 
@@ -720,7 +1015,7 @@ class TelegramBotService {
     `, [courier.id]);
 
     if (orders.length === 0) {
-      await this.sendMessage(chatId, 'Hozircha sizga biriktirilgan faol buyurtmalar yo\'q.');
+      await this.sendMessage(chatId, '✅ Hozircha sizga biriktirilgan yangi buyurtmalar yo\'q. Yangi buyurtma tushishi bilan xabar beramiz!');
       return;
     }
 
@@ -728,19 +1023,19 @@ class TelegramBotService {
       const items = db.query('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
       const itemsText = items.map(i => `• ${i.product_name} x ${i.quantity}`).join('\n');
 
-      const msg = `🔔 *Buyurtma ${o.order_number}*\n\n` +
+      const msg = `🔔 *YETKAZISH BUYURTMASI #${o.order_number}*\n\n` +
         `👤 Mijoz: *${o.customer_name}*\n` +
-        `📞 Telefon: *${o.customer_phone}*\n` +
+        `📞 Tel: *${o.customer_phone}*\n` +
         `📍 Manzil: *${o.delivery_address}*\n` +
         `💳 To'lov: *${o.payment_method}* (${Number(o.total_amount).toLocaleString()} so'm)\n` +
         `📝 Izoh: ${o.notes || 'Yo\'q'}\n\n` +
-        `🍱 *Tarkibi:*\n${itemsText}`;
+        `🍱 *Taomlar:*\n${itemsText}`;
 
       const buttons = [];
       if (o.status !== 'on_way') {
         buttons.push([{ text: '🚗 Qabul qildim / Yo\'lga chiqdim', callback_data: `courier_accept_${o.id}` }]);
       }
-      buttons.push([{ text: '🏁 Yetkazib berdim', callback_data: `courier_delivered_${o.id}` }]);
+      buttons.push([{ text: '🏁 Yetkazib berdim (Tugatish)', callback_data: `courier_delivered_${o.id}` }]);
 
       await this.sendMessage(chatId, msg, {
         parse_mode: 'Markdown',
@@ -749,24 +1044,23 @@ class TelegramBotService {
     }
   }
 
-  async sendAdminOverview(chatId) {
+  async sendCourierStats(chatId) {
     const db = getDb();
-    const totalOrders = db.get('SELECT COUNT(*) as cnt FROM orders').cnt;
-    const activeOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ("delivered", "cancelled")').cnt;
-    const totalRevenue = db.get('SELECT SUM(total_amount) as sum FROM orders WHERE status = "delivered"').sum || 0;
-    const freeCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers WHERE status = "free"').cnt;
+    const courier = db.get('SELECT * FROM couriers WHERE telegram_id = ?', [String(chatId)]);
+    if (!courier) return;
 
-    const text = `👑 *Smart Delivery — Admin boshqaruv paneli:*\n\n` +
-      `📊 Jami buyurtmalar: *${totalOrders} ta*\n` +
-      `🔥 Faol buyurtmalar: *${activeOrders} ta*\n` +
-      `🛵 Bo'sh kuryerlar: *${freeCouriers} ta*\n` +
-      `💰 Tushum: *${Number(totalRevenue).toLocaleString()} so'm*\n\n` +
-      `Web-admin panel manzili: ${process.env.FRONTEND_URL || 'https://smart-delivery-system.vercel.app'}/admin`;
+    const deliveredOrders = db.get('SELECT COUNT(*) as cnt, SUM(total_amount) as total FROM orders WHERE courier_id = ? AND status = "delivered"', [courier.id]);
+
+    const text = `📊 *Kuryer Hisoboti: ${courier.name}*\n\n` +
+      `🛵 Transport turi: *${courier.vehicle_type}*\n` +
+      `📦 Muvaffaqiyatli yetkazilgan: *${courier.total_delivered} ta buyurtma*\n` +
+      `💰 Jami yetkazilgan summa: *${Number(deliveredOrders?.total || 0).toLocaleString()} so'm*\n` +
+      `⭐ Reyting: *5.0 / 5.0 (A'lo darajada)*`;
 
     await this.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   }
 
-  // Real-Time Notification to Courier when Order is Assigned
+  // Notify Courier when Admin Assigns Order (including Geo Location if available!)
   async notifyCourierAssigned(courierId, order) {
     const db = getDb();
     const courier = db.get('SELECT * FROM couriers WHERE id = ?', [courierId]);
@@ -780,9 +1074,9 @@ class TelegramBotService {
       `👤 Mijoz: *${order.customer_name}*\n` +
       `📞 Tel: *${order.customer_phone}*\n` +
       `📍 Manzil: *${order.delivery_address}*\n` +
-      `💰 To'lov turi: *${order.payment_method}* (${Number(order.total_amount).toLocaleString()} so'm)\n` +
+      `💰 To'lov: *${order.payment_method}* (${Number(order.total_amount).toLocaleString()} so'm)\n` +
       `📝 Izoh: ${order.notes || 'Yo\'q'}\n\n` +
-      `🍱 *Taomlar ro'yxati:*\n${itemsText}`;
+      `🍱 *Taomlar:*\n${itemsText}`;
 
     await this.sendMessage(courier.telegram_id, msg, {
       parse_mode: 'Markdown',
@@ -793,23 +1087,60 @@ class TelegramBotService {
         ]
       }
     });
+
+    // If customer shared location coordinates, send map pin to courier
+    if (order.latitude && order.longitude) {
+      await this.callApi('sendLocation', {
+        chat_id: courier.telegram_id,
+        latitude: order.latitude,
+        longitude: order.longitude
+      });
+    }
   }
 
-  // Real-Time Notification to Admins on New Order
+  // ----------------------------------------------------------------------
+  // ADMIN DASHBOARD & NOTIFICATIONS
+  // ----------------------------------------------------------------------
+  async sendAdminDashboard(chatId) {
+    const db = getDb();
+    const totalOrders = db.get('SELECT COUNT(*) as cnt FROM orders').cnt;
+    const activeOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ("delivered", "cancelled")').cnt;
+    const totalRevenue = db.get('SELECT SUM(total_amount) as sum FROM orders WHERE status = "delivered"').sum || 0;
+    const freeCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers WHERE status = "free"').cnt;
+    const totalCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
+
+    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+
+    const text = `👑 *Smart Delivery — Admin Dispetcherlik Markazi:*\n\n` +
+      `📊 Jami buyurtmalar: *${totalOrders} ta*\n` +
+      `🔥 Jarayondagi buyurtmalar: *${activeOrders} ta*\n` +
+      `🛵 Bo'sh kuryerlar: *${freeCouriers} / ${totalCouriers} ta*\n` +
+      `💰 Umumiy tushum: *${Number(totalRevenue).toLocaleString()} so'm*\n\n` +
+      `Barcha funksiyalar va dispetcherlik boshqaruvi uchun Web-panelga kiring:`;
+
+    await this.sendMessage(chatId, text, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '👑 Web Admin Panelni ochish', url: `${webAppUrl}/admin` }]
+        ]
+      }
+    });
+  }
+
   async notifyAdminsNewOrder(order) {
     const msg = `🔔 *YANGI BUYURTMA KELDI! (${order.order_number})*\n\n` +
       `👤 Mijoz: *${order.customer_name}*\n` +
       `📞 Tel: *${order.customer_phone}*\n` +
       `💰 Summa: *${Number(order.total_amount).toLocaleString()} so'm*\n` +
-      `🌐 Manba: *${order.source === 'telegram_bot' ? 'Telegram Bot 🤖' : 'Web Sayt 💻'}*\n\n` +
-      `Tezkor tasdiqlash uchun tugmani bosing:`;
+      `🌐 Manba: *${order.source === 'telegram_bot' ? '🤖 Telegram Bot' : '💻 Web Sayt'}*`;
 
     for (const adminId of this.adminChatIds) {
       await this.sendMessage(adminId, msg, {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '✅ Tasdiqlash', callback_data: `admin_confirm_${order.id}` }]
+            [{ text: '👑 Admin paneldan ko\'rish', url: `${process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app'}/admin` }]
           ]
         }
       });
@@ -820,7 +1151,7 @@ class TelegramBotService {
   async sendMessage(chatId, text, extra = {}) {
     return await this.callApi('sendMessage', {
       chat_id: chatId,
-      text: text,
+      text,
       ...extra
     });
   }
