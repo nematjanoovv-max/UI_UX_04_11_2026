@@ -1,6 +1,7 @@
 node_modules/
 .env
-.npm/
+.env.*
+!.env.example
 *.log
 .system_generated/
 .vercel

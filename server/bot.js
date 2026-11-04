@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { getDb } = require('./database');
 
 const botLocales = {
@@ -101,13 +102,13 @@ const botLocales = {
 
 class TelegramBotService {
   constructor() {
-    this.token = process.env.BOT_TOKEN || '9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo';
+    this.token = (process.env.BOT_TOKEN || '').trim();
     this.botInfo = null;
     this.isRunning = false;
     this.pollOffset = 0;
     this.userSessions = new Map(); // chat_id => session state
-    const envAdminId = Number(process.env.ADMIN_TELEGRAM_ID || '1340769865');
-    this.adminChatIds = new Set(envAdminId ? [envAdminId] : [1340769865]);
+    const envAdminId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : null;
+    this.adminChatIds = new Set(envAdminId ? [envAdminId] : []);
   }
 
   getApiUrl(method) {

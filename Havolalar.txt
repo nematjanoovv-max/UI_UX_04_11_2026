@@ -15,8 +15,7 @@ GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 
 • Admin Dispetcherlik Paneli:
   https://smart-delivery-system-2026.vercel.app/admin
-  (Login: admin | Parol: admin123)
-  * Eslatma: Sayt interfeysida parollar ochiq ko'rsatilmaydi, xavfsizlik ta'minlangan.
+  * Eslatma: Sayt interfeysida va hujjatlarda parollar ochiq ko'rsatilmaydi, xavfsizlik ta'minlangan.
   * Tovar turlari: Barcha kategoriyalar (Fast Food 🍔, Milliy taomlar 🍲, Ichimliklar 🥤, Shirinliklar 🍰, Salatlar 🥗) ko'rinadigan interaktiv tugmalar sifatida taqdim etilgan.
   * Mijoz ma'lumotlari: Buyurtmalar ro'yxatida mijozning Telegram profili (@username) va Telegram ID si to'liq ko'rinadi.
 
@@ -39,7 +38,7 @@ GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 • Bot Username    : @Smart_deliveryyy_bot
 • Bot Havolasi    : https://t.me/Smart_deliveryyy_bot
 • Telegram WebApp : Ulandi (Chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
-• Bosh Admin ID   : 1340769865 (@Nematjanovvvv)
+• Bosh Admin ID   : Maxfiy (.env / ADMIN_TELEGRAM_ID orqali xavfsiz biriktirilgan)
 • Holati          : 100% Active / Uzluksiz ishlamoqda (Long-Polling & WebApp)
 • Ko'p tillilik   : 3 ta til to'liq integratsiya qilingan (🇺🇿 O'zbekcha / 🇷🇺 Русский / 🇬🇧 English)
 
