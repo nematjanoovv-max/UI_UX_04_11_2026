@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: smart-delivery-system
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && node server/seed.js
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        value: 8918930941:AAH1O85nqhZfkVsjGROMRqcQ4rUB19v94XE
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: PORT
+        value: 10000

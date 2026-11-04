@@ -1,0 +1,25 @@
+{
+  "name": "smart-delivery-system",
+  "version": "1.0.0",
+  "description": "Smart Delivery - Yetkazib berish tizimi (Web + Admin + Kuryer + Telegram Bot)",
+  "main": "server/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "seed": "node server/seed.js",
+    "client": "npm run dev --prefix frontend",
+    "build:client": "npm run build --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "dev": "node server/server.js",
+    "install:all": "npm install && npm install --prefix frontend"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
