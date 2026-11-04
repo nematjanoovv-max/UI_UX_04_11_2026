@@ -28,9 +28,10 @@
      https://github.com/nematjanoovv-max/smart-delivery-system-2026/blob/main/render.yaml
 
 6. TELEGRAM BOT MA'LUMOTLARI:
-   - Bot Nomi:        Smart Delivery Bot
-   - Bot Username:    @Nematjanovvvv_bot
-   - Bot Link:        https://t.me/Nematjanovvvv_bot
+   - Bot Nomi:        Smart_delivery
+   - Bot Username:    @Smart_deliveryyy_bot
+   - Bot Link:        https://t.me/Smart_deliveryyy_bot
+   - Bot Token:       9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo
    - Bot WebApp:      Ulandi (Telegram chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
    - Bot Holati:      Active / 100% Sinxronlangan
    - Qo'llab-quvvatlanadigan rollar va buyruqlar:

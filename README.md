@@ -4,7 +4,7 @@ Zamonaviy, to'liq sinxronlashtirilgan oziq-ovqat va taom yetkazib berish ekotizi
 - 🌐 **Mijoz Web-Sayti:** Zamonaviy 2026 UI/UX, mobil-moslashuvchan, savatcha, geolokatsiya, jonli buyurtma kuzatish (5-bosqichli stepper).
 - 👑 **Admin Panel:** Markaziy dispetcherlik, kuryerlarni biriktirish, buyurtmalar statistikasi, taomlar va kuryerlar CRUD boshqaruvi.
 - 🛵 **Kuryer Paneli:** Kuryerlar uchun mobil-qulay doska, "Yo'lga chiqdim" va "Yetkazib berdim" harakatlari.
-- 🤖 **Telegram Bot (@Nematjanovvvv_bot):** Mijozlar uchun inline menyu, savatcha va buyurtma berish; Kuryerlar uchun biriktirilgan buyurtmalarni bot orqali qabul qilish va yetkazish; Adminlar uchun tezkor xabarnomalar.
+- 🤖 **Telegram Bot (@Smart_deliveryyy_bot):** Mijozlar uchun inline menyu, savatcha va buyurtma berish; Kuryerlar uchun biriktirilgan buyurtmalarni bot orqali qabul qilish va yetkazish; Adminlar uchun tezkor xabarnomalar.
 
 ---
 
@@ -21,7 +21,7 @@ Zamonaviy, to'liq sinxronlashtirilgan oziq-ovqat va taom yetkazib berish ekotizi
 - **Mijoz Web-Sayti:** `/`
 - **Admin Panel:** `/admin` *(Demo: `admin` / `admin123`)*
 - **Kuryer Paneli:** `/courier`
-- **Telegram Bot:** [@Nematjanovvvv_bot](https://t.me/Nematjanovvvv_bot)
+- **Telegram Bot:** [@Smart_deliveryyy_bot](https://t.me/Smart_deliveryyy_bot)
 - **API Health Check:** `/api/health`
 
 ---

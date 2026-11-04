@@ -69,7 +69,7 @@ export default function App() {
             Smart Delivery © 2026 — Zamonaviy Yetkazib Berish Tizimi
           </p>
           <p>
-            Yagona Backend API • SQLite DB • Telegram Bot (@Nematjanovvvv_bot) • Vite React Frontend
+            Yagona Backend API • SQLite DB • Telegram Bot (@Smart_deliveryyy_bot) • Vite React Frontend
           </p>
         </div>
       </footer>
