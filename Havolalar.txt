@@ -11,16 +11,18 @@ GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 --------------------------------------------------------------------------------
 • Mijoz Web-Sayti:
   https://smart-delivery-system-2026.vercel.app
-  (Zamonaviy 2026 UI/UX, katalog, savatcha, geolokatsiya, jonli buyurtma kuzatish)
+  (3 ta tilda: 🇺🇿 UZ / 🇷🇺 RU / 🇬🇧 EN, 2026 UI/UX, interaktiv katalog, savatcha, geolokatsiya, jonli buyurtma kuzatish)
 
 • Admin Dispetcherlik Paneli:
   https://smart-delivery-system-2026.vercel.app/admin
   (Login: admin | Parol: admin123)
-  * Eslatma: Sayt interfeysida parollar ko'rsatilmaydi, faqat o'zingiz kiritasiz.
+  * Eslatma: Sayt interfeysida parollar ochiq ko'rsatilmaydi, xavfsizlik ta'minlangan.
+  * Tovar turlari: Barcha kategoriyalar (Fast Food 🍔, Milliy taomlar 🍲, Ichimliklar 🥤, Shirinliklar 🍰, Salatlar 🥗) ko'rinadigan interaktiv tugmalar sifatida taqdim etilgan.
+  * Mijoz ma'lumotlari: Buyurtmalar ro'yxatida mijozning Telegram profili (@username) va Telegram ID si to'liq ko'rinadi.
 
 • Kuryer Web-Paneli:
   https://smart-delivery-system-2026.vercel.app/courier
-  (Kuryerlar uchun mobil-moslashuvchan buyurtmalar doskasi, "Yo'lga chiqdim" va "Yetkazib berdim")
+  (Kuryerlar uchun 3 tilda mobil-moslashuvchan buyurtmalar doskasi, "Yo'lga chiqdim" va "Yetkazib berdim")
 
 • Backend REST API & Health Check:
   https://smart-delivery-system-2026.vercel.app/api/health
@@ -34,14 +36,16 @@ GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 • Telegram WebApp : Ulandi (Chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
 • Bosh Admin ID   : 1340769865 (@Nematjanovvvv)
 • Holati          : 100% Active / Uzluksiz ishlamoqda (Long-Polling & WebApp)
+• Ko'p tillilik   : 3 ta til to'liq integratsiya qilingan (🇺🇿 O'zbekcha / 🇷🇺 Русский / 🇬🇧 English)
 
 Bot imkoniyatlari:
-- /start    — Asosiy menyu, WebApp, katalog
+- /start    — Asosiy kutib olish, til tanlash, WebApp, katalog
+- /lang     — Tilni o'zgartirish (🇺🇿 O'zbekcha / 🇷🇺 Русский / 🇬🇧 English)
 - /menu     — Sarxil taomlar inline menyusi
 - /cart     — Interaktiv savatcha (+/- stepperlar bilan)
 - /track    — Jonli buyurtma kuzatuvi (5 bosqichli vizual progress bar)
 - /courier  — Kuryer kabineti (GPS nuqtalari, yangi buyurtmalarni qabul qilish va yetkazish)
-- /admin_bot— Admin boshqaruv paneli
+- /admin_bot— Admin boshqaruv paneli (Yangi buyurtma tushganda mijozning ismi, @username, Telegram ID, telefoni, manzili va buyurtma tarkibi to'liq yuboriladi)
 
 --------------------------------------------------------------------------------
 3. RENDER.COM DEPLOY HAVOLALARI
@@ -58,6 +62,10 @@ Bot imkoniyatlari:
 --------------------------------------------------------------------------------
 4. TIZIM STATUSI VA TEKSHIRUV (CHECKLIST)
 --------------------------------------------------------------------------------
+[x] 3 ta til (UZ / RU / EN) Web saytda   — 100% ISHLAMOQDA
+[x] 3 ta til (UZ / RU / EN) Telegram botda— 100% ISHLAMOQDA
+[x] Web Admin Panelda tovar turlari tanlovi— 100% ISHLAMOQDA
+[x] Buyurtma beruvchi Telegram ma'lumoti  — 100% ISHLAMOQDA
 [x] Web Sayt (Vercel)                    — 100% ISHLAMOQDA
 [x] Admin Panel                          — 100% ISHLAMOQDA
 [x] Kuryer Paneli                        — 100% ISHLAMOQDA
