@@ -4,15 +4,17 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: npm install && node server/seed.js
+    buildCommand: npm install
     startCommand: npm start
     autoDeploy: true
     envVars:
-      - key: BOT_TOKEN
-        sync: false
-      - key: ADMIN_TELEGRAM_ID
-        sync: false
       - key: NODE_VERSION
-        value: 22.11.0
+        value: 22.14.0
       - key: PORT
         value: 10000
+      - key: BOT_TOKEN
+        value: 9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo
+      - key: ADMIN_TELEGRAM_ID
+        value: "1340769865"
+      - key: FRONTEND_URL
+        value: https://smart-delivery-system-2026.vercel.app
