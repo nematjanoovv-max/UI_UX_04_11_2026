@@ -281,6 +281,8 @@ app.post('/api/orders', async (req, res) => {
     const {
       customer_name,
       customer_phone,
+      telegram_username,
+      telegram_id,
       delivery_address,
       latitude,
       longitude,
@@ -302,14 +304,16 @@ app.post('/api/orders', async (req, res) => {
 
     const result = db.run(`
       INSERT INTO orders (
-        order_number, customer_name, customer_phone, delivery_address,
-        latitude, longitude, total_amount, delivery_fee, payment_method,
+        order_number, customer_name, customer_phone, telegram_username, telegram_id,
+        delivery_address, latitude, longitude, total_amount, delivery_fee, payment_method,
         status, source, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       orderNumber,
       customer_name,
       customer_phone,
+      telegram_username || null,
+      telegram_id || null,
       delivery_address,
       latitude || null,
       longitude || null,
@@ -324,12 +328,20 @@ app.post('/api/orders', async (req, res) => {
     const orderId = result.lastInsertRowid;
 
     for (const item of items) {
+      let validProdId = null;
+      if (item.id) {
+        try {
+          const pExists = db.get('SELECT id FROM products WHERE id = ?', [item.id]);
+          if (pExists) validProdId = pExists.id;
+        } catch (_) {}
+      }
+
       db.run(`
         INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
         VALUES (?, ?, ?, ?, ?, ?)
       `, [
         orderId,
-        item.id || null,
+        validProdId,
         item.name,
         Number(item.quantity) || 1,
         Number(item.price),
@@ -343,6 +355,10 @@ app.post('/api/orders', async (req, res) => {
       order_number: orderNumber,
       customer_name,
       customer_phone,
+      telegram_username: telegram_username || null,
+      telegram_id: telegram_id || null,
+      delivery_address,
+      payment_method: payment_method || 'Naqd',
       total_amount: totalAmount,
       source: 'web'
     }).catch(e => console.error('[Order Bot Notify Error]:', e.message));
@@ -380,7 +396,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
 
     // If marked delivered, free the courier if assigned
     if (status === 'delivered' && order.courier_id) {
-      db.run('UPDATE couriers SET status = "free", total_delivered = total_delivered + 1 WHERE id = ?', [order.courier_id]);
+      db.run("UPDATE couriers SET status = 'free', total_delivered = total_delivered + 1 WHERE id = ?", [order.courier_id]);
     }
 
     res.json({ success: true, message: `Buyurtma statusi "${status}" ga o'zgartirildi` });
@@ -419,7 +435,7 @@ app.patch('/api/orders/:id/assign-courier', async (req, res) => {
     `, [courier_id, newStatus, id]);
 
     // Set courier status to busy
-    db.run('UPDATE couriers SET status = "busy" WHERE id = ?', [courier_id]);
+    db.run("UPDATE couriers SET status = 'busy' WHERE id = ?", [courier_id]);
 
     // Notify Courier via Telegram Bot
     botService.notifyCourierAssigned(courier_id, { ...order, courier_name: courier.name }).catch(e => {
@@ -499,18 +515,18 @@ app.get('/api/stats', (req, res) => {
     const db = getDb();
 
     const totalOrders = db.get('SELECT COUNT(*) as cnt FROM orders').cnt;
-    const activeOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ("delivered", "cancelled")').cnt;
-    const deliveredOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status = "delivered"').cnt;
-    const cancelledOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status = "cancelled"').cnt;
+    const activeOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ('delivered', 'cancelled')").cnt;
+    const deliveredOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE status = 'delivered'").cnt;
+    const cancelledOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE status = 'cancelled'").cnt;
 
-    const totalRevenue = db.get('SELECT SUM(total_amount) as total FROM orders WHERE status = "delivered"').total || 0;
+    const totalRevenue = db.get("SELECT SUM(total_amount) as total FROM orders WHERE status = 'delivered'").total || 0;
     const avgOrderValue = deliveredOrders > 0 ? Math.round(totalRevenue / deliveredOrders) : 0;
 
-    const webOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE source = "web"').cnt;
-    const botOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE source = "telegram_bot"').cnt;
+    const webOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE source = 'web'").cnt;
+    const botOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE source = 'telegram_bot'").cnt;
 
-    const freeCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers WHERE status = "free"').cnt;
-    const busyCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers WHERE status = "busy"').cnt;
+    const freeCouriers = db.get("SELECT COUNT(*) as cnt FROM couriers WHERE status = 'free'").cnt;
+    const busyCouriers = db.get("SELECT COUNT(*) as cnt FROM couriers WHERE status = 'busy'").cnt;
     const totalCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
 
     // Recent orders

@@ -15,7 +15,7 @@ import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export default function CustomerView({ searchQuery, setSearchQuery }) {
-  const { setIsCartOpen, setIsTrackerOpen } = useApp();
+  const { setIsCartOpen, setIsTrackerOpen, t, language } = useApp();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -63,18 +63,18 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
               
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-brand-600 dark:text-brand-400 text-xs sm:text-sm font-bold animate-slide-up">
                 <Sparkles className="w-4 h-4 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />
-                <span>Smart Delivery 2026 — Yangi avlod yetkazib berish!</span>
+                <span>{t('heroBadge')}</span>
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                Issiq, mazali va <br className="hidden sm:inline" />
+                {t('heroTitle1')} <br className="hidden sm:inline" />
                 <span className="bg-gradient-to-r from-brand-600 via-amber-500 to-brand-500 bg-clip-text text-transparent">
-                  bir zumda eshigingizda!
+                  {t('heroTitle2')}
                 </span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                Shaharning eng sara restoranlaridan issiq taomlar 25-35 daqiqa ichida yetkaziladi. Kuryer va buyurtmangizni real-time xaritada jonli kuzatib boring.
+                {t('heroSubtitle')}
               </p>
 
               {/* Action Buttons */}
@@ -87,7 +87,7 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
                   className="flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-brand-500/30 active:scale-95 transition-all"
                 >
                   <Flame className="w-5 h-5 text-amber-200" />
-                  <span>Menyudan tanlash</span>
+                  <span>{t('orderNow')}</span>
                 </button>
 
                 <button
@@ -95,7 +95,7 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
                   className="flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-extrabold text-sm sm:text-base shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
                 >
                   <MapPin className="w-5 h-5 text-brand-500" />
-                  <span>Buyurtmani kuzatish</span>
+                  <span>{t('trackOrder')}</span>
                 </button>
               </div>
 
@@ -103,15 +103,15 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
               <div className="pt-4 grid grid-cols-3 gap-3 border-t border-slate-200/60 dark:border-slate-800/60 max-w-lg mx-auto lg:mx-0">
                 <div className="text-center lg:text-left">
                   <span className="block font-black text-lg sm:text-xl text-slate-900 dark:text-white">~25 min</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">O'rtacha yetkazish</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{language === 'ru' ? 'Среднее время' : (language === 'en' ? 'Avg Delivery' : 'O\'rtacha yetkazish')}</span>
                 </div>
                 <div className="text-center lg:text-left">
                   <span className="block font-black text-lg sm:text-xl text-brand-500">100% Halol</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Sertifikatlangan</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{language === 'ru' ? 'Сертифицировано' : (language === 'en' ? 'Certified' : 'Sertifikatlangan')}</span>
                 </div>
                 <div className="text-center lg:text-left">
-                  <span className="block font-black text-lg sm:text-xl text-emerald-500">0 so'm</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">150k+ ga tekin</span>
+                  <span className="block font-black text-lg sm:text-xl text-emerald-500">0 {t('currency')}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{t('freeDelivery')} (150k+)</span>
                 </div>
               </div>
 
@@ -164,15 +164,15 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Restoran Menyusi</span>
+              <span>{t('menu')}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-              Barcha Sarxil Taomlar
+              {language === 'ru' ? 'Все Вкусные Блюда' : (language === 'en' ? 'All Delicious Meals' : 'Barcha Sarxil Taomlar')}
             </h2>
           </div>
 
           <span className="text-xs sm:text-sm font-semibold text-slate-400">
-            {filteredProducts.length} ta mahsulot topildi
+            {filteredProducts.length} {language === 'ru' ? 'товаров' : (language === 'en' ? 'items' : 'ta mahsulot')}
           </span>
         </div>
 
@@ -186,7 +186,7 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
                 : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-brand-500/50'
             }`}
           >
-            <span>✨ Barchasi</span>
+            <span>✨ {t('allCategories')}</span>
           </button>
 
           {categories.map(cat => (
@@ -218,10 +218,10 @@ export default function CustomerView({ searchQuery, setSearchQuery }) {
               <SlidersHorizontal className="w-8 h-8" />
             </div>
             <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">
-              Hech qanday taom topilmadi
+              {t('noProducts')}
             </h3>
             <p className="text-sm text-slate-400 mt-1">
-              Qidiruv so'zini o'zgartirib ko'ring yoki boshqa kategoriyani tanlang.
+              {language === 'ru' ? 'Попробуйте изменить поисковый запрос' : (language === 'en' ? 'Try searching for something else' : 'Qidiruv so\'zini o\'zgartirib ko\'ring')}
             </p>
           </div>
         ) : (

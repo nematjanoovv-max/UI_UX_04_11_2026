@@ -16,12 +16,12 @@ import {
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 
-const STEPS = [
-  { key: 'new', label: 'Qabul qilindi', desc: 'Operator tasdiqlashi kutilmoqda', icon: Clock },
-  { key: 'confirmed', label: 'Tasdiqlandi', desc: 'Buyurtma oshxonaga uzatildi', icon: CheckCircle2 },
-  { key: 'preparing', label: 'Tayyorlanmoqda', desc: 'Oshpazlar mahorat bilan pishirmoqda', icon: ChefHat },
-  { key: 'on_way', label: 'Yo\'lda', desc: 'Kuryer siz tomon shoshilmoqda', icon: Bike },
-  { key: 'delivered', label: 'Yetkazildi', desc: 'Yoqimli ishtaha tilaymiz!', icon: PartyPopper }
+const BASE_STEPS = [
+  { key: 'new', icon: Clock },
+  { key: 'confirmed', icon: CheckCircle2 },
+  { key: 'preparing', icon: ChefHat },
+  { key: 'on_way', icon: Bike },
+  { key: 'delivered', icon: PartyPopper }
 ];
 
 export default function OrderTrackerModal() {
@@ -30,8 +30,43 @@ export default function OrderTrackerModal() {
     setIsTrackerOpen,
     trackedOrderNumber,
     setTrackedOrderNumber,
-    showToast
+    showToast,
+    t,
+    language
   } = useApp();
+
+  const STEPS = [
+    { 
+      key: 'new', 
+      label: language === 'ru' ? 'Принят' : (language === 'en' ? 'Received' : 'Qabul qilindi'), 
+      desc: language === 'ru' ? 'Ожидает подтверждения' : (language === 'en' ? 'Waiting for operator' : 'Operator tasdiqlashi kutilmoqda'), 
+      icon: Clock 
+    },
+    { 
+      key: 'confirmed', 
+      label: language === 'ru' ? 'Подтвержден' : (language === 'en' ? 'Confirmed' : 'Tasdiqlandi'), 
+      desc: language === 'ru' ? 'Передан на кухню' : (language === 'en' ? 'Sent to kitchen' : 'Buyurtma oshxonaga uzatildi'), 
+      icon: CheckCircle2 
+    },
+    { 
+      key: 'preparing', 
+      label: language === 'ru' ? 'Готовится' : (language === 'en' ? 'Preparing' : 'Tayyorlanmoqda'), 
+      desc: language === 'ru' ? 'Повара готовят блюдо' : (language === 'en' ? 'Chefs are cooking' : 'Oshpazlar mahorat bilan pishirmoqda'), 
+      icon: ChefHat 
+    },
+    { 
+      key: 'on_way', 
+      label: language === 'ru' ? 'В пути' : (language === 'en' ? 'On the Way' : 'Yo\'lda'), 
+      desc: language === 'ru' ? 'Курьер везет заказ' : (language === 'en' ? 'Courier is rushing to you' : 'Kuryer siz tomon shoshilmoqda'), 
+      icon: Bike 
+    },
+    { 
+      key: 'delivered', 
+      label: language === 'ru' ? 'Доставлен' : (language === 'en' ? 'Delivered' : 'Yetkazildi'), 
+      desc: language === 'ru' ? 'Приятного аппетита!' : (language === 'en' ? 'Enjoy your meal!' : 'Yoqimli ishtaha tilaymiz!'), 
+      icon: PartyPopper 
+    }
+  ];
 
   const [searchQuery, setSearchQuery] = useState(trackedOrderNumber || '');
   const [order, setOrder] = useState(null);
@@ -102,8 +137,8 @@ export default function OrderTrackerModal() {
               <Bike className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Jonli Buyurtma Kuzatuvi</h3>
-              <p className="text-xs text-slate-400">Holat har 4 soniyada real-time yangilanadi</p>
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('trackerTitle')}</h3>
+              <p className="text-xs text-slate-400">{t('liveRefreshHint')}</p>
             </div>
           </div>
 
@@ -124,7 +159,7 @@ export default function OrderTrackerModal() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buyurtma raqami (#SD-1001) yoki telefon raqam..."
+                placeholder={t('orderNumberPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -133,7 +168,7 @@ export default function OrderTrackerModal() {
               disabled={loading}
               className="px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all flex items-center gap-1.5"
             >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Qidirish</span>}
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>{t('searchBtn')}</span>}
             </button>
           </form>
         </div>

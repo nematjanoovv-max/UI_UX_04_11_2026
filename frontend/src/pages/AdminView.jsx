@@ -24,8 +24,16 @@ import {
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 
+const DEFAULT_CATEGORIES = [
+  { id: 6, name: 'Fast Food', icon: '🍔' },
+  { id: 7, name: 'Milliy taomlar', icon: '🍲' },
+  { id: 8, name: 'Ichimliklar', icon: '🥤' },
+  { id: 9, name: 'Shirinliklar', icon: '🍰' },
+  { id: 10, name: 'Salatlar & Gazaklar', icon: '🥗' }
+];
+
 export default function AdminView() {
-  const { showToast } = useApp();
+  const { showToast, t, language } = useApp();
 
   // Simple auth state
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -47,17 +55,28 @@ export default function AdminView() {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const activeCategories = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORIES;
+
   // New Product Modal State
   const [showProductModal, setShowProductModal] = useState(false);
   const [productForm, setProductForm] = useState({
     name: '',
-    category_id: '',
+    category_id: 6,
     price: '',
     description: '',
     image_url: '',
     prep_time_min: 15,
     is_available: 1
   });
+
+  const openProductModal = () => {
+    const defaultCatId = activeCategories[0]?.id || 6;
+    setProductForm(prev => ({
+      ...prev,
+      category_id: prev.category_id || defaultCatId
+    }));
+    setShowProductModal(true);
+  };
 
   // New Courier Modal State
   const [showCourierModal, setShowCourierModal] = useState(false);
@@ -175,14 +194,15 @@ export default function AdminView() {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     try {
+      const selectedCatId = Number(productForm.category_id) || activeCategories[0]?.id || 6;
       await api.createProduct({
         ...productForm,
-        category_id: Number(productForm.category_id) || categories[0]?.id,
+        category_id: selectedCatId,
         price: Number(productForm.price),
         prep_time_min: Number(productForm.prep_time_min) || 15
       });
       setShowProductModal(false);
-      setProductForm({ name: '', category_id: '', price: '', description: '', image_url: '', prep_time_min: 15, is_available: 1 });
+      setProductForm({ name: '', category_id: selectedCatId, price: '', description: '', image_url: '', prep_time_min: 15, is_available: 1 });
       showToast('Yangi taom muvaffaqiyatli qo\'shildi!');
       loadAllData();
     } catch (err) {
@@ -329,10 +349,10 @@ export default function AdminView() {
       {/* Tabs Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-slate-200 dark:border-slate-800">
         {[
-          { id: 'dashboard', label: 'Dashboard & Analitika', icon: LayoutDashboard },
-          { id: 'orders', label: `Buyurtmalar (${orders.length})`, icon: ShoppingBag },
-          { id: 'menu', label: `Menyu & Taomlar (${products.length})`, icon: UtensilsCrossed },
-          { id: 'couriers', label: `Kuryerlar (${couriers.length})`, icon: Bike },
+          { id: 'dashboard', label: t('dashboardTab'), icon: LayoutDashboard },
+          { id: 'orders', label: `${t('ordersTab')} (${orders.length})`, icon: ShoppingBag },
+          { id: 'menu', label: `${t('menuTab')} (${products.length})`, icon: UtensilsCrossed },
+          { id: 'couriers', label: `${t('couriersTab')} (${couriers.length})`, icon: Bike },
         ].map(tab => (
           <button
             key={tab.id}
@@ -558,6 +578,20 @@ export default function AdminView() {
                         <a href={`tel:${order.customer_phone}`} className="text-xs text-brand-500 font-semibold block hover:underline">
                           {order.customer_phone}
                         </a>
+                        {order.telegram_username ? (
+                          <a
+                            href={`https://t.me/${order.telegram_username.replace('@', '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:underline mt-1 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800"
+                          >
+                            <span>✈️ @{order.telegram_username.replace('@', '')}</span>
+                          </a>
+                        ) : order.telegram_id ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            🆔 TG: {order.telegram_id}
+                          </span>
+                        ) : null}
                         <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                           {order.delivery_address}
                         </p>
@@ -678,7 +712,7 @@ export default function AdminView() {
               Restoran Taomlari Ro'yxati
             </h3>
             <button
-              onClick={() => setShowProductModal(true)}
+              onClick={openProductModal}
               className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -845,19 +879,53 @@ export default function AdminView() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold mb-1">Kategoriya</label>
-                  <select
-                    value={productForm.category_id}
-                    onChange={e => setProductForm({ ...productForm, category_id: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                    ))}
-                  </select>
+              {/* Product Category (Tovar turi) visual selector */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Tovar / Mahsulot turi (Kategoriya) *
+                  </label>
+                  <span className="text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2.5 py-0.5 rounded-full border border-brand-200 dark:border-brand-850">
+                    Tanlangan: {activeCategories.find(c => Number(c.id) === Number(productForm.category_id))?.icon} {activeCategories.find(c => Number(c.id) === Number(productForm.category_id))?.name || 'Kategoriya'}
+                  </span>
                 </div>
+
+                {/* All category types visible as interactive buttons */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+                  {activeCategories.map(c => {
+                    const isSelected = Number(productForm.category_id) === Number(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setProductForm({ ...productForm, category_id: c.id })}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 ring-2 ring-brand-500/40 font-bold shadow-sm'
+                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-brand-300'
+                        }`}
+                      >
+                        <span className="text-xl flex-shrink-0">{c.icon || '🍽️'}</span>
+                        <span className="truncate flex-1">{c.name}</span>
+                        {isSelected && <span className="text-brand-500 font-bold text-xs">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Select dropdown */}
+                <select
+                  value={productForm.category_id}
+                  onChange={e => setProductForm({ ...productForm, category_id: Number(e.target.value) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300"
+                >
+                  {activeCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold mb-1">Narxi (so'm) *</label>
                   <input
@@ -866,6 +934,16 @@ export default function AdminView() {
                     value={productForm.price}
                     onChange={e => setProductForm({ ...productForm, price: e.target.value })}
                     placeholder="45000"
+                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold mb-1">Tayyorlanish vaqti (daq.)</label>
+                  <input
+                    type="number"
+                    value={productForm.prep_time_min}
+                    onChange={e => setProductForm({ ...productForm, prep_time_min: e.target.value })}
+                    placeholder="15"
                     className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>

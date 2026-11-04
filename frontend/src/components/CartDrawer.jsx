@@ -13,7 +13,9 @@ export default function CartDrawer() {
     cartTotal,
     deliveryFee,
     grandTotal,
-    setIsCheckoutOpen
+    setIsCheckoutOpen,
+    t,
+    language
   } = useApp();
 
   if (!isCartOpen) return null;
@@ -31,7 +33,7 @@ export default function CartDrawer() {
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div 
-        onClick={() => setIsCartOpen(false)}
+        onClick={() => !false && setIsCartOpen(false)}
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in"
       />
 
@@ -45,8 +47,8 @@ export default function CartDrawer() {
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Savatchangiz</h2>
-                <p className="text-xs text-slate-400">{cart.length} xil taom tanlandi</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('cartTitle')}</h2>
+                <p className="text-xs text-slate-400">{cart.length} {language === 'ru' ? 'видов блюд' : (language === 'en' ? 'items selected' : 'xil taom tanlandi')}</p>
               </div>
             </div>
 
@@ -55,7 +57,7 @@ export default function CartDrawer() {
                 <button
                   onClick={clearCart}
                   className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
-                  title="Savatni tozalash"
+                  title={t('clearCart')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -76,9 +78,9 @@ export default function CartDrawer() {
                 <span className="flex items-center gap-1.5 text-brand-700 dark:text-brand-300">
                   <Sparkles className="w-3.5 h-3.5" />
                   {remainingForFree === 0 ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Tekin yetkazib berish faollashdi!</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">{t('freeDeliveryHint')}</span>
                   ) : (
-                    <span>Yana <b className="font-bold">{remainingForFree.toLocaleString()} so'm</b> qo'shing</span>
+                    <span>{language === 'ru' ? 'Еще ' : (language === 'en' ? 'Add ' : 'Yana ')}<b className="font-bold">{remainingForFree.toLocaleString()} {t('currency')}</b> {language === 'ru' ? 'до бесплатной доставки' : (language === 'en' ? 'for free delivery' : 'qo\'shing')}</span>
                   )}
                 </span>
                 <span className="text-slate-400">{progressPercent}%</span>
@@ -99,15 +101,15 @@ export default function CartDrawer() {
                 <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-4">
                   <ShoppingBag className="w-10 h-10" />
                 </div>
-                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">Savatchangiz bo'sh</h3>
+                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">{t('emptyCartMsg')}</h3>
                 <p className="mt-1 text-sm text-slate-400 max-w-xs">
-                  Mazali taomlarimizni tanlang va qulay yetkazib berish xizmatidan bahramand bo'ling.
+                  {t('emptyCartSub')}
                 </p>
                 <button
                   onClick={() => setIsCartOpen(false)}
                   className="mt-6 px-6 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
                 >
-                  Taomlarni ko'rish
+                  {t('menu')}
                 </button>
               </div>
             ) : (
@@ -127,7 +129,7 @@ export default function CartDrawer() {
                       {item.name}
                     </h4>
                     <p className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-0.5">
-                      {Number(item.price).toLocaleString()} so'm
+                      {Number(item.price).toLocaleString()} {t('currency')}
                     </p>
 
                     <div className="flex items-center gap-2 mt-2">
@@ -170,23 +172,23 @@ export default function CartDrawer() {
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
               <div className="space-y-1.5 text-xs sm:text-sm">
                 <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                  <span>Mahsulotlar summasi:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{cartTotal.toLocaleString()} so'm</span>
+                  <span>{t('subtotal')}:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{cartTotal.toLocaleString()} {t('currency')}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                  <span>Yetkazib berish xarajati:</span>
+                  <span>{t('deliveryFeeLabel')}:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {deliveryFee === 0 ? (
-                      <span className="text-emerald-500 font-bold">Tekin (Aksiya)</span>
+                      <span className="text-emerald-500 font-bold">{t('freeDelivery')}</span>
                     ) : (
-                      `${deliveryFee.toLocaleString()} so'm`
+                      `${deliveryFee.toLocaleString()} ${t('currency')}`
                     )}
                   </span>
                 </div>
                 <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between items-baseline">
-                  <span className="font-bold text-base text-slate-900 dark:text-white">Jami to'lov:</span>
+                  <span className="font-bold text-base text-slate-900 dark:text-white">{t('total')}:</span>
                   <span className="font-black text-xl text-brand-600 dark:text-brand-400">
-                    {grandTotal.toLocaleString()} <span className="text-xs">so'm</span>
+                    {grandTotal.toLocaleString()} <span className="text-xs">{t('currency')}</span>
                   </span>
                 </div>
               </div>
@@ -195,7 +197,7 @@ export default function CartDrawer() {
                 onClick={handleProceedToCheckout}
                 className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all"
               >
-                <span>Buyurtma rasmiylashtirish</span>
+                <span>{t('proceedToCheckout')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

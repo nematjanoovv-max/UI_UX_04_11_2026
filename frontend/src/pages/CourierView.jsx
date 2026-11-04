@@ -17,7 +17,7 @@ import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export default function CourierView() {
-  const { showToast } = useApp();
+  const { showToast, t, language } = useApp();
 
   const [couriers, setCouriers] = useState([]);
   const [selectedCourierId, setSelectedCourierId] = useState(() => {
@@ -178,7 +178,7 @@ export default function CourierView() {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
-                🟢 Bo'sh
+                {t('statusFree')}
               </button>
               <button
                 onClick={() => handleStatusChange('busy')}
@@ -188,7 +188,7 @@ export default function CourierView() {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
-                🟡 Band
+                {t('statusBusy')}
               </button>
               <button
                 onClick={() => handleStatusChange('offline')}
@@ -198,7 +198,7 @@ export default function CourierView() {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
-                ⚪️ Offline
+                {t('statusOffline')}
               </button>
             </div>
           )}
@@ -211,7 +211,11 @@ export default function CourierView() {
         <div className="flex items-center gap-2.5">
           <Send className="w-5 h-5 shrink-0 text-sky-500" />
           <span>
-            Telegram botimizda <b>/courier</b> buyrug'ini yuborib telefoningizni ulashingiz mumkin.
+            {language === 'ru' 
+              ? 'В нашем Telegram-боте вы можете отправить команду /courier для подключения номера.'
+              : (language === 'en' 
+                ? 'Send /courier command to our Telegram bot to register as an active courier.'
+                : 'Telegram botimizda /courier buyrug\'ini yuborib telefoningizni ulashingiz mumkin.')}
           </span>
         </div>
         <a
@@ -220,7 +224,7 @@ export default function CourierView() {
           rel="noopener noreferrer"
           className="px-3 py-1.5 rounded-xl bg-sky-500 text-white font-bold text-xs shrink-0 hover:bg-sky-600"
         >
-          Botni ochish
+          {language === 'ru' ? 'Открыть бота' : (language === 'en' ? 'Open Bot' : 'Botni ochish')}
         </a>
       </div>
 
@@ -228,10 +232,10 @@ export default function CourierView() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white">
-            Sizga Biriktirilgan Buyurtmalar
+            {t('myActiveOrders')}
           </h2>
           <p className="text-xs text-slate-400">
-            {orders.filter(o => o.status !== 'delivered').length} ta faol yetkazish kutmoqda
+            {orders.filter(o => o.status !== 'delivered').length} {language === 'ru' ? 'активных заказов' : (language === 'en' ? 'active orders' : 'ta faol yetkazish kutmoqda')}
           </p>
         </div>
 

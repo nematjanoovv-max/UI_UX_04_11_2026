@@ -76,6 +76,8 @@ function initDatabase() {
         user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
         customer_name TEXT NOT NULL,
         customer_phone TEXT NOT NULL,
+        telegram_username TEXT,
+        telegram_id TEXT,
         delivery_address TEXT NOT NULL,
         latitude REAL,
         longitude REAL,
@@ -100,6 +102,11 @@ function initDatabase() {
         total_price REAL NOT NULL
       );
     `);
+
+    // Safe migrations for new columns
+    try { db.exec('ALTER TABLE orders ADD COLUMN telegram_username TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN telegram_id TEXT;'); } catch (_) {}
+    try { db.exec("ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'uz';"); } catch (_) {}
 
     // Wrapper helper methods to make queries uniform
     return {

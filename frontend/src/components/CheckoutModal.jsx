@@ -14,12 +14,18 @@ export default function CheckoutModal() {
     clearCart,
     setTrackedOrderNumber,
     setIsTrackerOpen,
-    showToast
+    showToast,
+    t,
+    language
   } = useApp();
 
+  const tgUser = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.user : null;
+
   const [formData, setFormData] = useState({
-    customer_name: '',
+    customer_name: tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : '',
     customer_phone: '+998 ',
+    telegram_username: tgUser?.username ? `@${tgUser.username}` : '',
+    telegram_id: tgUser ? String(tgUser.id) : null,
     delivery_address: '',
     latitude: null,
     longitude: null,
@@ -81,6 +87,8 @@ export default function CheckoutModal() {
       const orderPayload = {
         customer_name: formData.customer_name.trim(),
         customer_phone: formData.customer_phone.trim(),
+        telegram_username: formData.telegram_username ? formData.telegram_username.trim() : null,
+        telegram_id: formData.telegram_id || null,
         delivery_address: formData.delivery_address.trim(),
         latitude: formData.latitude,
         longitude: formData.longitude,
@@ -127,8 +135,10 @@ export default function CheckoutModal() {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Buyurtmani rasmiylashtirish</h3>
-              <p className="text-xs text-slate-400">Ma'lumotlaringiz xavfsiz va tezkor yetkaziladi</p>
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('checkoutTitle')}</h3>
+              <p className="text-xs text-slate-400">
+                {language === 'ru' ? 'Быстрая и безопасная доставка вашего заказа' : (language === 'en' ? 'Fast and secure delivery to your address' : 'Ma\'lumotlaringiz xavfsiz va tezkor yetkaziladi')}
+              </p>
             </div>
           </div>
 
@@ -146,7 +156,7 @@ export default function CheckoutModal() {
           {/* Ism */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Ismingiz *
+              {t('customerName')}
             </label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -155,7 +165,7 @@ export default function CheckoutModal() {
                 required
                 value={formData.customer_name}
                 onChange={e => setFormData({ ...formData, customer_name: e.target.value })}
-                placeholder="Alisher Usmonov"
+                placeholder={t('namePlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -164,7 +174,7 @@ export default function CheckoutModal() {
           {/* Telefon */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Telefon raqamingiz *
+              {t('customerPhone')}
             </label>
             <div className="relative">
               <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -179,11 +189,25 @@ export default function CheckoutModal() {
             </div>
           </div>
 
+          {/* Telegram profili (ixtiyoriy) */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              {t('telegramProfile')} <span className="text-slate-400 font-normal text-[11px]">{t('telegramOptional')}</span>
+            </label>
+            <input
+              type="text"
+              value={formData.telegram_username}
+              onChange={e => setFormData({ ...formData, telegram_username: e.target.value })}
+              placeholder="@username"
+              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+            />
+          </div>
+
           {/* Manzil + Geolocation */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Yetkazib berish manzili *
+                {t('deliveryAddress')}
               </label>
               <button
                 type="button"
@@ -196,7 +220,7 @@ export default function CheckoutModal() {
                 ) : (
                   <Locate className="w-3.5 h-3.5" />
                 )}
-                <span>Joylashuvni aniqlash</span>
+                <span>{isLocating ? t('locating') : t('detectLocation')}</span>
               </button>
             </div>
             <div className="relative">
@@ -206,7 +230,7 @@ export default function CheckoutModal() {
                 rows={2}
                 value={formData.delivery_address}
                 onChange={e => setFormData({ ...formData, delivery_address: e.target.value })}
-                placeholder="Toshkent sh., Chilonzor 9, 14-uy, 28-x..."
+                placeholder={t('addressPlaceholder')}
                 className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 resize-none"
               />
             </div>
@@ -215,14 +239,14 @@ export default function CheckoutModal() {
           {/* To'lov turi */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              To'lov turi
+              {t('paymentMethod')}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { id: 'Naqd', icon: Banknote, label: 'Naqd' },
+                { id: 'Naqd', icon: Banknote, label: t('cash') },
                 { id: 'Click', icon: CreditCard, label: 'Click' },
                 { id: 'Payme', icon: CreditCard, label: 'Payme' },
-                { id: 'Karta', icon: CreditCard, label: 'Karta' }
+                { id: 'Karta', icon: CreditCard, label: t('card') }
               ].map(pay => (
                 <button
                   key={pay.id}
@@ -244,13 +268,13 @@ export default function CheckoutModal() {
           {/* Izoh */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Kuryer yoki oshxona uchun qo'shimcha izoh
+              {t('orderNotes')}
             </label>
             <input
               type="text"
               value={formData.notes}
               onChange={e => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Masalan: Domofon kodi 45K, qo'ng'iroq qilmang bola uxlayapti"
+              placeholder={t('notesPlaceholder')}
               className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
             />
           </div>
@@ -258,9 +282,9 @@ export default function CheckoutModal() {
           {/* Hisob va Tasdiqlash */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jami to'lov:</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('total')}:</span>
               <span className="text-lg font-black text-brand-600 dark:text-brand-400">
-                {grandTotal.toLocaleString()} so'm
+                {grandTotal.toLocaleString()} {t('currency')}
               </span>
             </div>
 
@@ -272,10 +296,10 @@ export default function CheckoutModal() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Buyurtma yuborilmoqda...</span>
+                  <span>{t('orderSubmitting')}</span>
                 </>
               ) : (
-                <span>Buyurtmani tasdiqlash</span>
+                <span>{t('submitOrderBtn')}</span>
               )}
             </button>
           </div>

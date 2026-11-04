@@ -1,5 +1,104 @@
 const { getDb } = require('./database');
 
+const botLocales = {
+  uz: {
+    welcome: `👋 *Assalomu alaykum va xush kelibsiz!* 🚀\n\n` +
+      `🍔 *Smart Delivery* — 2026-yilning eng tezkor, sifatli va qulay taom yetkazib berish ekotizimi.\n\n` +
+      `Quyidagi tugmalardan birini tanlang:`,
+    btnMenu: '🍔 Menyu va Buyurtma',
+    btnWeb: '🌐 WebApp orqali buyurtma',
+    btnTrack: '📦 Buyurtmam holati',
+    btnHistory: '📜 Buyurtmalar tarixi',
+    btnCart: '🛒 Savatcha',
+    btnSupport: '📞 Bog\'lanish va Yordam',
+    btnCourier: '🛵 Kuryer kabineti',
+    btnLang: '🌐 Til / Язык / Language',
+    chooseLang: '🌐 *Iltimos, o\'zingizga qulay tilni tanlang:*\nПожалуйста, выберите язык:\nPlease select a language:',
+    langChanged: '✅ Til muvaffaqiyatli o\'zgartirildi: *O\'zbekcha 🇺🇿*',
+    categoriesTitle: '📋 *Kategoriyalardan birini tanlang:*',
+    cartEmpty: '🛒 Sizning savatchangiz hozircha bo\'sh.\n\nMenyudan taom tanlang!',
+    cartTitle: '🛒 *Sizning savatchangiz:*',
+    btnCheckout: '✅ Buyurtma berish',
+    btnContinue: '➕ Yana taom tanlash',
+    btnClearCart: '🗑 Savatni tozalash',
+    orderCancelled: '❌ Buyurtma bekor qilindi.',
+    askName: '👤 *Ismingizni kiriting:*',
+    askPhone: '📱 *Telefon raqamingizni yuboring:*\nPastdagi tugmani bosing yoki raqamingizni yozib yuboring (Masalan: +998901234567):',
+    btnShareContact: '📱 Telefon raqamni ulashish',
+    askAddress: '📍 *Yetkazib berish manzilini yozing yoki lokatsiya yuboring:*\n(Masalan: Chilonzor 9-mavze, 14-uy):',
+    btnShareLocation: '📍 Joylashuvni ulashish',
+    askPayment: '💳 *To\'lov usulini tanlang:*',
+    orderSuccess: (num, total) => `🎉 *Buyurtmangiz muvaffaqiyatli qabul qilindi!*\n\n` +
+      `🆔 Buyurtma raqami: *${num}*\n` +
+      `💰 Jami summa: *${Number(total).toLocaleString()} so'm*\n` +
+      `⚡️ Oshxona allaqachon tayyorlashga kirishdi!`
+  },
+  ru: {
+    welcome: `👋 *Здравствуйте и добро пожаловать!* 🚀\n\n` +
+      `🍔 *Smart Delivery* — самая быстрая и удобная доставка еды 2026 года.\n\n` +
+      `Выберите нужный раздел из меню ниже:`,
+    btnMenu: '🍔 Меню и Заказ',
+    btnWeb: '🌐 Заказ через WebApp',
+    btnTrack: '📦 Статус заказа',
+    btnHistory: '📜 История заказов',
+    btnCart: '🛒 Корзина',
+    btnSupport: '📞 Поддержка',
+    btnCourier: '🛵 Кабинет курьера',
+    btnLang: '🌐 Til / Язык / Language',
+    chooseLang: '🌐 *Пожалуйста, выберите удобный язык:*\nIltimos, tilni tanlang:\nPlease select a language:',
+    langChanged: '✅ Язык успешно изменен: *Русский 🇷🇺*',
+    categoriesTitle: '📋 *Выберите категорию из меню:*',
+    cartEmpty: '🛒 Ваша корзина пока пуста.\n\nВыберите блюдо из меню!',
+    cartTitle: '🛒 *Ваша корзина:*',
+    btnCheckout: '✅ Оформить заказ',
+    btnContinue: '➕ Выбрать еще блюда',
+    btnClearCart: '🗑 Очистить корзину',
+    orderCancelled: '❌ Оформление заказа отменено.',
+    askName: '👤 *Введите ваше имя:*',
+    askPhone: '📱 *Отправьте ваш номер телефона:*\nНажмите кнопку ниже или введите номер (+998901234567):',
+    btnShareContact: '📱 Поделиться контактом',
+    askAddress: '📍 *Укажите адрес доставки или отправьте гео-локацию:*\n(Например: Чиланзар 9-квартал, дом 14):',
+    btnShareLocation: '📍 Поделиться локацией',
+    askPayment: '💳 *Выберите способ оплаты:*',
+    orderSuccess: (num, total) => `🎉 *Ваш заказ успешно принят!*\n\n` +
+      `🆔 Номер заказа: *${num}*\n` +
+      `💰 Сумма заказа: *${Number(total).toLocaleString()} сум*\n` +
+      `⚡️ Кухня уже приступила к приготовлению!`
+  },
+  en: {
+    welcome: `👋 *Welcome to Smart Delivery!* 🚀\n\n` +
+      `🍔 *Smart Delivery* — the fastest and most reliable food delivery ecosystem of 2026.\n\n` +
+      `Please choose an option from the menu below:`,
+    btnMenu: '🍔 Menu & Order',
+    btnWeb: '🌐 Order via WebApp',
+    btnTrack: '📦 Track Order',
+    btnHistory: '📜 Order History',
+    btnCart: '🛒 Cart',
+    btnSupport: '📞 Support & Help',
+    btnCourier: '🛵 Courier Portal',
+    btnLang: '🌐 Til / Язык / Language',
+    chooseLang: '🌐 *Please select your preferred language:*\nПожалуйста, выберите язык:\nIltimos, tilni tanlang:',
+    langChanged: '✅ Language changed successfully: *English 🇬🇧*',
+    categoriesTitle: '📋 *Please select a category:*',
+    cartEmpty: '🛒 Your cart is currently empty.\n\nPlease choose dishes from the menu!',
+    cartTitle: '🛒 *Your Shopping Cart:*',
+    btnCheckout: '✅ Checkout Order',
+    btnContinue: '➕ Add more dishes',
+    btnClearCart: '🗑 Clear Cart',
+    orderCancelled: '❌ Order placement cancelled.',
+    askName: '👤 *Please enter your name:*',
+    askPhone: '📱 *Please send your phone number:*\nClick the button below or type your number (+998901234567):',
+    btnShareContact: '📱 Share Phone Number',
+    askAddress: '📍 *Please enter delivery address or share your location:*\n(e.g., Chilonzor 9, House 14):',
+    btnShareLocation: '📍 Share Location',
+    askPayment: '💳 *Choose payment method:*',
+    orderSuccess: (num, total) => `🎉 *Your order has been placed successfully!*\n\n` +
+      `🆔 Order number: *${num}*\n` +
+      `💰 Total: *${Number(total).toLocaleString()} UZS*\n` +
+      `⚡️ The kitchen has already started cooking!`
+  }
+};
+
 class TelegramBotService {
   constructor() {
     this.token = process.env.BOT_TOKEN || '';
@@ -49,7 +148,7 @@ class TelegramBotService {
         // Load existing admin users from DB
         try {
           const db = getDb();
-          const admins = db.query('SELECT telegram_id FROM users WHERE role = "admin" AND telegram_id IS NOT NULL');
+          const admins = db.query("SELECT telegram_id FROM users WHERE role = 'admin' AND telegram_id IS NOT NULL");
           admins.forEach(a => this.adminChatIds.add(Number(a.telegram_id)));
         } catch (_) {}
 
@@ -117,7 +216,15 @@ class TelegramBotService {
 
   getSession(chatId) {
     if (!this.userSessions.has(chatId)) {
+      let userLang = 'uz';
+      try {
+        const db = getDb();
+        const userRow = db.get('SELECT language FROM users WHERE telegram_id = ?', [String(chatId)]);
+        if (userRow && userRow.language) userLang = userRow.language;
+      } catch (_) {}
+
       this.userSessions.set(chatId, {
+        language: userLang,
         cart: [], // [{ id, name, price, qty }]
         step: null,
         orderData: {}
@@ -138,6 +245,13 @@ class TelegramBotService {
 
     // Register / update user in database
     const fullName = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
+    const tgUsername = msg.from.username || null;
+    
+    // Store user info in session
+    session.orderData.telegram_id = String(chatId);
+    session.orderData.telegram_username = tgUsername;
+    session.orderData.telegram_name = fullName;
+
     try {
       const existing = db.get('SELECT id, role FROM users WHERE telegram_id = ?', [String(chatId)]);
       if (!existing) {
@@ -212,41 +326,47 @@ class TelegramBotService {
       return;
     }
 
+    // Language command
+    if (text === '🌐 Til / Язык / Language' || text === '/lang' || text === '/language') {
+      await this.sendLanguageSelection(chatId);
+      return;
+    }
+
     // Commands
-    if (text === '/start' || text === '🏠 Asosiy menyu') {
+    if (text === '/start' || text.includes('Asosiy menyu') || text.includes('Главное меню') || text.includes('Main Menu')) {
       session.step = null;
       await this.sendWelcomeMessage(chatId, msg.from.first_name, webAppUrl);
       return;
     }
 
-    if (text === '🍔 Menyu va Buyurtma' || text === '/menu') {
+    if (text === '🍔 Menyu va Buyurtma' || text === '🍔 Menyu va Buyurtma berish' || text === '🍔 Меню и Заказ' || text === '🍔 Menu & Order' || text === '/menu') {
       await this.sendCategoryList(chatId);
       return;
     }
 
-    if (text === '🛒 Savatcha' || text === '/cart') {
+    if (text === '🛒 Savatcha' || text === '🛒 Корзина' || text === '🛒 Cart' || text === '/cart') {
       await this.sendCartSummary(chatId, session);
       return;
     }
 
-    if (text === '📦 Buyurtmam holati' || text === '/track') {
+    if (text === '📦 Buyurtmam holati' || text === '📦 Статус заказа' || text === '📦 Track Order' || text === '/track') {
       await this.sendUserActiveOrders(chatId);
       return;
     }
 
-    if (text === '📜 Buyurtmalar tarixi') {
+    if (text === '📜 Buyurtmalar tarixi' || text === '📜 История заказов' || text === '📜 Order History' || text === '/history') {
       await this.sendOrderHistory(chatId);
       return;
     }
 
-    if (text === '🛵 Kuryer kabineti' || text === '/courier') {
+    if (text === '🛵 Kuryer kabineti' || text === '🛵 Кабинет курьера' || text === '🛵 Courier Portal' || text === '/courier') {
       await this.handleCourierCommand(chatId, fullName);
       return;
     }
 
     if (text === '👑 Admin panel' || text === '/admin_bot') {
       this.adminChatIds.add(chatId);
-      db.run('UPDATE users SET role = "admin" WHERE telegram_id = ?', [String(chatId)]);
+      db.run("UPDATE users SET role = 'admin' WHERE telegram_id = ?", [String(chatId)]);
       await this.sendAdminDashboard(chatId);
       return;
     }
@@ -275,7 +395,7 @@ class TelegramBotService {
     }
 
     if (text === '🟢 Holatim: Bo\'sh (Free)') {
-      db.run('UPDATE couriers SET status = "free" WHERE telegram_id = ?', [String(chatId)]);
+      db.run("UPDATE couriers SET status = 'free' WHERE telegram_id = ?", [String(chatId)]);
       await this.sendMessage(chatId, '✅ *Holatingiz yangilandi:* Siz hozir yangi buyurtmalarni qabul qilishga tayyorsiz (🟢 Bo\'sh).', {
         parse_mode: 'Markdown'
       });
@@ -283,13 +403,13 @@ class TelegramBotService {
     }
 
     if (text === '🟡 Holatim: Band (Busy)') {
-      db.run('UPDATE couriers SET status = "busy" WHERE telegram_id = ?', [String(chatId)]);
+      db.run("UPDATE couriers SET status = 'busy' WHERE telegram_id = ?", [String(chatId)]);
       await this.sendMessage(chatId, '🟡 *Holatingiz yangilandi:* Band rejimidasiz.', { parse_mode: 'Markdown' });
       return;
     }
 
     if (text === '⚪️ Offline bo\'lish') {
-      db.run('UPDATE couriers SET status = "offline" WHERE telegram_id = ?', [String(chatId)]);
+      db.run("UPDATE couriers SET status = 'offline' WHERE telegram_id = ?", [String(chatId)]);
       await this.sendMessage(chatId, '⚪️ *Offline rejimiga o\'tdingiz.* Sizga buyurtmalar biriktirilmaydi.', { parse_mode: 'Markdown' });
       return;
     }
@@ -369,6 +489,26 @@ class TelegramBotService {
     const session = this.getSession(chatId);
 
     await this.callApi('answerCallbackQuery', { callback_query_id: cb.id });
+
+    // Language selection
+    if (data.startsWith('setlang_')) {
+      const lang = data.split('_')[1];
+      session.language = lang;
+      try {
+        db.run("UPDATE users SET language = ? WHERE telegram_id = ?", [lang, String(chatId)]);
+      } catch (_) {}
+
+      const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+      const loc = botLocales[lang] || botLocales.uz;
+      await this.sendMessage(chatId, loc.langChanged, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          keyboard: this.getMainKeyboard(webAppUrl, lang),
+          resize_keyboard: true
+        }
+      });
+      return;
+    }
 
     // Category navigation
     if (data.startsWith('cat_')) {
@@ -502,8 +642,8 @@ class TelegramBotService {
         return;
       }
 
-      db.run('UPDATE orders SET status = "on_way", courier_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [courier.id, orderId]);
-      db.run('UPDATE couriers SET status = "busy" WHERE id = ?', [courier.id]);
+      db.run("UPDATE orders SET status = 'on_way', courier_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [courier.id, orderId]);
+      db.run("UPDATE couriers SET status = 'busy' WHERE id = ?", [courier.id]);
 
       const order = db.get('SELECT * FROM orders WHERE id = ?', [orderId]);
       await this.sendMessage(chatId, `🚀 *Buyurtma #${order?.order_number || orderId} qabul qilindi!*\n\nSiz hozir mijoz tomon yo'ldasiz. Manzilga yetib borgach *"Yetkazib berdim"* tugmasini bosing:`, {
@@ -521,9 +661,9 @@ class TelegramBotService {
       const orderId = Number(data.split('_')[2]);
       const courier = db.get('SELECT id, name FROM couriers WHERE telegram_id = ?', [String(chatId)]);
 
-      db.run('UPDATE orders SET status = "delivered", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [orderId]);
+      db.run("UPDATE orders SET status = 'delivered', updated_at = CURRENT_TIMESTAMP WHERE id = ?", [orderId]);
       if (courier) {
-        db.run('UPDATE couriers SET status = "free", total_delivered = total_delivered + 1 WHERE id = ?', [courier.id]);
+        db.run("UPDATE couriers SET status = 'free', total_delivered = total_delivered + 1 WHERE id = ?", [courier.id]);
       }
 
       const order = db.get('SELECT order_number FROM orders WHERE id = ?', [orderId]);
@@ -567,31 +707,50 @@ class TelegramBotService {
   // WELCOME & KEYBOARDS
   // ----------------------------------------------------------------------
   async sendWelcomeMessage(chatId, firstName, webAppUrl) {
-    const text = `Assalomu alaykum, *${firstName || 'Qadrli Mijoz'}*! 👋\n\n` +
-      `*Smart Delivery* — tezkor, issiq va zamonaviy taom yetkazib berish xizmatiga xush kelibsiz! 🚀\n\n` +
-      `⚡️ *Qulayliklarimiz:*\n` +
-      `• 🍔 Mazali va sara taomlar menyusi\n` +
-      `• 🌐 Zamonaviy Telegram WebApp integratsiyasi\n` +
-      `• 📍 Real-time rejimida buyurtma va kuryerni jonli kuzatish\n` +
-      `• 🛵 Tezkor yetkazish: 25-35 daqiqa\n\n` +
-      `Quyidagi menyudan kerakli bo'limni tanlang:`;
+    const session = this.getSession(chatId);
+    const lang = session.language || 'uz';
+    const loc = botLocales[lang] || botLocales.uz;
+
+    const text = `${loc.welcome}\n\n` +
+      `🌐 *Tilni tanlash / Выбрать язык / Change language:* /lang`;
 
     await this.sendMessage(chatId, text, {
       parse_mode: 'Markdown',
       reply_markup: {
-        keyboard: this.getMainKeyboard(webAppUrl),
+        keyboard: this.getMainKeyboard(webAppUrl, lang),
         resize_keyboard: true
       }
     });
   }
 
-  getMainKeyboard(webAppUrl) {
+  async sendLanguageSelection(chatId) {
+    const text = `🌐 *Iltimos, o'zingizga qulay tilni tanlang:*\n` +
+      `Пожалуйста, выберите удобный язык:\n` +
+      `Please select your preferred language:`;
+
+    await this.sendMessage(chatId, text, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🇺🇿 O\'zbekcha', callback_data: 'setlang_uz' },
+            { text: '🇷🇺 Русский', callback_data: 'setlang_ru' },
+            { text: '🇬🇧 English', callback_data: 'setlang_en' }
+          ]
+        ]
+      }
+    });
+  }
+
+  getMainKeyboard(webAppUrl, lang = 'uz') {
+    const loc = botLocales[lang] || botLocales.uz;
     return [
-      [{ text: '🍔 Menyu va Buyurtma' }],
-      [{ text: '🌐 WebApp orqali buyurtma', web_app: { url: webAppUrl } }],
-      [{ text: '📦 Buyurtmam holati' }, { text: '🛒 Savatcha' }],
-      [{ text: '📜 Buyurtmalar tarixi' }, { text: '🛵 Kuryer kabineti' }],
-      [{ text: '👑 Admin panel' }, { text: '📞 Bog\'lanish va Yordam' }]
+      [{ text: loc.btnMenu }],
+      [{ text: loc.btnWeb, web_app: { url: webAppUrl } }],
+      [{ text: loc.btnTrack }, { text: loc.btnCart }],
+      [{ text: loc.btnHistory }, { text: loc.btnCourier }],
+      [{ text: '👑 Admin panel' }, { text: loc.btnSupport }],
+      [{ text: '🌐 Til / Язык / Language' }]
     ];
   }
 
@@ -796,17 +955,25 @@ class TelegramBotService {
     const deliveryFee = subtotal >= 150000 ? 0 : 15000;
     const totalAmount = subtotal + deliveryFee;
 
+    const customerName = session.orderData.name || session.orderData.telegram_name || 'Telegram Mijoz';
+    const customerPhone = session.orderData.phone || '+998000000000';
+    const deliveryAddress = session.orderData.address || 'Manzil ko\'rsatilmagan';
+    const tgUsername = session.orderData.telegram_username || null;
+    const tgId = String(chatId);
+
     const res = db.run(`
       INSERT INTO orders (
-        order_number, customer_name, customer_phone, delivery_address,
-        latitude, longitude, total_amount, delivery_fee, payment_method,
+        order_number, customer_name, customer_phone, telegram_username, telegram_id,
+        delivery_address, latitude, longitude, total_amount, delivery_fee, payment_method,
         status, source, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       orderNumber,
-      session.orderData.name || 'Telegram Mijoz',
-      session.orderData.phone || '+998000000000',
-      session.orderData.address || 'Manzil ko\'rsatilmagan',
+      customerName,
+      customerPhone,
+      tgUsername,
+      tgId,
+      deliveryAddress,
       session.orderData.latitude || null,
       session.orderData.longitude || null,
       totalAmount,
@@ -846,8 +1013,10 @@ class TelegramBotService {
     this.notifyAdminsNewOrder({
       id: orderId,
       order_number: orderNumber,
-      customer_name: session.orderData.name,
-      customer_phone: session.orderData.phone,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      telegram_username: tgUsername,
+      telegram_id: tgId,
       total_amount: totalAmount,
       source: 'telegram_bot'
     });
@@ -1050,7 +1219,7 @@ class TelegramBotService {
     const courier = db.get('SELECT * FROM couriers WHERE telegram_id = ?', [String(chatId)]);
     if (!courier) return;
 
-    const deliveredOrders = db.get('SELECT COUNT(*) as cnt, SUM(total_amount) as total FROM orders WHERE courier_id = ? AND status = "delivered"', [courier.id]);
+    const deliveredOrders = db.get("SELECT COUNT(*) as cnt, SUM(total_amount) as total FROM orders WHERE courier_id = ? AND status = 'delivered'", [courier.id]);
 
     const text = `📊 *Kuryer Hisoboti: ${courier.name}*\n\n` +
       `🛵 Transport turi: *${courier.vehicle_type}*\n` +
@@ -1105,9 +1274,9 @@ class TelegramBotService {
   async sendAdminDashboard(chatId) {
     const db = getDb();
     const totalOrders = db.get('SELECT COUNT(*) as cnt FROM orders').cnt;
-    const activeOrders = db.get('SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ("delivered", "cancelled")').cnt;
-    const totalRevenue = db.get('SELECT SUM(total_amount) as sum FROM orders WHERE status = "delivered"').sum || 0;
-    const freeCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers WHERE status = "free"').cnt;
+    const activeOrders = db.get("SELECT COUNT(*) as cnt FROM orders WHERE status NOT IN ('delivered', 'cancelled')").cnt;
+    const totalRevenue = db.get("SELECT SUM(total_amount) as sum FROM orders WHERE status = 'delivered'").sum || 0;
+    const freeCouriers = db.get("SELECT COUNT(*) as cnt FROM couriers WHERE status = 'free'").cnt;
     const totalCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
 
     const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
@@ -1130,21 +1299,54 @@ class TelegramBotService {
   }
 
   async notifyAdminsNewOrder(order) {
-    const msg = `🔔 *YANGI BUYURTMA KELDI! (${order.order_number})*\n\n` +
-      `👤 Mijoz: *${order.customer_name}*\n` +
-      `📞 Tel: *${order.customer_phone}*\n` +
-      `💰 Summa: *${Number(order.total_amount).toLocaleString()} so'm*\n` +
-      `🌐 Manba: *${order.source === 'telegram_bot' ? '🤖 Telegram Bot' : '💻 Web Sayt'}*`;
+    const db = getDb();
+    let orderDetails = order;
+    let items = [];
+    if (order.id) {
+      try {
+        const fullOrder = db.get('SELECT * FROM orders WHERE id = ?', [order.id]);
+        if (fullOrder) orderDetails = { ...fullOrder, ...order };
+        items = db.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]) || [];
+      } catch (e) {
+        console.error('[notifyAdminsNewOrder db error]:', e.message);
+      }
+    }
+
+    const tgUserDisplay = orderDetails.telegram_username 
+      ? `@${orderDetails.telegram_username.replace('@', '')}` 
+      : (orderDetails.telegram_id ? `ID: ${orderDetails.telegram_id}` : 'Mavjud emas (Web)');
+
+    let itemsText = '';
+    if (items.length > 0) {
+      itemsText = items.map((it, idx) => `   ${idx + 1}. *${it.product_name}* x ${it.quantity} = ${Number(it.total_price).toLocaleString()} so'm`).join('\n');
+    }
+
+    const sourceBadge = orderDetails.source === 'telegram_bot' ? '🤖 Telegram Bot' : '💻 Web Sayt';
+
+    const msg = `🔔 *YANGI BUYURTMA KELDI! (${orderDetails.order_number})*\n\n` +
+      `👤 *Mijoz ismi:* ${orderDetails.customer_name}\n` +
+      `📱 *Telegram profili:* ${tgUserDisplay}\n` +
+      `🆔 *Telegram ID:* \`${orderDetails.telegram_id || 'Mavjud emas'}\`\n` +
+      `📞 *Telefon:* \`${orderDetails.customer_phone}\`\n` +
+      `📍 *Yetkazish manzili:* ${orderDetails.delivery_address || 'Ko\'rsatilmagan'}\n` +
+      `💳 *To'lov usuli:* ${orderDetails.payment_method || 'Naqd'}\n` +
+      `🌐 *Buyurtma manbasi:* ${sourceBadge}\n\n` +
+      (itemsText ? `🍱 *Taomlar ro'yxati:*\n${itemsText}\n\n` : '') +
+      `💰 *Jami summa:* *${Number(orderDetails.total_amount).toLocaleString()} so'm*`;
 
     for (const adminId of this.adminChatIds) {
-      await this.sendMessage(adminId, msg, {
-        parse_mode: 'Markdown',
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '👑 Admin paneldan ko\'rish', url: `${process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app'}/admin` }]
-          ]
-        }
-      });
+      try {
+        await this.sendMessage(adminId, msg, {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '👑 Web Admin Panelni ochish', url: `${process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app'}/admin` }]
+            ]
+          }
+        });
+      } catch (err) {
+        console.error(`[Admin Notify Error to ${adminId}]:`, err.message);
+      }
     }
   }
 

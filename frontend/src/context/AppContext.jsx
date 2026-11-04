@@ -1,8 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '../i18n/translations';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  // Language state ('uz' | 'ru' | 'en')
+  const [language, setLanguageState] = useState(() => {
+    return localStorage.getItem('sd_lang') || 'uz';
+  });
+
+  const setLanguage = (lang) => {
+    if (['uz', 'ru', 'en'].includes(lang)) {
+      setLanguageState(lang);
+      localStorage.setItem('sd_lang', lang);
+    }
+  };
+
+  const t = (key) => {
+    const currentDict = translations[language] || translations.uz;
+    return currentDict[key] || translations.uz[key] || key;
+  };
+
   // Theme state
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('sd_theme') === 'dark';
@@ -88,6 +106,9 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
+      language,
+      setLanguage,
+      t,
       darkMode,
       toggleDarkMode,
       cart,
