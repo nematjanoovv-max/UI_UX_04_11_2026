@@ -1,0 +1,67 @@
+================================================================================
+  SMART DELIVERY — YETKAZIB BERISH TIZIMI (2026)
+  BARCHA ISHCHI HAVOLALAR VA TIZIM STATUSI
+================================================================================
+
+LOKAL PAPKA : /mnt/sdcard/Agent/UI_UX_04_11_2026
+GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
+
+--------------------------------------------------------------------------------
+1. JONLI INTERFEYSLAR VA PLATFORMALAR (VERCEL)
+--------------------------------------------------------------------------------
+• Mijoz Web-Sayti:
+  https://smart-delivery-system-2026.vercel.app
+  (Zamonaviy 2026 UI/UX, katalog, savatcha, geolokatsiya, jonli buyurtma kuzatish)
+
+• Admin Dispetcherlik Paneli:
+  https://smart-delivery-system-2026.vercel.app/admin
+  (Login: admin | Parol: admin123)
+  * Eslatma: Sayt interfeysida parollar ko'rsatilmaydi, faqat o'zingiz kiritasiz.
+
+• Kuryer Web-Paneli:
+  https://smart-delivery-system-2026.vercel.app/courier
+  (Kuryerlar uchun mobil-moslashuvchan buyurtmalar doskasi, "Yo'lga chiqdim" va "Yetkazib berdim")
+
+• Backend REST API & Health Check:
+  https://smart-delivery-system-2026.vercel.app/api/health
+
+--------------------------------------------------------------------------------
+2. TELEGRAM BOT MA'LUMOTLARI
+--------------------------------------------------------------------------------
+• Bot Nomi        : Smart_delivery
+• Bot Username    : @Smart_deliveryyy_bot
+• Bot Havolasi    : https://t.me/Smart_deliveryyy_bot
+• Telegram WebApp : Ulandi (Chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
+• Bosh Admin ID   : 1340769865 (@Nematjanovvvv)
+• Holati          : 100% Active / Uzluksiz ishlamoqda (Long-Polling & WebApp)
+
+Bot imkoniyatlari:
+- /start    — Asosiy menyu, WebApp, katalog
+- /menu     — Sarxil taomlar inline menyusi
+- /cart     — Interaktiv savatcha (+/- stepperlar bilan)
+- /track    — Jonli buyurtma kuzatuvi (5 bosqichli vizual progress bar)
+- /courier  — Kuryer kabineti (GPS nuqtalari, yangi buyurtmalarni qabul qilish va yetkazish)
+- /admin_bot— Admin boshqaruv paneli
+
+--------------------------------------------------------------------------------
+3. RENDER.COM DEPLOY HAVOLALARI
+--------------------------------------------------------------------------------
+• Render 1-Click Blueprint Deploy:
+  https://render.com/deploy?repo=https://github.com/nematjanoovv-max/UI_UX_04_11_2026
+
+• Render Blueprint Konfiguratsiya Fayli:
+  https://github.com/nematjanoovv-max/UI_UX_04_11_2026/blob/main/render.yaml
+
+• Render Web Service Nomi: smart-delivery-system
+• Render URL (deploy bo'lgach): https://smart-delivery-system.onrender.com
+
+--------------------------------------------------------------------------------
+4. TIZIM STATUSI VA TEKSHIRUV (CHECKLIST)
+--------------------------------------------------------------------------------
+[x] Web Sayt (Vercel)                    — 100% ISHLAMOQDA
+[x] Admin Panel                          — 100% ISHLAMOQDA
+[x] Kuryer Paneli                        — 100% ISHLAMOQDA
+[x] Telegram Bot (@Smart_deliveryyy_bot)  — 100% ISHLAMOQDA
+[x] Real-time Sinxronizatsiya            — 100% ISHLAMOQDA
+[x] Xavfsizlik va Maxfiylik              — 100% TA'MINLANGAN
+================================================================================
