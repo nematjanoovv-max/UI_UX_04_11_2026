@@ -161,17 +161,32 @@ function createFallbackDatabase(filePath) {
     } catch (_) {}
   }
 
+  const getTable = (lower) => {
+    const match = lower.match(/(?:from|into|update)\s+([a-z_]+)/);
+    if (match && ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].includes(match[1])) {
+      return match[1];
+    }
+    return ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'products';
+  };
+
   return {
     exec: () => true,
     query: (sql, params = []) => {
-      const lower = sql.toLowerCase();
-      let table = ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'products';
+      const lower = sql.trim().toLowerCase();
+      const table = getTable(lower);
       let rows = [...(data[table] || [])];
+
+      if (table === 'products') {
+        rows = rows.map(p => {
+          const cat = (data.categories || []).find(c => c.id === p.category_id);
+          return { ...p, category_name: cat ? cat.name : 'Fast Food' };
+        });
+      }
 
       if (lower.includes('where')) {
         if (table === 'orders' && lower.includes('courier_id = ?')) {
           rows = rows.filter(r => Number(r.courier_id) === Number(params[0]));
-        } else if (table === 'products' && lower.includes('category_id = ?')) {
+        } else if (table === 'products' && (lower.includes('category_id = ?') || lower.includes('p.category_id = ?'))) {
           rows = rows.filter(r => Number(r.category_id) === Number(params[0]));
         } else if (table === 'order_items' && lower.includes('order_id = ?')) {
           rows = rows.filter(r => Number(r.order_id) === Number(params[0]));
@@ -184,6 +199,8 @@ function createFallbackDatabase(filePath) {
         rows.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
       } else if (lower.includes('order by id desc') || lower.includes('order by o.id desc')) {
         rows.sort((a, b) => (b.id || 0) - (a.id || 0));
+      } else if (lower.includes('order by id asc') || lower.includes('order by p.id asc')) {
+        rows.sort((a, b) => (a.id || 0) - (b.id || 0));
       }
 
       const limitMatch = lower.match(/limit\s+(\d+|\?)/);
@@ -195,9 +212,14 @@ function createFallbackDatabase(filePath) {
       return rows;
     },
     get: (sql, params = []) => {
-      const lower = sql.toLowerCase();
+      const lower = sql.trim().toLowerCase();
+
+      if (lower.includes('sqlite_master')) {
+        return { cnt: 7, total: 7 };
+      }
+
       if (lower.includes('count(*) as cnt') || lower.includes('count(*) as total')) {
-        let table = ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'orders';
+        const table = getTable(lower);
         let list = data[table] || [];
         if (lower.includes('status = ?')) list = list.filter(r => r.status === params[0]);
         if (lower.includes("status = 'free'")) list = list.filter(r => r.status === 'free');
@@ -216,10 +238,10 @@ function createFallbackDatabase(filePath) {
         return { total: sum, sum: sum, cnt: delivered.length };
       }
 
-      let table = ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'orders';
+      const table = getTable(lower);
       let rows = [...(data[table] || [])];
 
-      if (lower.includes('where id = ?')) {
+      if (lower.includes('where id = ?') || lower.includes('where p.id = ?')) {
         return rows.find(r => Number(r.id) === Number(params[0])) || null;
       }
       if (lower.includes('where telegram_id = ?')) {
@@ -228,9 +250,13 @@ function createFallbackDatabase(filePath) {
       if (lower.includes('where name = ?')) {
         return rows.find(r => r.name === params[0]) || null;
       }
+      if (lower.includes('where name like ?')) {
+        const q = String(params[0]).replace(/%/g, '').toLowerCase();
+        return rows.find(r => r.name && r.name.toLowerCase().includes(q)) || null;
+      }
       if (lower.includes('where phone = ?') || lower.includes('where phone like ?')) {
         const digits = String(params[0]).replace(/[^0-9]/g, '');
-        return rows.find(r => r.phone && r.phone.replace(/[^0-9]/g, '').includes(digits)) || rows[0] || null;
+        return rows.find(r => r.phone && r.phone.replace(/[^0-9]/g, '').includes(digits)) || null;
       }
       if (lower.includes('order_number = ?')) {
         return rows.find(r => r.order_number === params[0] || r.order_number === params[1]) || null;
@@ -239,8 +265,8 @@ function createFallbackDatabase(filePath) {
       return rows[0] || null;
     },
     run: (sql, params = []) => {
-      const lower = sql.toLowerCase();
-      let table = ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'orders';
+      const lower = sql.trim().toLowerCase();
+      const table = getTable(lower);
       if (!data[table]) data[table] = [];
 
       if (lower.startsWith('insert into')) {

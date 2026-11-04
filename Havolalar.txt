@@ -26,6 +26,11 @@ GITHUB REPO : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 
 • Backend REST API & Health Check:
   https://smart-delivery-system-2026.vercel.app/api/health
+  (Zaxira bulutli backend: https://smart-delivery-system-sy6e.onrender.com/api/health)
+
+• Render Cloud Web Service:
+  https://smart-delivery-system-sy6e.onrender.com
+  (Avtomatik deploy va doimiy bulutli server holati: LIVE)
 
 --------------------------------------------------------------------------------
 2. TELEGRAM BOT MA'LUMOTLARI

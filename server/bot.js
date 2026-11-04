@@ -101,13 +101,13 @@ const botLocales = {
 
 class TelegramBotService {
   constructor() {
-    this.token = process.env.BOT_TOKEN || '';
+    this.token = process.env.BOT_TOKEN || '9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo';
     this.botInfo = null;
     this.isRunning = false;
     this.pollOffset = 0;
     this.userSessions = new Map(); // chat_id => session state
-    const envAdminId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : null;
-    this.adminChatIds = new Set(envAdminId ? [envAdminId] : []);
+    const envAdminId = Number(process.env.ADMIN_TELEGRAM_ID || '1340769865');
+    this.adminChatIds = new Set(envAdminId ? [envAdminId] : [1340769865]);
   }
 
   getApiUrl(method) {
