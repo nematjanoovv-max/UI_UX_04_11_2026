@@ -1,5 +1,8 @@
 # 🚀 Smart Delivery — Yetkazib Berish Tizimi (2026)
 
+Lokal papka: `/mnt/sdcard/Agent/UI_UX_04_11_2026`  
+GitHub Repo: [https://github.com/nematjanoovv-max/UI_UX_04_11_2026](https://github.com/nematjanoovv-max/UI_UX_04_11_2026)
+
 Zamonaviy, to'liq sinxronlashtirilgan oziq-ovqat va taom yetkazib berish ekotizimi:
 - 🌐 **Mijoz Web-Sayti:** Zamonaviy 2026 UI/UX, mobil-moslashuvchan, savatcha, geolokatsiya, jonli buyurtma kuzatish (5-bosqichli stepper).
 - 👑 **Admin Panel:** Markaziy dispetcherlik, kuryerlarni biriktirish, buyurtmalar statistikasi, taomlar va kuryerlar CRUD boshqaruvi.
@@ -18,11 +21,12 @@ Zamonaviy, to'liq sinxronlashtirilgan oziq-ovqat va taom yetkazib berish ekotizi
 ---
 
 ## 📌 Asosiy Havolalar va Interfeyslar
-- **Mijoz Web-Sayti:** `/`
-- **Admin Panel:** `/admin` *(Demo: `admin` / `admin123`)*
-- **Kuryer Paneli:** `/courier`
+- **Mijoz Web-Sayti:** [https://smart-delivery-system-2026.vercel.app](https://smart-delivery-system-2026.vercel.app)
+- **Admin Panel:** [https://smart-delivery-system-2026.vercel.app/admin](https://smart-delivery-system-2026.vercel.app/admin) *(Demo: `admin` / `admin123`)*
+- **Kuryer Paneli:** [https://smart-delivery-system-2026.vercel.app/courier](https://smart-delivery-system-2026.vercel.app/courier)
 - **Telegram Bot:** [@Smart_deliveryyy_bot](https://t.me/Smart_deliveryyy_bot)
-- **API Health Check:** `/api/health`
+- **API Health Check:** [https://smart-delivery-system-2026.vercel.app/api/health](https://smart-delivery-system-2026.vercel.app/api/health)
+- **Render 1-Click Deploy:** [Deploy to Render](https://render.com/deploy?repo=https://github.com/nematjanoovv-max/UI_UX_04_11_2026)
 
 ---
 

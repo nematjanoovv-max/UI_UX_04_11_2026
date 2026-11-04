@@ -10,7 +10,7 @@
    /mnt/sdcard/Agent/UI_UX_04_11_2026
 
 3. GITHUB REPOSITORY URL:
-   https://github.com/nematjanoovv-max/smart-delivery-system-2026
+   https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 
 4. VERCEL (FRONTEND WEB + ADMIN + KURYER PANEL) URL:
    - Mijoz Web-sayti: https://smart-delivery-system-2026.vercel.app
@@ -23,9 +23,9 @@
    - Base API URL:       https://smart-delivery-system-2026.vercel.app/api (va Render: https://smart-delivery-system.onrender.com)
    - Health Check URL:   https://smart-delivery-system-2026.vercel.app/api/health
    - Render 1-Click Deploy Blueprint:
-     https://render.com/deploy?repo=https://github.com/nematjanoovv-max/smart-delivery-system-2026
+     https://render.com/deploy?repo=https://github.com/nematjanoovv-max/UI_UX_04_11_2026
    - Render Blueprint Fayli:
-     https://github.com/nematjanoovv-max/smart-delivery-system-2026/blob/main/render.yaml
+     https://github.com/nematjanoovv-max/UI_UX_04_11_2026/blob/main/render.yaml
 
 6. TELEGRAM BOT MA'LUMOTLARI:
    - Bot Nomi:        Smart_delivery
