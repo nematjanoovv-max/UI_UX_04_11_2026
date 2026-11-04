@@ -15,7 +15,7 @@
 4. VERCEL (FRONTEND WEB + ADMIN + KURYER PANEL) URL:
    - Mijoz Web-sayti: https://smart-delivery-system-2026.vercel.app
    - Admin Panel:      https://smart-delivery-system-2026.vercel.app/admin
-     * Kirish ma'lumotlari: Login: admin | Parol: admin123 (yoki 1-Click Tezkor Demo tugmasi)
+     * Kirish: Xavfsiz login/parol orqali himoyalangan (maxfiy saqlanadi)
    - Kuryer Paneli:    https://smart-delivery-system-2026.vercel.app/courier
      * Kuryer tanlovi (Jasur Aliyev, Bobur Karimov, Sardor Rustamov), holat o'zgartirish va buyurtmalar doskasi
 
@@ -31,7 +31,8 @@
    - Bot Nomi:        Smart_delivery
    - Bot Username:    @Smart_deliveryyy_bot
    - Bot Link:        https://t.me/Smart_deliveryyy_bot
-   - Bot Token:       9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo
+   - Bot Token:       [MAXFIY — Faqat lokal .env faylida saqlanadi, ochiqqa chiqarilmaydi]
+   - Super Admin:     [Tizimga bog'langan va xavfsiz himoyalangan]
    - Bot WebApp:      Ulandi (Telegram chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
    - Bot Holati:      Active / 100% Sinxronlangan
    - Qo'llab-quvvatlanadigan rollar va buyruqlar:
@@ -42,10 +43,11 @@
 
 7. TIZIMNING ISHLASH HOLATI TEKSHIRUVI (CHECKLIST):
    [x] Web Sayt — 100% (Zamonaviy 2026 UI/UX, Mobile-first, Dark/Light mode, Glassmorphism, Savatcha, Geolocation API, 5-bosqichli jonli kuzatuv)
-   [x] Admin Panel — 100% (Dashboard, Tushum, Buyurtmalar dispetcherligi, Kuryer biriktirish dropdown, Menyu CRUD, Kuryerlar CRUD)
+   [x] Admin Panel — 100% (Dashboard, Tushum, Buyurtmalar dispetcherligi, Kuryer biriktirish dropdown, Menyu CRUD, Kuryerlar CRUD, xavfsiz login tizimi)
    [x] Kuryer Biriktirish va Kuzatish — 100% (Admin biriktirishi bilan Kuryer Web va Botiga xabar boradi, kuryer holati busy/free almashadi, real-time yangilanadi)
    [x] Telegram Bot & Web Sinxronizatsiyasi — 100% (Botdan berilgan buyurtma Web adminda va kuzatuvda paydo bo'ladi; Webdan berilganda botga xabar keladi)
    [x] Ma'lumotlar Bazasi — 100% (SQLite node:sqlite dvigateli, 7 ta jadval, 5 ta kategoriya, 14 ta sifatli taom, 3 ta faol test kuryer va demo buyurtmalar)
+   [x] Xavfsizlik — 100% (Shaxsiy ma'lumotlar, tokenlar va admin parollari ochiq ko'rsatilmaydi va git'ga chiqmaydi)
 
 ================================================================================
 Barcha vazifalar to'liq, mustaqil va xatosiz bajarildi!

@@ -22,7 +22,7 @@ Zamonaviy, to'liq sinxronlashtirilgan oziq-ovqat va taom yetkazib berish ekotizi
 
 ## 📌 Asosiy Havolalar va Interfeyslar
 - **Mijoz Web-Sayti:** [https://smart-delivery-system-2026.vercel.app](https://smart-delivery-system-2026.vercel.app)
-- **Admin Panel:** [https://smart-delivery-system-2026.vercel.app/admin](https://smart-delivery-system-2026.vercel.app/admin) *(Demo: `admin` / `admin123`)*
+- **Admin Panel:** [https://smart-delivery-system-2026.vercel.app/admin](https://smart-delivery-system-2026.vercel.app/admin) *(Xavfsiz login/parol bilan himoyalangan)*
 - **Kuryer Paneli:** [https://smart-delivery-system-2026.vercel.app/courier](https://smart-delivery-system-2026.vercel.app/courier)
 - **Telegram Bot:** [@Smart_deliveryyy_bot](https://t.me/Smart_deliveryyy_bot)
 - **API Health Check:** [https://smart-delivery-system-2026.vercel.app/api/health](https://smart-delivery-system-2026.vercel.app/api/health)

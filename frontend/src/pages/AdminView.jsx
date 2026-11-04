@@ -77,17 +77,8 @@ export default function AdminView() {
       setAuthError('');
       showToast('Admin panelga xush kelibsiz!');
     } else {
-      setAuthError('Login yoki parol noto\'g\'ri (Demo: admin / admin123)');
+      setAuthError('Login yoki parol noto\'g\'ri');
     }
-  };
-
-  const handleDemoLogin = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    setIsAuthenticated(true);
-    localStorage.setItem('sd_admin_auth', 'true');
-    setAuthError('');
-    showToast('Demo admin sifatida kirdingiz!');
   };
 
   const handleLogout = () => {
@@ -257,9 +248,10 @@ export default function AdminView() {
               </label>
               <input
                 type="text"
+                required
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder="Login"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -270,9 +262,10 @@ export default function AdminView() {
               </label>
               <input
                 type="password"
+                required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Parol"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -284,15 +277,6 @@ export default function AdminView() {
               Tizimga kirish
             </button>
           </form>
-
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
-            <button
-              onClick={handleDemoLogin}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              ⚡️ 1-Click Tezkor Demo Kirish (admin / admin123)
-            </button>
-          </div>
 
         </div>
       </div>

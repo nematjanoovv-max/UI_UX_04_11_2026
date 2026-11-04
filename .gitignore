@@ -4,3 +4,5 @@ node_modules/
 *.log
 .system_generated/
 .vercel
+*.sqlite*
+server/smart_delivery.sqlite*

@@ -7,7 +7,8 @@ class TelegramBotService {
     this.isRunning = false;
     this.pollOffset = 0;
     this.userSessions = new Map(); // chat_id => session state
-    this.adminChatIds = new Set([1340769865]); // Super Admin Telegram ID
+    const envAdminId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : null;
+    this.adminChatIds = new Set(envAdminId ? [envAdminId] : []);
   }
 
   getApiUrl(method) {

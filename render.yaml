@@ -9,7 +9,9 @@ services:
     autoDeploy: true
     envVars:
       - key: BOT_TOKEN
-        value: 9062120220:AAHLCnw0PyS8ndPzDCpkpnoQnTUMH9SG0Eo
+        sync: false
+      - key: ADMIN_TELEGRAM_ID
+        sync: false
       - key: NODE_VERSION
         value: 22.11.0
       - key: PORT
