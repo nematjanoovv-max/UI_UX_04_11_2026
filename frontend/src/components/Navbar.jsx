@@ -11,7 +11,9 @@ import {
   Compass,
   UtensilsCrossed,
   Volume2,
-  VolumeX
+  VolumeX,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -171,6 +173,25 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
               title={soundMuted ? 'Ovozni yoqish' : 'Ovozni o\'chirish'}
             >
               {soundMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-500" />}
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => {
+                sounds.playClick();
+                if (typeof window !== 'undefined' && window.Telegram?.WebApp?.requestFullscreen) {
+                  try { window.Telegram.WebApp.requestFullscreen(); } catch (_) {}
+                }
+                if (!document.fullscreenElement) {
+                  document.documentElement.requestFullscreen?.().catch(() => {});
+                } else {
+                  document.exitFullscreen?.().catch(() => {});
+                }
+              }}
+              className="p-2 sm:p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              title="To'liq ekran (Fullscreen)"
+            >
+              <Maximize2 className="w-4 h-4 text-amber-500" />
             </button>
 
             {/* Dark/Light Toggle */}

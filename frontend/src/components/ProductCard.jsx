@@ -77,7 +77,7 @@ export default function ProductCard({ product }) {
         }}
       />
       {/* Product Image */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
+      <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-800">
         <img
           src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
           alt={product.name}

@@ -74,17 +74,27 @@ export function AppProvider({ children }) {
     return currentDict[key] || translations.uz[key] || key;
   };
 
-  // Theme state
+  // Theme state - Eye-comfort Dark mode default (no glaring white background)
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('sd_theme') === 'dark';
+    const saved = localStorage.getItem('sd_theme');
+    if (saved === 'light') {
+      localStorage.setItem('sd_theme', 'dark');
+    }
+    return true;
   });
 
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+      document.documentElement.style.backgroundColor = '#0b0f19';
+      document.body.style.backgroundColor = '#0b0f19';
       localStorage.setItem('sd_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+      document.documentElement.style.backgroundColor = '#f8fafc';
+      document.body.style.backgroundColor = '#f8fafc';
       localStorage.setItem('sd_theme', 'light');
     }
   }, [darkMode]);

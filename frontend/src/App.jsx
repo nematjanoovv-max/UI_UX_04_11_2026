@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import MobileBottomNav from './components/MobileBottomNav';
 import DynamicIslandTracker from './components/DynamicIslandTracker';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
@@ -37,7 +38,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors">
       {/* Apple-style Floating Dynamic Island Live Tracker */}
       <DynamicIslandTracker />
 
@@ -50,7 +51,7 @@ export default function App() {
       />
 
       {/* Main View Body */}
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-6">
         {currentView === 'client' && (
           <CustomerView
             searchQuery={searchQuery}
@@ -61,15 +62,21 @@ export default function App() {
         {currentView === 'courier' && <CourierView />}
       </main>
 
+      {/* Mobile Floating Bottom Dock for thumb-friendly navigation */}
+      <MobileBottomNav 
+        currentView={currentView} 
+        setCurrentView={handleSetView} 
+      />
+
       {/* Modals & Drawers */}
       <CartDrawer />
       <CheckoutModal />
       <OrderTrackerModal />
 
       {/* Footer */}
-      <footer className="border-t border-slate-200/80 dark:border-slate-800/80 glass py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
-          <p className="font-bold text-slate-700 dark:text-slate-300">
+      <footer className="border-t border-slate-800/80 glass py-8 pb-24 md:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 space-y-2">
+          <p className="font-bold text-slate-300">
             Smart Delivery © 2026 — Zamonaviy Yetkazib Berish Tizimi
           </p>
           <p>

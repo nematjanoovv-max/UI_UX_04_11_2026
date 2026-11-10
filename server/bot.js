@@ -8,6 +8,7 @@ const botLocales = {
       `Quyidagi tugmalardan birini tanlang:`,
     btnMenu: '🍔 Menyu va Buyurtma',
     btnWeb: '🌐 WebApp orqali buyurtma',
+    btnFullscreen: '🌐 To\'liq ekran (Sayt)',
     btnTrack: '📦 Buyurtmam holati',
     btnHistory: '📜 Buyurtmalar tarixi',
     btnCart: '🛒 Savatcha',
@@ -40,6 +41,7 @@ const botLocales = {
       `Выберите нужный раздел из меню ниже:`,
     btnMenu: '🍔 Меню и Заказ',
     btnWeb: '🌐 Заказ через WebApp',
+    btnFullscreen: '🌐 Полный экран (Сайт)',
     btnTrack: '📦 Статус заказа',
     btnHistory: '📜 История заказов',
     btnCart: '🛒 Корзина',
@@ -72,6 +74,7 @@ const botLocales = {
       `Please choose an option from the menu below:`,
     btnMenu: '🍔 Menu & Order',
     btnWeb: '🌐 Order via WebApp',
+    btnFullscreen: '🌐 Fullscreen (Browser)',
     btnTrack: '📦 Track Order',
     btnHistory: '📜 Order History',
     btnCart: '🛒 Cart',
@@ -390,6 +393,20 @@ class TelegramBotService {
       this.adminChatIds.add(chatId);
       db.run("UPDATE users SET role = 'admin' WHERE telegram_id = ?", [String(chatId)]);
       await this.sendAdminDashboard(chatId);
+      return;
+    }
+
+    if (text.includes('To\'liq ekran') || text.includes('Полный экран') || text.includes('Fullscreen') || text === '/fullscreen') {
+      await this.sendMessage(chatId, `🌐 *Smart Delivery — 100% To'liq Ekran:*\n\n` +
+        `Telegram oynasi kichiklik qilsa yoki to'liq ekranda ishlashni istasangiz, quyidagi tugma orqali Google Chrome, Safari yoki Samsung Internet brauzeringizda ochishingiz mumkin:`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🌐 100% To'liq Ekranda Ochish (Brauzer)", url: webAppUrl }],
+            [{ text: "📱 Telegram WebApp-da ochish", web_app: { url: webAppUrl } }]
+          ]
+        }
+      });
       return;
     }
 
@@ -807,6 +824,21 @@ class TelegramBotService {
         resize_keyboard: true
       }
     });
+
+    // Instant 1-tap browser fullscreen launcher
+    await this.sendMessage(chatId, `✨ *Qulay formatni tanlang:*\n` +
+      `• *Telegram ichida:* Pastdagi "🌐 WebApp" tugmasi\n` +
+      `• *100% To'liq ekran:* Brauzerda cheksiz rejimda ochish uchun quyidagi tugmani bosing:`, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "🚀 Web App (Telegram)", web_app: { url: webAppUrl } },
+            { text: "🌐 100% To'liq Ekran (Brauzer)", url: webAppUrl }
+          ]
+        ]
+      }
+    });
   }
 
   async sendLanguageSelection(chatId) {
@@ -832,7 +864,7 @@ class TelegramBotService {
     const loc = botLocales[lang] || botLocales.uz;
     return [
       [{ text: loc.btnMenu }],
-      [{ text: loc.btnWeb, web_app: { url: webAppUrl } }],
+      [{ text: loc.btnWeb, web_app: { url: webAppUrl } }, { text: loc.btnFullscreen || '🌐 To\'liq ekran (Sayt)' }],
       [{ text: loc.btnTrack }, { text: loc.btnCart }],
       [{ text: loc.btnHistory }, { text: loc.btnCourier }],
       [{ text: '👑 Admin panel' }, { text: loc.btnSupport }],
