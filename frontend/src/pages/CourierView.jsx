@@ -322,31 +322,63 @@ export default function CourierView() {
                     </a>
                   </div>
 
-                  {/* Address */}
-                  <div className="flex items-start gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                    <MapPin className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
-                    <div className="flex-1 text-xs">
-                      <span className="font-semibold text-slate-900 dark:text-white block">
-                        {order.delivery_address}
+                  {/* Address & 1-Click Navigator */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
+                      <div className="flex-1 text-xs">
+                        <span className="font-semibold text-slate-900 dark:text-white block">
+                          {order.delivery_address}
+                        </span>
+                        {order.notes && (
+                          <p className="text-slate-400 mt-1 italic">
+                            Izoh: "{order.notes}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 1-Click Navigator Buttons */}
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        {t('openInNavigator')}:
                       </span>
-                      {order.notes && (
-                        <p className="text-slate-400 mt-1 italic">
-                          Izoh: "{order.notes}"
-                        </p>
-                      )}
+                      <a
+                        href={`https://yandex.uz/maps/?rtext=~${order.latitude || 41.2858},${order.longitude || 69.2035}&rtt=auto`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-bold border border-amber-500/30 transition-colors"
+                      >
+                        🧭 Yandex Nav
+                      </a>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${order.latitude || 41.2858},${order.longitude || 69.2035}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-500/30 transition-colors"
+                      >
+                        📍 Google Maps
+                      </a>
                     </div>
                   </div>
 
-                  {/* Items list */}
+                  {/* Items list with modifiers */}
                   {order.items && order.items.length > 0 && (
-                    <div className="text-xs text-slate-600 dark:text-slate-300 pt-1 space-y-0.5">
+                    <div className="text-xs text-slate-600 dark:text-slate-300 pt-1 space-y-1">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Taomlar:
+                        Taomlar & Tarkibi:
                       </span>
                       {order.items.map(item => (
-                        <div key={item.id} className="flex justify-between">
-                          <span>• {item.product_name}</span>
-                          <span className="font-semibold">{item.quantity} dona</span>
+                        <div key={item.id} className="p-2 rounded-xl bg-slate-100/60 dark:bg-slate-800/40">
+                          <div className="flex justify-between font-semibold">
+                            <span>• {item.product_name}</span>
+                            <span>{item.quantity} dona</span>
+                          </div>
+                          {item.modifiers && (
+                            <p className="text-[10px] text-slate-400 mt-0.5 pl-2">
+                              ↳ {typeof item.modifiers === 'string' ? JSON.parse(item.modifiers).map(m => m.name).join(', ') : item.modifiers}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>

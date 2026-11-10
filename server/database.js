@@ -99,14 +99,46 @@ function initDatabase() {
         product_name TEXT NOT NULL,
         quantity INTEGER NOT NULL DEFAULT 1,
         unit_price REAL NOT NULL,
-        total_price REAL NOT NULL
+        total_price REAL NOT NULL,
+        modifiers TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS promocodes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT UNIQUE NOT NULL,
+        discount_percent INTEGER DEFAULT 0,
+        discount_amount REAL DEFAULT 0,
+        min_order_amount REAL DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        usage_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+        courier_id INTEGER REFERENCES couriers(id) ON DELETE SET NULL,
+        customer_name TEXT,
+        rating INTEGER NOT NULL,
+        comment TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Safe migrations for new columns
     try { db.exec('ALTER TABLE orders ADD COLUMN telegram_username TEXT;'); } catch (_) {}
     try { db.exec('ALTER TABLE orders ADD COLUMN telegram_id TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN promo_code TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN discount_amount REAL DEFAULT 0;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN cashback_used REAL DEFAULT 0;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN rating INTEGER;'); } catch (_) {}
+    try { db.exec('ALTER TABLE orders ADD COLUMN review_comment TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE order_items ADD COLUMN modifiers TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE products ADD COLUMN modifiers TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE couriers ADD COLUMN rating REAL DEFAULT 5.0;'); } catch (_) {}
+    try { db.exec('ALTER TABLE couriers ADD COLUMN rating_count INTEGER DEFAULT 0;'); } catch (_) {}
     try { db.exec("ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'uz';"); } catch (_) {}
+    try { db.exec('ALTER TABLE users ADD COLUMN cashback_balance REAL DEFAULT 0;'); } catch (_) {}
 
     // Wrapper helper methods to make queries uniform
     return {
@@ -143,7 +175,9 @@ function createFallbackDatabase(filePath) {
     couriers: [],
     orders: [],
     order_items: [],
-    _seq: { users: 0, categories: 0, products: 0, couriers: 0, orders: 0, order_items: 0 }
+    promocodes: [],
+    reviews: [],
+    _seq: { users: 0, categories: 0, products: 0, couriers: 0, orders: 0, order_items: 0, promocodes: 0, reviews: 0 }
   };
 
   const actualPath = filePath.replace(/\.sqlite.*/, '.json');
@@ -158,15 +192,17 @@ function createFallbackDatabase(filePath) {
     try {
       const parsed = JSON.parse(fs.readFileSync(actualPath, 'utf8'));
       data = { ...data, ...parsed };
+      if (!data.promocodes) data.promocodes = [];
+      if (!data.reviews) data.reviews = [];
     } catch (_) {}
   }
 
   const getTable = (lower) => {
     const match = lower.match(/(?:from|into|update)\s+([a-z_]+)/);
-    if (match && ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].includes(match[1])) {
+    if (match && ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews'].includes(match[1])) {
       return match[1];
     }
-    return ['order_items', 'orders', 'products', 'categories', 'couriers', 'users'].find(t => lower.includes(t)) || 'products';
+    return ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews'].find(t => lower.includes(t)) || 'products';
   };
 
   return {
@@ -241,6 +277,9 @@ function createFallbackDatabase(filePath) {
       const table = getTable(lower);
       let rows = [...(data[table] || [])];
 
+      if (lower.includes('where code = ?')) {
+        return rows.find(r => r.code && r.code.toUpperCase() === String(params[0]).toUpperCase()) || null;
+      }
       if (lower.includes('where id = ?') || lower.includes('where p.id = ?')) {
         return rows.find(r => Number(r.id) === Number(params[0])) || null;
       }
@@ -277,7 +316,11 @@ function createFallbackDatabase(filePath) {
         if (table === 'categories') {
           record = { id: newId, name: params[0], icon: params[1], sort_order: params[2] };
         } else if (table === 'products') {
-          record = { id: newId, category_id: params[0], name: params[1], description: params[2], price: params[3], image_url: params[4], prep_time_min: params[5], is_available: params[6] };
+          record = { id: newId, category_id: params[0], name: params[1], description: params[2], price: params[3], image_url: params[4], prep_time_min: params[5], is_available: params[6], modifiers: params[7] || null };
+        } else if (table === 'promocodes') {
+          record = { id: newId, code: params[0], discount_percent: params[1] || 0, discount_amount: params[2] || 0, min_order_amount: params[3] || 0, is_active: params[4] !== undefined ? params[4] : 1, usage_count: 0, created_at: new Date().toISOString() };
+        } else if (table === 'reviews') {
+          record = { id: newId, order_id: params[0], courier_id: params[1] || null, customer_name: params[2], rating: params[3], comment: params[4], created_at: new Date().toISOString() };
         } else if (table === 'couriers') {
           record = { id: newId, name: params[0], phone: params[1], telegram_id: params[2], vehicle_type: params[3], status: params[4], active_orders_count: params[5] || 0, total_delivered: params[6] || 0 };
         } else if (table === 'orders') {

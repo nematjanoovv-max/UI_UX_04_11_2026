@@ -311,6 +311,72 @@ function seedDatabase(force = false) {
     }
   }
 
+  // 5. Promo-kodlar
+  const defaultPromos = [
+    { code: 'SMART2026', discount_percent: 20, discount_amount: 0, min_order_amount: 50000 },
+    { code: 'BEPUL', discount_percent: 0, discount_amount: 15000, min_order_amount: 40000 },
+    { code: 'MAZALI', discount_percent: 10, discount_amount: 0, min_order_amount: 30000 }
+  ];
+
+  for (const pr of defaultPromos) {
+    const existing = db.get('SELECT id FROM promocodes WHERE code = ?', [pr.code]);
+    if (!existing) {
+      db.run(`
+        INSERT INTO promocodes (code, discount_percent, discount_amount, min_order_amount, is_active, usage_count)
+        VALUES (?, ?, ?, ?, 1, 0)
+      `, [pr.code, pr.discount_percent, pr.discount_amount, pr.min_order_amount]);
+    }
+  }
+
+  // 6. Sharhlar va reytinglar (Reviews)
+  const existingReviews = db.get('SELECT COUNT(*) as cnt FROM reviews').cnt;
+  if (existingReviews === 0) {
+    const courier = db.get('SELECT id FROM couriers LIMIT 1');
+    const order = db.get('SELECT id FROM orders LIMIT 1');
+    if (order && courier) {
+      db.run(`
+        INSERT INTO reviews (order_id, courier_id, customer_name, rating, comment)
+        VALUES (?, ?, ?, ?, ?)
+      `, [order.id, courier.id, 'Alisher Usmonov', 5, 'Juda tez yetkazildi, taomlar qaynoq va mazali ekan! Rahmat!']);
+      db.run(`
+        INSERT INTO reviews (order_id, courier_id, customer_name, rating, comment)
+        VALUES (?, ?, ?, ?, ?)
+      `, [order.id, courier.id, 'Madina Karimova', 5, 'Kuryer juda muloyim, 20 daqiqada yetib keldi. 10/10!']);
+    }
+  }
+
+  // 7. Mahsulot modifikatorlarini yangilash (Modifiers)
+  try {
+    const burgerMods = JSON.stringify([
+      { id: 'cheese', name: "Qo'shimcha pishloq (Cheddar)", price: 5000 },
+      { id: 'sauce', name: 'Maxsus achchiq sous', price: 3000 },
+      { id: 'double_meat', name: "Qo'shimcha go'sht kotleti", price: 14000 }
+    ]);
+    const pizzaMods = JSON.stringify([
+      { id: 'extra_cheese', name: "Qo'shimcha Motsarella", price: 8000 },
+      { id: 'jalapeno', name: 'Halapenyo achchiq qalampir', price: 4000 },
+      { id: 'cheese_crust', name: 'Pishloqli qobiq', price: 12000 }
+    ]);
+    const oshMods = JSON.stringify([
+      { id: 'kazi', name: "Qo'shimcha Qazi (3 bo'lak)", price: 12000 },
+      { id: 'quail_egg', name: 'Bedana tuxumi (2 dona)', price: 4000 }
+    ]);
+    const drinkMods = JSON.stringify([
+      { id: 'size_1l', name: 'Katta hajm (1.0 Litr)', price: 6000 },
+      { id: 'ice', name: 'Qo\'shimcha muz solish', price: 0 }
+    ]);
+    const dessertMods = JSON.stringify([
+      { id: 'choco_ganache', name: 'Issiq shokoladli ganash', price: 5000 },
+      { id: 'icecream_scoop', name: 'Vanilli muzqaymoq', price: 6000 }
+    ]);
+
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Burger%'", [burgerMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Pizza%'", [pizzaMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Osh%' OR name LIKE '%Kabob%'", [oshMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Cola%' OR name LIKE '%Moxito%' OR name LIKE '%Sharbat%'", [drinkMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Cheesecake%' OR name LIKE '%Fondant%'", [dessertMods]);
+  } catch (_) {}
+
   console.log('[SEED] Muvaffaqiyatli yakunlandi! Jami kategoriyalar:', db.get('SELECT COUNT(*) as cnt FROM categories').cnt);
   console.log('[SEED] Jami mahsulotlar:', db.get('SELECT COUNT(*) as cnt FROM products').cnt);
   console.log('[SEED] Jami kuryerlar:', db.get('SELECT COUNT(*) as cnt FROM couriers').cnt);

@@ -53,21 +53,22 @@ export function AppProvider({ children }) {
   }, [cart]);
 
   const addToCart = (product) => {
+    const key = product.customKey || product.id;
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => (item.customKey || item.id) === key);
       if (existing) {
         return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          (item.customKey || item.id) === key ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, customKey: key, quantity: 1 }];
     });
   };
 
-  const updateQuantity = (productId, delta) => {
+  const updateQuantity = (keyOrId, delta) => {
     setCart(prev => {
       return prev.map(item => {
-        if (item.id === productId) {
+        if ((item.customKey || item.id) === keyOrId) {
           const newQty = item.quantity + delta;
           return newQty > 0 ? { ...item, quantity: newQty } : null;
         }
@@ -76,8 +77,8 @@ export function AppProvider({ children }) {
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (keyOrId) => {
+    setCart(prev => prev.filter(item => (item.customKey || item.id) !== keyOrId));
   };
 
   const clearCart = () => setCart([]);

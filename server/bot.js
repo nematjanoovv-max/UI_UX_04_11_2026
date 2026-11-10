@@ -389,6 +389,36 @@ class TelegramBotService {
       return;
     }
 
+    if (text === '/promo' || text === '/promos' || text === '🎟 Promo-kodlar') {
+      const promos = db.query('SELECT * FROM promocodes WHERE is_active = 1');
+      let pText = `🎟 *Amaldagi Promo-kodlar va Chegirmalar:*\n\n`;
+      if (!promos || promos.length === 0) {
+        pText += `Hozircha faol promo-kodlar yo'q. Yangiliklarni kuzatib boring!`;
+      } else {
+        promos.forEach(pr => {
+          const disc = pr.discount_percent > 0 ? `${pr.discount_percent}% chegirma` : `${Number(pr.discount_amount).toLocaleString()} so'm chegirma`;
+          pText += `🏷 Kod: *${pr.code}*\n`;
+          pText += `💰 Imtiyoz: *${disc}*\n`;
+          pText += `📦 Min buyurtma: ${Number(pr.min_order_amount).toLocaleString()} so'm\n\n`;
+        });
+        pText += `_Buyurtma berish paytida ushbu kodni kiriting va chegirmaga ega bo'ling!_`;
+      }
+      await this.sendMessage(chatId, pText, { parse_mode: 'Markdown' });
+      return;
+    }
+
+    if (text === '/cashback' || text === '💰 Mening keshbekim') {
+      const user = db.get('SELECT cashback_balance FROM users WHERE telegram_id = ?', [String(chatId)]);
+      const bal = user ? (Number(user.cashback_balance) || 0) : 0;
+      await this.sendMessage(chatId, `💰 *Sizning Keshbek Balansingiz:*\n\n` +
+        `💎 Hozirgi hisobingiz: *${bal.toLocaleString()} so'm*\n\n` +
+        `✨ *Qanday ishlaydi?*\n` +
+        `Har bir yetkazilgan buyurtmangiz qiymatidan *5%* sizning hisobingizga keshbek bo'lib qaytadi. Siz ushbu mablag'ni keyingi buyurtmalaringizda bemalol sarflashingiz mumkin! 🚀`, {
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
     // Courier workspace controls
     if (text === '📋 Faol buyurtmalarim') {
       await this.sendCourierActiveOrders(chatId);
@@ -490,6 +520,40 @@ class TelegramBotService {
     const session = this.getSession(chatId);
 
     await this.callApi('answerCallbackQuery', { callback_query_id: cb.id });
+
+    // Review / Rating callback
+    if (data.startsWith('rate_')) {
+      const parts = data.split('_');
+      const orderId = Number(parts[1]);
+      const stars = Number(parts[2]);
+      try {
+        const order = db.get('SELECT * FROM orders WHERE id = ?', [orderId]);
+        const courierId = order ? order.courier_id : null;
+        db.run('INSERT INTO reviews (order_id, courier_id, customer_name, rating, comment) VALUES (?, ?, ?, ?, ?)', [
+          orderId,
+          courierId,
+          cb.from ? `${cb.from.first_name || ''} ${cb.from.last_name || ''}`.trim() : 'Mijoz',
+          stars,
+          'Telegram bot orqali baholandi'
+        ]);
+        db.run('UPDATE orders SET rating = ? WHERE id = ?', [stars, orderId]);
+        if (courierId) {
+          const stats = db.get('SELECT AVG(rating) as avg_rating, COUNT(*) as cnt FROM reviews WHERE courier_id = ?', [courierId]);
+          if (stats && stats.cnt > 0) {
+            db.run('UPDATE couriers SET rating = ?, rating_count = ? WHERE id = ?', [
+              Math.round(stats.avg_rating * 10) / 10,
+              stats.cnt,
+              courierId
+            ]);
+          }
+        }
+      } catch (_) {}
+
+      await this.editMessageText(chatId, messageId, `⭐️ *Katta rahmat!*\n\nSiz ushbu buyurtmani *${stars} yulduzcha* bilan baholadingiz. Sizning fikringiz biz uchun juda muhim! ❤️`, {
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
 
     // Language selection
     if (data.startsWith('setlang_')) {
@@ -1319,10 +1383,30 @@ class TelegramBotService {
 
     let itemsText = '';
     if (items.length > 0) {
-      itemsText = items.map((it, idx) => `   ${idx + 1}. *${it.product_name}* x ${it.quantity} = ${Number(it.total_price).toLocaleString()} so'm`).join('\n');
+      itemsText = items.map((it, idx) => {
+        let line = `   ${idx + 1}. *${it.product_name}* x ${it.quantity} = ${Number(it.total_price).toLocaleString()} so'm`;
+        if (it.modifiers) {
+          try {
+            const mods = typeof it.modifiers === 'string' ? JSON.parse(it.modifiers) : it.modifiers;
+            if (Array.isArray(mods) && mods.length > 0) {
+              line += `\n      ↳ _Qo'shimchalar:_ ${mods.map(m => m.name).join(', ')}`;
+            }
+          } catch (_) {
+            line += `\n      ↳ _Qo'shimchalar:_ ${it.modifiers}`;
+          }
+        }
+        return line;
+      }).join('\n');
     }
 
     const sourceBadge = orderDetails.source === 'telegram_bot' ? '🤖 Telegram Bot' : '💻 Web Sayt';
+    let extrasText = '';
+    if (orderDetails.promo_code) {
+      extrasText += `🎟 *Promo-kod:* \`${orderDetails.promo_code}\` (-${Number(orderDetails.discount_amount || 0).toLocaleString()} so'm)\n`;
+    }
+    if (orderDetails.cashback_used && Number(orderDetails.cashback_used) > 0) {
+      extrasText += `🎁 *Keshbek ishlatildi:* -${Number(orderDetails.cashback_used).toLocaleString()} so'm\n`;
+    }
 
     const msg = `🔔 *YANGI BUYURTMA KELDI! (${orderDetails.order_number})*\n\n` +
       `👤 *Mijoz ismi:* ${orderDetails.customer_name}\n` +
@@ -1331,7 +1415,8 @@ class TelegramBotService {
       `📞 *Telefon:* \`${orderDetails.customer_phone}\`\n` +
       `📍 *Yetkazish manzili:* ${orderDetails.delivery_address || 'Ko\'rsatilmagan'}\n` +
       `💳 *To'lov usuli:* ${orderDetails.payment_method || 'Naqd'}\n` +
-      `🌐 *Buyurtma manbasi:* ${sourceBadge}\n\n` +
+      `🌐 *Buyurtma manbasi:* ${sourceBadge}\n` +
+      (extrasText ? `${extrasText}\n` : '\n') +
       (itemsText ? `🍱 *Taomlar ro'yxati:*\n${itemsText}\n\n` : '') +
       `💰 *Jami summa:* *${Number(orderDetails.total_amount).toLocaleString()} so'm*`;
 

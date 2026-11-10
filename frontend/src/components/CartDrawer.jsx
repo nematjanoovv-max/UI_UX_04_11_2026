@@ -115,26 +115,31 @@ export default function CartDrawer() {
             ) : (
               cart.map(item => (
                 <div 
-                  key={item.id}
+                  key={item.customKey || item.id}
                   className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
                 >
                   <img
                     src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
                     alt={item.name}
-                    className="w-16 h-16 rounded-xl object-cover"
+                    className="w-16 h-16 rounded-xl object-cover shrink-0"
                   />
                   
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">
                       {item.name}
                     </h4>
+                    {item.modifiers && item.modifiers.length > 0 && (
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                        ↳ {item.modifiers.map(m => m.name).join(', ')}
+                      </p>
+                    )}
                     <p className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-0.5">
                       {Number(item.price).toLocaleString()} {t('currency')}
                     </p>
 
                     <div className="flex items-center gap-2 mt-2">
                       <button
-                        onClick={() => updateQuantity(item.id, -1)}
+                        onClick={() => updateQuantity(item.customKey || item.id, -1)}
                         className="w-6 h-6 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-xs hover:bg-slate-200"
                       >
                         <Minus className="w-3 h-3" />
@@ -143,7 +148,7 @@ export default function CartDrawer() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQuantity(item.id, 1)}
+                        onClick={() => updateQuantity(item.customKey || item.id, 1)}
                         className="w-6 h-6 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs hover:bg-brand-600"
                       >
                         <Plus className="w-3 h-3" />
@@ -156,7 +161,7 @@ export default function CartDrawer() {
                       {(item.price * item.quantity).toLocaleString()}
                     </span>
                     <button
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.customKey || item.id)}
                       className="text-slate-400 hover:text-rose-500 mt-2 p-1 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

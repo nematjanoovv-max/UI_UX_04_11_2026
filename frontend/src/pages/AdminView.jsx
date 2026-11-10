@@ -19,10 +19,15 @@ import {
   Phone,
   MapPin,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Tag,
+  Star,
+  FileText,
+  Gift
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
+import ReceiptModal from '../components/ReceiptModal';
 
 const DEFAULT_CATEGORIES = [
   { id: 6, name: 'Fast Food', icon: '🍔' },
@@ -87,6 +92,18 @@ export default function AdminView() {
     vehicle_type: 'Skuter'
   });
 
+  // Promo & Reviews States
+  const [promos, setPromos] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [promoForm, setPromoForm] = useState({
+    code: '',
+    discount_percent: 15,
+    discount_amount: 0,
+    min_order_amount: 40000
+  });
+  const [selectedReceiptOrder, setSelectedReceiptOrder] = useState(null);
+
   // Handle Login
   const handleLogin = (e) => {
     e?.preventDefault();
@@ -111,18 +128,22 @@ export default function AdminView() {
     if (!isAuthenticated) return;
     setLoading(true);
     try {
-      const [statsData, ordersData, prodsData, catsData, couriersData] = await Promise.all([
+      const [statsData, ordersData, prodsData, catsData, couriersData, promosData, reviewsData] = await Promise.all([
         api.getStats(),
         api.getOrders(),
         api.getProducts(),
         api.getCategories(),
-        api.getCouriers()
+        api.getCouriers(),
+        api.getPromos().catch(() => []),
+        api.getReviews().catch(() => [])
       ]);
       setStats(statsData);
       setOrders(ordersData);
       setProducts(prodsData);
       setCategories(catsData);
       setCouriers(couriersData);
+      setPromos(promosData || []);
+      setReviews(reviewsData || []);
     } catch (err) {
       showToast('Ma\'lumotlarni yuklashda xatolik: ' + err.message, 'error');
     } finally {
@@ -229,6 +250,38 @@ export default function AdminView() {
     try {
       await api.updateCourierStatus(courierId, newStatus);
       showToast('Kuryer holati yangilandi');
+      loadAllData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  // Create Promo Code Submit
+  const handleCreatePromo = async (e) => {
+    e.preventDefault();
+    if (!promoForm.code.trim()) return;
+    try {
+      await api.createPromo({
+        code: promoForm.code.trim().toUpperCase(),
+        discount_percent: Number(promoForm.discount_percent) || 0,
+        discount_amount: Number(promoForm.discount_amount) || 0,
+        min_order_amount: Number(promoForm.min_order_amount) || 0
+      });
+      setShowPromoModal(false);
+      setPromoForm({ code: '', discount_percent: 15, discount_amount: 0, min_order_amount: 40000 });
+      showToast('Yangi promo-kod yaratildi!');
+      loadAllData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  // Delete Promo Code
+  const handleDeletePromo = async (id) => {
+    if (!window.confirm('Haqiqatan ham ushbu promo-kodni o\'chirmoqchimisiz?')) return;
+    try {
+      await api.deletePromo(id);
+      showToast('Promo-kod o\'chirildi');
       loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
@@ -353,6 +406,8 @@ export default function AdminView() {
           { id: 'orders', label: `${t('ordersTab')} (${orders.length})`, icon: ShoppingBag },
           { id: 'menu', label: `${t('menuTab')} (${products.length})`, icon: UtensilsCrossed },
           { id: 'couriers', label: `${t('couriersTab')} (${couriers.length})`, icon: Bike },
+          { id: 'promos', label: `${t('promosTab')} (${promos.length})`, icon: Tag },
+          { id: 'reviews', label: `${t('reviewsTab')} (${reviews.length})`, icon: Star },
         ].map(tab => (
           <button
             key={tab.id}
@@ -600,16 +655,37 @@ export default function AdminView() {
                       {/* Items & Amount */}
                       <td className="p-4 align-top">
                         <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-300 max-w-xs">
-                          {order.items && order.items.map(i => (
-                            <div key={i.id} className="truncate">
-                              • {i.product_name} x {i.quantity}
-                            </div>
-                          ))}
+                          {order.items && order.items.map(i => {
+                            let parsedMods = [];
+                            try {
+                              parsedMods = typeof i.modifiers === 'string' ? JSON.parse(i.modifiers) : (i.modifiers || []);
+                            } catch (_) {}
+                            return (
+                              <div key={i.id} className="text-xs">
+                                <span className="font-medium">• {i.product_name} x {i.quantity}</span>
+                                {parsedMods.length > 0 && (
+                                  <span className="block text-[10px] text-amber-600 dark:text-amber-400 pl-3">
+                                    + {parsedMods.map(m => m.name).join(', ')}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                         <span className="font-black text-sm text-slate-900 dark:text-white block mt-2">
                           {Number(order.total_amount).toLocaleString()} so'm
                         </span>
-                        <span className="text-[10px] text-slate-400">To'lov: {order.payment_method}</span>
+                        <span className="text-[10px] text-slate-400 block">To'lov: {order.payment_method}</span>
+                        {order.promo_code && (
+                          <span className="inline-block mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                            🎟 {order.promo_code} (-{Number(order.discount_amount || 0).toLocaleString()} so'm)
+                          </span>
+                        )}
+                        {order.cashback_used > 0 && (
+                          <span className="inline-block mt-1 ml-1 text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                            💰 -{Number(order.cashback_used).toLocaleString()} keshbek
+                          </span>
+                        )}
                       </td>
 
                       {/* Status Badge */}
@@ -648,8 +724,17 @@ export default function AdminView() {
                       </td>
 
                       {/* Action Status Buttons */}
-                      <td className="p-4 align-top text-right space-y-1">
-                        <div className="flex flex-col items-end gap-1">
+                      <td className="p-4 align-top text-right space-y-2">
+                        <div className="flex flex-col items-end gap-1.5">
+                          <button
+                            onClick={() => setSelectedReceiptOrder(order)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                            title="Fiskal chekni ko'rish / chiqarish"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-brand-500" />
+                            <span>Chek</span>
+                          </button>
+
                           {order.status === 'new' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'confirmed')}
@@ -853,6 +938,188 @@ export default function AdminView() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
+          TAB 5: PROMO CODES & CASHBACK MANAGEMENT
+          ------------------------------------------------------------- */}
+      {activeTab === 'promos' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                <Tag className="w-5 h-5 text-brand-500" />
+                <span>Promo-kodlar & Chegirmalar</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Mijozlar buyurtma berishda kiritishi mumkin bo'lgan chegirma kodlari
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPromoModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all w-fit"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Yangi promo-kod yaratish</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {promos.length === 0 ? (
+              <div className="col-span-full text-center py-12 glass-card rounded-3xl">
+                <Gift className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-400 text-sm font-semibold">Hozircha promo-kodlar mavjud emas</p>
+              </div>
+            ) : (
+              promos.map(p => (
+                <div
+                  key={p.id}
+                  className="p-5 rounded-3xl glass-card border-2 border-dashed border-brand-500/30 relative overflow-hidden space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-black text-lg px-3 py-1 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800 tracking-wider">
+                      {p.code}
+                    </span>
+                    <button
+                      onClick={() => handleDeletePromo(p.id)}
+                      className="text-slate-400 hover:text-rose-500 p-1.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      title="O'chirish"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="text-2xl font-black text-slate-900 dark:text-white">
+                    {p.discount_percent > 0 ? (
+                      <span>{p.discount_percent}% <span className="text-sm font-bold text-brand-500">chegirma</span></span>
+                    ) : (
+                      <span>{Number(p.discount_amount).toLocaleString()} <span className="text-sm font-bold text-brand-500">so'm chegirma</span></span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between">
+                      <span>Min. buyurtma:</span>
+                      <span className="font-bold text-slate-700 dark:text-slate-300">
+                        {p.min_order_amount > 0 ? `${Number(p.min_order_amount).toLocaleString()} so'm` : 'Cheklovsiz'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ishlatildi:</span>
+                      <span className="font-bold text-slate-700 dark:text-slate-300">{p.times_used || 0} marta</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Holati:</span>
+                      <span className="font-bold text-emerald-600">● Faol</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
+          TAB 6: REVIEWS & 5-STAR RATINGS
+          ------------------------------------------------------------- */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                <span>Mijozlar Baholari va Sharhlari</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Yetkazib berilgan buyurtmalar bo'yicha mijozlarning 5 yulduzli baholari
+              </p>
+            </div>
+          </div>
+
+          {/* Average Rating Stats Banner */}
+          <div className="p-6 rounded-3xl glass-card flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-amber-500/10 via-brand-500/5 to-transparent border border-amber-500/20">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl font-black text-slate-900 dark:text-white flex items-baseline gap-1">
+                <span>{stats?.overview?.avgRating || '4.9'}</span>
+                <span className="text-sm font-bold text-slate-400">/ 5.0</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-amber-400">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star key={star} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Jami {reviews.length} ta mijoz sharhi
+                </p>
+              </div>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 max-w-sm text-center sm:text-right">
+              ⭐️ 5 yulduzli tizim mijozlar buyurtmani qabul qilib olgach veb-sayt va Telegram bot orqali avtomatik taklif qilinadi.
+            </div>
+          </div>
+
+          {/* Reviews Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {reviews.length === 0 ? (
+              <div className="col-span-full text-center py-12 glass-card rounded-3xl">
+                <Star className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-400 text-sm font-semibold">Hozircha baholar kelib tushmadi</p>
+              </div>
+            ) : (
+              reviews.map(rev => (
+                <div key={rev.id} className="p-5 rounded-3xl glass-card space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                        {rev.customer_name || 'Mijoz'}
+                      </h4>
+                      {rev.order_number && (
+                        <span className="text-[10px] text-slate-400">
+                          #{rev.order_number}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map(st => (
+                        <Star
+                          key={st}
+                          className={`w-4 h-4 ${
+                            st <= (rev.rating || 5)
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-slate-200 dark:text-slate-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {rev.comment && (
+                    <p className="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl">
+                      "{rev.comment}"
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    {rev.courier_name ? (
+                      <span className="font-semibold text-brand-500">
+                        🛵 {rev.courier_name}
+                      </span>
+                    ) : (
+                      <span>Umumiy xizmat</span>
+                    )}
+                    <span>
+                      {rev.created_at
+                        ? new Date(rev.created_at).toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                        : 'Yaqinda'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -1071,6 +1338,94 @@ export default function AdminView() {
           </div>
         </div>
       )}
+
+      {/* -------------------------------------------------------------
+          MODAL: ADD NEW PROMO CODE
+          ------------------------------------------------------------- */}
+      {showPromoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+            <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-brand-500" />
+              <span>Yangi Promo-kod Yaratish</span>
+            </h3>
+            <form onSubmit={handleCreatePromo} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold mb-1">Promo-kod nomi *</label>
+                <input
+                  type="text"
+                  required
+                  value={promoForm.code}
+                  onChange={e => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
+                  placeholder="YANGIYIL2026"
+                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono uppercase tracking-wider"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold mb-1">Chegirma foizi (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={promoForm.discount_percent}
+                    onChange={e => setPromoForm({ ...promoForm, discount_percent: e.target.value, discount_amount: 0 })}
+                    placeholder="20"
+                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold mb-1">Yoki summa (so'm)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={promoForm.discount_amount}
+                    onChange={e => setPromoForm({ ...promoForm, discount_amount: e.target.value, discount_percent: 0 })}
+                    placeholder="15000"
+                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold mb-1">Minimal buyurtma summasi (so'm)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={promoForm.min_order_amount}
+                  onChange={e => setPromoForm({ ...promoForm, min_order_amount: e.target.value })}
+                  placeholder="50000"
+                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPromoModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-brand-500 text-white font-bold text-xs shadow-md hover:bg-brand-600"
+                >
+                  Yaratish
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Thermal Receipt Preview Modal */}
+      <ReceiptModal
+        order={selectedReceiptOrder}
+        isOpen={!!selectedReceiptOrder}
+        onClose={() => setSelectedReceiptOrder(null)}
+      />
 
     </div>
   );

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { X, MapPin, Locate, Phone, User, CreditCard, Banknote, ShieldCheck, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, MapPin, Locate, Phone, User, CreditCard, Banknote, ShieldCheck, Loader2, Tag, Gift, Check, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
+import PaymentSimulatorModal from './PaymentSimulatorModal';
 
 export default function CheckoutModal() {
   const {
@@ -10,7 +11,6 @@ export default function CheckoutModal() {
     cart,
     cartTotal,
     deliveryFee,
-    grandTotal,
     clearCart,
     setTrackedOrderNumber,
     setIsTrackerOpen,
@@ -36,7 +36,68 @@ export default function CheckoutModal() {
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Promo code & Cashback states
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [cashbackBalance, setCashbackBalance] = useState(0);
+  const [useCashback, setUseCashback] = useState(false);
+
+  // Online Payment simulator state
+  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
+
+  // Fetch user cashback if phone or telegram_id exists
+  useEffect(() => {
+    if (!isCheckoutOpen) return;
+    const loadCashback = async () => {
+      try {
+        const res = await api.getUserCashback({
+          telegram_id: formData.telegram_id,
+          phone: formData.customer_phone
+        });
+        if (res && res.cashback_balance) {
+          setCashbackBalance(res.cashback_balance);
+        }
+      } catch (_) {}
+    };
+    loadCashback();
+  }, [isCheckoutOpen, formData.telegram_id]);
+
   if (!isCheckoutOpen) return null;
+
+  // Calculate discounts & final grand total
+  const promoDiscount = appliedPromo ? Number(appliedPromo.discount_amount) : 0;
+  const maxUsableCashback = Math.min(cashbackBalance, Math.max(0, cartTotal + deliveryFee - promoDiscount));
+  const cashbackDeduction = useCashback ? maxUsableCashback : 0;
+  const currentGrandTotal = Math.max(0, cartTotal + deliveryFee - promoDiscount - cashbackDeduction);
+
+  // Promo validation handler
+  const handleApplyPromo = async () => {
+    if (!promoCodeInput.trim()) return;
+    setIsApplyingPromo(true);
+    try {
+      const res = await api.validatePromo(promoCodeInput.trim(), cartTotal);
+      if (res && res.valid) {
+        setAppliedPromo(res);
+        showToast(res.message);
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+      setAppliedPromo(null);
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  // Quick District select helper
+  const handleQuickDistrict = (name, lat, lng) => {
+    setFormData(prev => ({
+      ...prev,
+      delivery_address: `Toshkent sh., ${name}, `,
+      latitude: lat,
+      longitude: lng
+    }));
+  };
 
   // Geolocation API handler
   const handleGetLocation = () => {
@@ -47,16 +108,16 @@ export default function CheckoutModal() {
 
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const { latitude, longitude } = pos.coords;
         setFormData(prev => ({
           ...prev,
           latitude,
           longitude,
-          delivery_address: prev.delivery_address || `Joylashuv koordinatasi: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+          delivery_address: prev.delivery_address || `Toshkent (GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
         }));
         setIsLocating(false);
-        showToast('Joylashuvingiz muvaffaqiyatli aniqlandi!');
+        showToast('Joylashuvingiz aniqlandi!');
       },
       (err) => {
         setIsLocating(false);
@@ -66,9 +127,9 @@ export default function CheckoutModal() {
     );
   };
 
-  const handleSubmit = async (e) => {
+  // Pre-submit validation
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-
     if (!formData.customer_name.trim()) {
       showToast('Iltimos, ismingizni kiriting', 'error');
       return;
@@ -82,6 +143,16 @@ export default function CheckoutModal() {
       return;
     }
 
+    // If online payment (Click, Payme, Uzum), trigger gateway simulator first!
+    if (['Click', 'Payme', 'Uzum'].includes(formData.payment_method)) {
+      setShowPaymentGateway(true);
+    } else {
+      executeOrderCreation();
+    }
+  };
+
+  // Final order creation
+  const executeOrderCreation = async () => {
     setIsSubmitting(true);
     try {
       const orderPayload = {
@@ -94,17 +165,22 @@ export default function CheckoutModal() {
         longitude: formData.longitude,
         payment_method: formData.payment_method,
         notes: formData.notes.trim(),
+        promo_code: appliedPromo ? appliedPromo.code : null,
+        discount_amount: promoDiscount,
+        cashback_used: cashbackDeduction,
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          modifiers: item.modifiers || null
         }))
       };
 
       const res = await api.createOrder(orderPayload);
 
       clearCart();
+      setShowPaymentGateway(false);
       setIsCheckoutOpen(false);
       showToast(`Buyurtma qabul qilindi! Raqam: ${res.order_number}`);
       
@@ -119,194 +195,293 @@ export default function CheckoutModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-      />
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        {/* Backdrop */}
+        <div 
+          onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        />
 
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 animate-slide-up">
-        
-        {/* Header */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('checkoutTitle')}</h3>
-              <p className="text-xs text-slate-400">
-                {language === 'ru' ? 'Быстрая и безопасная доставка вашего заказа' : (language === 'en' ? 'Fast and secure delivery to your address' : 'Ma\'lumotlaringiz xavfsiz va tezkor yetkaziladi')}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
-            className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 animate-slide-up">
           
-          {/* Ism */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t('customerName')}
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                required
-                value={formData.customer_name}
-                onChange={e => setFormData({ ...formData, customer_name: e.target.value })}
-                placeholder={t('namePlaceholder')}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-              />
-            </div>
-          </div>
-
-          {/* Telefon */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t('customerPhone')}
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="tel"
-                required
-                value={formData.customer_phone}
-                onChange={e => setFormData({ ...formData, customer_phone: e.target.value })}
-                placeholder="+998 90 123 45 67"
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-              />
-            </div>
-          </div>
-
-          {/* Telegram profili (ixtiyoriy) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t('telegramProfile')} <span className="text-slate-400 font-normal text-[11px]">{t('telegramOptional')}</span>
-            </label>
-            <input
-              type="text"
-              value={formData.telegram_username}
-              onChange={e => setFormData({ ...formData, telegram_username: e.target.value })}
-              placeholder="@username"
-              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-            />
-          </div>
-
-          {/* Manzil + Geolocation */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                {t('deliveryAddress')}
-              </label>
-              <button
-                type="button"
-                onClick={handleGetLocation}
-                disabled={isLocating}
-                className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700"
-              >
-                {isLocating ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Locate className="w-3.5 h-3.5" />
-                )}
-                <span>{isLocating ? t('locating') : t('detectLocation')}</span>
-              </button>
-            </div>
-            <div className="relative">
-              <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-              <textarea
-                required
-                rows={2}
-                value={formData.delivery_address}
-                onChange={e => setFormData({ ...formData, delivery_address: e.target.value })}
-                placeholder={t('addressPlaceholder')}
-                className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* To'lov turi */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t('paymentMethod')}
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: 'Naqd', icon: Banknote, label: t('cash') },
-                { id: 'Click', icon: CreditCard, label: 'Click' },
-                { id: 'Payme', icon: CreditCard, label: 'Payme' },
-                { id: 'Karta', icon: CreditCard, label: t('card') }
-              ].map(pay => (
-                <button
-                  key={pay.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, payment_method: pay.id })}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-xs font-bold transition-all ${
-                    formData.payment_method === pay.id
-                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-xs'
-                      : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                  }`}
-                >
-                  <pay.icon className="w-4 h-4 mb-1" />
-                  <span>{pay.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Izoh */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t('orderNotes')}
-            </label>
-            <input
-              type="text"
-              value={formData.notes}
-              onChange={e => setFormData({ ...formData, notes: e.target.value })}
-              placeholder={t('notesPlaceholder')}
-              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-            />
-          </div>
-
-          {/* Hisob va Tasdiqlash */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('total')}:</span>
-              <span className="text-lg font-black text-brand-600 dark:text-brand-400">
-                {grandTotal.toLocaleString()} {t('currency')}
-              </span>
+          {/* Header */}
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('checkoutTitle')}</h3>
+                <p className="text-xs text-slate-400">
+                  {language === 'ru' ? 'Быстрая и безопасная доставка вашего заказа' : (language === 'en' ? 'Fast and secure delivery to your address' : 'Tezkor va sifatli yetkazib berish')}
+                </p>
+              </div>
             </div>
 
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-50"
+              onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
+              className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{t('orderSubmitting')}</span>
-                </>
-              ) : (
-                <span>{t('submitOrderBtn')}</span>
-              )}
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-        </form>
+          {/* Form Body */}
+          <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+            
+            {/* Ism & Telefon */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  {t('customerName')}
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={formData.customer_name}
+                    onChange={e => setFormData({ ...formData, customer_name: e.target.value })}
+                    placeholder={t('namePlaceholder')}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                  />
+                </div>
+              </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  {t('customerPhone')}
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="tel"
+                    required
+                    value={formData.customer_phone}
+                    onChange={e => setFormData({ ...formData, customer_phone: e.target.value })}
+                    placeholder="+998 90 123 45 67"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Manzil + GPS helper */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t('deliveryAddress')}
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={isLocating}
+                  className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700"
+                >
+                  {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Locate className="w-3.5 h-3.5" />}
+                  <span>{isLocating ? t('locating') : t('detectLocation')}</span>
+                </button>
+              </div>
+
+              {/* Quick district selector */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-[11px]">
+                <span className="text-slate-400 shrink-0 font-medium">Shahar:</span>
+                {[
+                  { name: 'Chilonzor', lat: 41.2858, lng: 69.2035 },
+                  { name: 'Yunusobod', lat: 41.3645, lng: 69.2891 },
+                  { name: 'Mirzo Ulug\'bek', lat: 41.3275, lng: 69.3242 },
+                  { name: 'Mirobod', lat: 41.2912, lng: 69.2781 },
+                  { name: 'Yakkasaroy', lat: 41.2783, lng: 69.2514 }
+                ].map(dist => (
+                  <button
+                    key={dist.name}
+                    type="button"
+                    onClick={() => handleQuickDistrict(dist.name, dist.lat, dist.lng)}
+                    className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/40 text-slate-600 dark:text-slate-300 hover:text-brand-600 border border-slate-200 dark:border-slate-700 shrink-0 transition-colors"
+                  >
+                    {dist.name}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <textarea
+                  required
+                  rows={2}
+                  value={formData.delivery_address}
+                  onChange={e => setFormData({ ...formData, delivery_address: e.target.value })}
+                  placeholder={t('addressPlaceholder')}
+                  className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Promo-kod Section */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+              <label className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-amber-500" />
+                <span>{t('promoCode')}</span>
+              </label>
+
+              {appliedPromo ? (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-4 h-4" />
+                    <span>Kod: <b>{appliedPromo.code}</b> (-{promoDiscount.toLocaleString()} so'm)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAppliedPromo(null)}
+                    className="text-slate-400 hover:text-rose-500 text-xs font-normal"
+                  >
+                    O'chirish
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCodeInput}
+                    onChange={e => setPromoCodeInput(e.target.value.toUpperCase())}
+                    placeholder="SMART2026, BEPUL..."
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    disabled={isApplyingPromo}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+                  >
+                    {isApplyingPromo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('apply')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Cashback loyalty balance */}
+            {cashbackBalance > 0 && (
+              <div
+                onClick={() => setUseCashback(!useCashback)}
+                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                  useCashback
+                    ? 'border-purple-500 bg-purple-500/10 dark:bg-purple-500/15'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center ${useCashback ? 'bg-purple-600 text-white' : 'border-2 border-slate-300 dark:border-slate-600'}`}>
+                    {useCashback && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  </div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                    <Gift className="w-3.5 h-3.5 text-purple-500" />
+                    <span>{t('useCashback')}</span>
+                  </span>
+                </div>
+                <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+                  {cashbackBalance.toLocaleString()} so'm
+                </span>
+              </div>
+            )}
+
+            {/* To'lov turi */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t('paymentMethod')}
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: 'Naqd', icon: Banknote, label: t('cash'), color: 'hover:border-emerald-500' },
+                  { id: 'Click', icon: CreditCard, label: 'Click', color: 'hover:border-blue-500' },
+                  { id: 'Payme', icon: CreditCard, label: 'Payme', color: 'hover:border-teal-500' },
+                  { id: 'Uzum', icon: CreditCard, label: 'Uzum', color: 'hover:border-purple-500' }
+                ].map(pay => (
+                  <button
+                    key={pay.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, payment_method: pay.id })}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-xs font-bold transition-all ${
+                      formData.payment_method === pay.id
+                        ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-xs'
+                        : `border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 ${pay.color}`
+                    }`}
+                  >
+                    <pay.icon className="w-4 h-4 mb-1" />
+                    <span>{pay.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hisob va Tasdiqlash */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between text-slate-500">
+                  <span>{t('subtotal')}:</span>
+                  <span>{cartTotal.toLocaleString()} {t('currency')}</span>
+                </div>
+
+                {promoDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-semibold">
+                    <span>{t('discount')}:</span>
+                    <span>-{promoDiscount.toLocaleString()} {t('currency')}</span>
+                  </div>
+                )}
+
+                {cashbackDeduction > 0 && (
+                  <div className="flex justify-between text-purple-600 font-semibold">
+                    <span>{t('cashback')}:</span>
+                    <span>-{cashbackDeduction.toLocaleString()} {t('currency')}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-slate-500">
+                  <span>{t('deliveryFeeLabel')}:</span>
+                  <span>{deliveryFee === 0 ? t('freeDelivery') : `${deliveryFee.toLocaleString()} ${t('currency')}`}</span>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800 text-sm">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{t('total')}:</span>
+                  <span className="text-xl font-black text-brand-600 dark:text-brand-400">
+                    {currentGrandTotal.toLocaleString()} {t('currency')}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-50 mt-3"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{t('orderSubmitting')}</span>
+                  </>
+                ) : (
+                  <span>
+                    {['Click', 'Payme', 'Uzum'].includes(formData.payment_method)
+                      ? `${formData.payment_method} orqali to'lash`
+                      : t('submitOrderBtn')}
+                  </span>
+                )}
+              </button>
+            </div>
+
+          </form>
+
+        </div>
       </div>
-    </div>
+
+      {/* Online Payment Simulator Popup */}
+      <PaymentSimulatorModal
+        isOpen={showPaymentGateway}
+        paymentMethod={formData.payment_method}
+        amount={currentGrandTotal}
+        onConfirm={executeOrderCreation}
+        onCancel={() => setShowPaymentGateway(false)}
+      />
+    </>
   );
 }

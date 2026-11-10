@@ -1,15 +1,29 @@
-import React from 'react';
-import { Clock, Plus, Minus, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, Plus, Minus, Check, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import ProductCustomizerModal from './ProductCustomizerModal';
 
 export default function ProductCard({ product }) {
   const { cart, addToCart, updateQuantity, showToast, t, language } = useApp();
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   const cartItem = cart.find(item => item.id === product.id);
   const isAvailable = product.is_available === 1;
 
+  let hasModifiers = false;
+  try {
+    if (product.modifiers) {
+      const parsed = typeof product.modifiers === 'string' ? JSON.parse(product.modifiers) : product.modifiers;
+      hasModifiers = Array.isArray(parsed) && parsed.length > 0;
+    }
+  } catch (_) {}
+
   const handleAdd = () => {
     if (!isAvailable) return;
+    if (hasModifiers) {
+      setIsCustomizerOpen(true);
+      return;
+    }
     addToCart(product);
     showToast(`"${product.name}" ${language === 'ru' ? 'добавлен в корзину!' : (language === 'en' ? 'added to cart!' : 'savatga qo\'shildi!')}`);
   };
@@ -87,8 +101,8 @@ export default function ProductCard({ product }) {
                 onClick={handleAdd}
                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-500/20 active:scale-95 transition-all"
               >
-                <Plus className="w-4 h-4" />
-                <span>{t('addToCart')}</span>
+                {hasModifiers ? <Sparkles className="w-4 h-4 text-amber-200" /> : <Plus className="w-4 h-4" />}
+                <span>{hasModifiers ? (language === 'ru' ? 'Выбрать' : (language === 'en' ? 'Select' : 'Tanlash')) : t('addToCart')}</span>
               </button>
             )
           ) : (
@@ -101,6 +115,18 @@ export default function ProductCard({ product }) {
           )}
         </div>
       </div>
+
+      {hasModifiers && (
+        <ProductCustomizerModal
+          product={product}
+          isOpen={isCustomizerOpen}
+          onClose={() => setIsCustomizerOpen(false)}
+          onAddToCart={(customizedProduct) => {
+            addToCart(customizedProduct);
+            showToast(`"${product.name}" ${language === 'ru' ? 'с добавками добавлен в корзину!' : (language === 'en' ? 'with extras added to cart!' : 'qo\'shimchalar bilan savatga qo\'shildi!')}`);
+          }}
+        />
+      )}
     </div>
   );
 }

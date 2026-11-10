@@ -90,4 +90,31 @@ export const api = {
 
   // Stats
   getStats: () => fetchJson('/stats'),
+
+  // Promocodes
+  getPromos: () => fetchJson('/promocodes'),
+  validatePromo: (code, amount) => fetchJson('/promocodes/validate', {
+    method: 'POST',
+    body: JSON.stringify({ code, amount })
+  }),
+  createPromo: (data) => fetchJson('/promocodes', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  deletePromo: (id) => fetchJson(`/promocodes/${id}`, {
+    method: 'DELETE'
+  }),
+
+  // Cashback
+  getUserCashback: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return fetchJson(`/users/cashback${qs ? `?${qs}` : ''}`);
+  },
+
+  // Reviews
+  getReviews: () => fetchJson('/reviews'),
+  submitReview: (data) => fetchJson('/reviews', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
 };
