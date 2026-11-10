@@ -56,9 +56,6 @@ export default function App() {
     try {
       tg.ready();
       tg.expand();
-      if (!tg.isFullscreen && typeof tg.requestFullscreen === 'function') {
-        try { tg.requestFullscreen(); } catch (_) {}
-      }
       if (typeof tg.disableVerticalSwipes === 'function') {
         tg.disableVerticalSwipes();
       }
@@ -119,7 +116,7 @@ export default function App() {
   }, [cart.length, isCheckoutOpen]);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[#0b0f19] text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors overflow-x-hidden">
       {/* Apple-style Floating Dynamic Island Live Tracker */}
       <DynamicIslandTracker />
 
@@ -132,18 +129,19 @@ export default function App() {
       />
 
       {/* Main View Body */}
-      <main className="flex-1 pb-16 md:pb-6">
+      <main className="flex-1 pb-24 md:pb-12">
         {currentView === 'client' && (
           <CustomerView
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            setCurrentView={handleSetView}
           />
         )}
         {currentView === 'admin' && <AdminView />}
         {currentView === 'courier' && <CourierView />}
       </main>
 
-      {/* Mobile Floating Bottom Dock for thumb-friendly navigation */}
+      {/* Mobile Bottom Dock (Fixed at bottom on phones, clean 4 buttons) */}
       <MobileBottomNav 
         currentView={currentView} 
         setCurrentView={handleSetView} 
@@ -155,13 +153,13 @@ export default function App() {
       <OrderTrackerModal />
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 glass py-8 pb-24 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 space-y-2">
+      <footer className="border-t border-slate-800/80 glass py-6 pb-28 md:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 space-y-1.5">
           <p className="font-bold text-slate-300">
             Smart Delivery © 2026 — Zamonaviy Yetkazib Berish Tizimi
           </p>
-          <p>
-            Yagona Backend API • SQLite DB • Telegram Bot (@Smart_delivery_fast_bot) • Vite React Frontend
+          <p className="text-[11px] text-slate-500">
+            Yagona Realtime API • SQLite DB • Telegram Bot (@Smart_delivery_fast_bot) • Vite React
           </p>
         </div>
       </footer>
