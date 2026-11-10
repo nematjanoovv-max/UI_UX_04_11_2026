@@ -30,8 +30,15 @@ try {
 // -------------------------------------------------------------
 
 // 1. Health Check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   try {
+    if (!botService.botInfo && botService.token) {
+      try {
+        const meRes = await botService.callApi('getMe');
+        if (meRes.ok) botService.botInfo = meRes.result;
+      } catch (_) {}
+    }
+
     const db = getDb();
     const tablesCount = db.get("SELECT COUNT(*) as cnt FROM sqlite_master WHERE type='table'").cnt;
     const productsCount = db.get("SELECT COUNT(*) as cnt FROM products").cnt;
