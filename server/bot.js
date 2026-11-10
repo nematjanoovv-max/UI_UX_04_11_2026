@@ -242,7 +242,8 @@ class TelegramBotService {
     const text = msg.text ? msg.text.trim() : '';
     const db = getDb();
     const session = this.getSession(chatId);
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
 
     // Register / update user in database
     const fullName = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
@@ -584,7 +585,8 @@ class TelegramBotService {
         db.run("UPDATE users SET language = ? WHERE telegram_id = ?", [lang, String(chatId)]);
       } catch (_) {}
 
-      const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+      const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
       const loc = botLocales[lang] || botLocales.uz;
       await this.sendMessage(chatId, loc.langChanged, {
         parse_mode: 'Markdown',
@@ -1081,7 +1083,8 @@ class TelegramBotService {
     session.step = null;
     session.orderData = {};
 
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
 
     await this.sendMessage(chatId, `🎉 *Buyurtmangiz muvaffaqiyatli qabul qilindi!*\n\n` +
       `🆔 Buyurtma raqami: *${orderNumber}*\n` +
@@ -1364,7 +1367,8 @@ class TelegramBotService {
     const freeCouriers = db.get("SELECT COUNT(*) as cnt FROM couriers WHERE status = 'free'").cnt;
     const totalCouriers = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
 
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
 
     const text = `👑 *Smart Delivery — Admin Dispetcherlik Markazi:*\n\n` +
       `📊 Jami buyurtmalar: *${totalOrders} ta*\n` +
@@ -1460,7 +1464,8 @@ class TelegramBotService {
   async notifyCustomerStatusProgress(order, newStatus) {
     if (!order.telegram_id) return;
     const chatId = Number(order.telegram_id);
-    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
 
     let progressText = '';
     let emoji = '🛵';

@@ -56,6 +56,9 @@ export default function App() {
     try {
       tg.ready();
       tg.expand();
+      if (!tg.isFullscreen && typeof tg.requestFullscreen === 'function') {
+        try { tg.requestFullscreen(); } catch (_) {}
+      }
       if (typeof tg.disableVerticalSwipes === 'function') {
         tg.disableVerticalSwipes();
       }
