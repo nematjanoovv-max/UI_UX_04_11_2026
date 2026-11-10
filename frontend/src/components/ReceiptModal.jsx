@@ -21,8 +21,8 @@ export default function ReceiptModal({ order, isOpen, onClose }) {
   const formattedDate = order.created_at ? new Date(order.created_at).toLocaleString('uz-UZ') : new Date().toLocaleString('uz-UZ');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in print:p-0 print:bg-white">
-      <div className="w-full max-w-md bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-slide-up flex flex-col max-h-[92vh] print:border-none print:shadow-none print:rounded-none print:w-full print:max-w-none">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in print:p-0 print:bg-white overflow-hidden">
+      <div className="w-full sm:max-w-md bg-white text-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-slide-up flex flex-col max-h-[92dvh] sm:max-h-[92vh] print:border-none print:shadow-none print:rounded-none print:w-full print:max-w-none">
         
         {/* Top toolbar (hidden in print) */}
         <div className="p-4 bg-slate-100 border-b border-slate-200 flex items-center justify-between print:hidden">

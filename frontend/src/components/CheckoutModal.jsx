@@ -275,24 +275,32 @@ export default function CheckoutModal() {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
         {/* Backdrop */}
         <div 
           onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         />
 
-        <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 animate-slide-up">
+        <div className="relative w-full sm:max-w-xl bg-[#0b0f19] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-800 flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden z-10 animate-slide-up">
           
+          {/* Mobile Drag Indicator Bar */}
+          <div 
+            onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
+            className="pt-2 pb-0.5 sm:hidden flex justify-center cursor-pointer shrink-0"
+          >
+            <div className="w-12 h-1 rounded-full bg-slate-700/80" />
+          </div>
+
           {/* Header */}
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-[#0b0f19]">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-500/15 border border-brand-500/30 text-brand-400 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('checkoutTitle')}</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="font-bold text-base sm:text-lg text-white">{t('checkoutTitle')}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-400">
                   {language === 'ru' ? 'Быстрая и безопасная доставка вашего заказа' : (language === 'en' ? 'Fast and secure delivery to your address' : 'Tezkor va sifatli yetkazib berish')}
                 </p>
               </div>
@@ -300,40 +308,41 @@ export default function CheckoutModal() {
 
             <button
               onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
-              className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Form Body */}
-          <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+          {/* Form Body with Scrollable Area & Fixed Sticky Footer */}
+          <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3.5">
             
             {/* Ism & Telefon */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {t('customerName')}
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="text"
                     required
                     value={formData.customer_name}
                     onChange={e => setFormData({ ...formData, customer_name: e.target.value })}
                     placeholder={t('namePlaceholder')}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {t('customerPhone')}
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="tel"
                     required
@@ -343,7 +352,7 @@ export default function CheckoutModal() {
                       if (isPhoneVerified && !tgUser) setIsPhoneVerified(false);
                     }}
                     placeholder="+998 90 123 45 67"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   />
                 </div>
 
@@ -408,14 +417,14 @@ export default function CheckoutModal() {
             {/* Manzil + GPS helper */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label className="text-xs font-bold text-slate-300">
                   {t('deliveryAddress')}
                 </label>
                 <button
                   type="button"
                   onClick={handleGetLocation}
                   disabled={isLocating}
-                  className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700"
+                  className="flex items-center gap-1 text-xs font-semibold text-brand-400 hover:text-brand-300"
                 >
                   {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Locate className="w-3.5 h-3.5" />}
                   <span>{isLocating ? t('locating') : t('detectLocation')}</span>
@@ -436,7 +445,7 @@ export default function CheckoutModal() {
                     key={dist.name}
                     type="button"
                     onClick={() => handleQuickDistrict(dist.name, dist.lat, dist.lng)}
-                    className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/40 text-slate-600 dark:text-slate-300 hover:text-brand-600 border border-slate-200 dark:border-slate-700 shrink-0 transition-colors"
+                    className="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-brand-400 border border-slate-800 shrink-0 transition-colors"
                   >
                     {dist.name}
                   </button>
@@ -444,27 +453,27 @@ export default function CheckoutModal() {
               </div>
 
               <div className="relative">
-                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
                 <textarea
                   required
                   rows={2}
                   value={formData.delivery_address}
                   onChange={e => setFormData({ ...formData, delivery_address: e.target.value })}
                   placeholder={t('addressPlaceholder')}
-                  className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 resize-none"
+                  className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 resize-none"
                 />
               </div>
             </div>
 
             {/* Promo-kod Section */}
-            <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
-              <label className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-amber-500" />
+            <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2">
+              <label className="text-xs font-black text-white flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-amber-400" />
                 <span>{t('promoCode')}</span>
               </label>
 
               {appliedPromo ? (
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
                   <div className="flex items-center gap-1.5">
                     <Check className="w-4 h-4" />
                     <span>Kod: <b>{appliedPromo.code}</b> (-{promoDiscount.toLocaleString()} so'm)</span>
@@ -472,7 +481,7 @@ export default function CheckoutModal() {
                   <button
                     type="button"
                     onClick={() => setAppliedPromo(null)}
-                    className="text-slate-400 hover:text-rose-500 text-xs font-normal"
+                    className="text-slate-400 hover:text-rose-400 text-xs font-normal"
                   >
                     O'chirish
                   </button>
@@ -484,7 +493,7 @@ export default function CheckoutModal() {
                     value={promoCodeInput}
                     onChange={e => setPromoCodeInput(e.target.value.toUpperCase())}
                     placeholder="SMART2026, BEPUL..."
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                   />
                   <button
                     type="button"
@@ -504,20 +513,20 @@ export default function CheckoutModal() {
                 onClick={() => setUseCashback(!useCashback)}
                 className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
                   useCashback
-                    ? 'border-purple-500 bg-purple-500/10 dark:bg-purple-500/15'
-                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'
+                    ? 'border-purple-500 bg-purple-500/15'
+                    : 'border-slate-800 bg-slate-900/60'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-5 h-5 rounded-md flex items-center justify-center ${useCashback ? 'bg-purple-600 text-white' : 'border-2 border-slate-300 dark:border-slate-600'}`}>
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center ${useCashback ? 'bg-purple-600 text-white' : 'border-2 border-slate-600'}`}>
                     {useCashback && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <Gift className="w-3.5 h-3.5 text-purple-500" />
+                  <span className="text-xs font-bold text-slate-200 flex items-center gap-1">
+                    <Gift className="w-3.5 h-3.5 text-purple-400" />
                     <span>{t('useCashback')}</span>
                   </span>
                 </div>
-                <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+                <span className="text-xs font-black text-purple-400">
                   {cashbackBalance.toLocaleString()} so'm
                 </span>
               </div>
@@ -525,7 +534,7 @@ export default function CheckoutModal() {
 
             {/* To'lov turi */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
                 {t('paymentMethod')}
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -541,8 +550,8 @@ export default function CheckoutModal() {
                     onClick={() => setFormData({ ...formData, payment_method: pay.id })}
                     className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-xs font-bold transition-all ${
                       formData.payment_method === pay.id
-                        ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-xs'
-                        : `border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 ${pay.color}`
+                        ? 'border-brand-500 bg-brand-500/15 text-brand-400 ring-1 ring-brand-500/40 shadow-xs'
+                        : `border-slate-800 bg-slate-900 text-slate-400 ${pay.color}`
                     }`}
                   >
                     <pay.icon className="w-4 h-4 mb-1" />
@@ -552,36 +561,38 @@ export default function CheckoutModal() {
               </div>
             </div>
 
-            {/* Hisob va Tasdiqlash */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            </div>
+
+            {/* Hisob va Tasdiqlash Sticky Footer */}
+            <div className="p-4 sm:p-5 pb-6 sm:pb-5 border-t border-slate-800 shrink-0 bg-[#0b0f19]/95 backdrop-blur-md space-y-2">
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-400">
                   <span>{t('subtotal')}:</span>
-                  <span>{cartTotal.toLocaleString()} {t('currency')}</span>
+                  <span className="font-semibold text-slate-200">{cartTotal.toLocaleString()} {t('currency')}</span>
                 </div>
 
                 {promoDiscount > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-semibold">
+                  <div className="flex justify-between text-emerald-400 font-semibold">
                     <span>{t('discount')}:</span>
                     <span>-{promoDiscount.toLocaleString()} {t('currency')}</span>
                   </div>
                 )}
 
                 {cashbackDeduction > 0 && (
-                  <div className="flex justify-between text-purple-600 font-semibold">
+                  <div className="flex justify-between text-purple-400 font-semibold">
                     <span>{t('cashback')}:</span>
                     <span>-{cashbackDeduction.toLocaleString()} {t('currency')}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-400">
                   <span>{t('deliveryFeeLabel')}:</span>
-                  <span>{deliveryFee === 0 ? t('freeDelivery') : `${deliveryFee.toLocaleString()} ${t('currency')}`}</span>
+                  <span className="font-semibold text-slate-200">{deliveryFee === 0 ? t('freeDelivery') : `${deliveryFee.toLocaleString()} ${t('currency')}`}</span>
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800 text-sm">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">{t('total')}:</span>
-                  <span className="text-xl font-black text-brand-600 dark:text-brand-400">
+                <div className="flex justify-between items-center pt-1.5 border-t border-slate-800 text-sm">
+                  <span className="font-bold text-white">{t('total')}:</span>
+                  <span className="text-xl font-black text-brand-400">
                     {currentGrandTotal.toLocaleString()} {t('currency')}
                   </span>
                 </div>
@@ -590,7 +601,7 @@ export default function CheckoutModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-50 mt-3"
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 via-amber-500 to-brand-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
               >
                 {isSubmitting ? (
                   <>

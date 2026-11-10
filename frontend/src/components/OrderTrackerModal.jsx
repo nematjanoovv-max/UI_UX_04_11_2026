@@ -167,60 +167,68 @@ export default function OrderTrackerModal() {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
         {/* Backdrop */}
         <div 
           onClick={() => setIsTrackerOpen(false)}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         />
 
-        <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8 animate-slide-up">
+        <div className="relative w-full sm:max-w-xl bg-[#0b0f19] rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-800 flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden z-10 animate-slide-up">
           
+          {/* Mobile Drag Indicator Bar */}
+          <div 
+            onClick={() => setIsTrackerOpen(false)}
+            className="pt-2 pb-0.5 sm:hidden flex justify-center cursor-pointer shrink-0"
+          >
+            <div className="w-12 h-1 rounded-full bg-slate-700/80" />
+          </div>
+
           {/* Header */}
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-[#0b0f19]">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center">
-                <Bike className="w-5 h-5 animate-pulse" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-500/15 border border-brand-500/30 text-brand-400 flex items-center justify-center shrink-0">
+                <Bike className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('trackerTitle')}</h3>
-                <p className="text-xs text-slate-400">{t('liveRefreshHint')}</p>
+                <h3 className="font-bold text-base sm:text-lg text-white">{t('trackerTitle')}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-400">{t('liveRefreshHint')}</p>
               </div>
             </div>
 
             <button
               onClick={() => setIsTrackerOpen(false)}
-              className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="p-6 pb-2">
-            <form onSubmit={handleSearchSubmit} className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder={t('orderNumberPlaceholder')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all flex items-center gap-1.5"
-              >
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>{t('searchBtn')}</span>}
-              </button>
-            </form>
-          </div>
+          {/* Scrollable Body: Search + Content */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
+            {/* Search Bar */}
+            <div>
+              <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder={t('orderNumberPlaceholder')}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all flex items-center gap-1.5"
+                >
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>{t('searchBtn')}</span>}
+                </button>
+              </form>
+            </div>
 
-          {/* Content Body */}
-          <div className="p-6 pt-2">
             {error && (
               <div className="flex items-center gap-2 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 text-sm my-4">
                 <AlertCircle className="w-5 h-5 shrink-0" />

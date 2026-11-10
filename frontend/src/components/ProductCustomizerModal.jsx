@@ -3,7 +3,7 @@ import { X, Plus, Check, Sparkles, Clock, Flame } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function ProductCustomizerModal({ product, isOpen, onClose, onAddToCart }) {
-  const { t } = useApp();
+  const { t, sounds } = useApp();
   const [selectedModifiers, setSelectedModifiers] = useState([]);
 
   if (!isOpen || !product) return null;
@@ -18,6 +18,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
   }
 
   const toggleModifier = (mod) => {
+    if (sounds?.playClick) sounds.playClick();
     if (selectedModifiers.find(m => m.id === mod.id)) {
       setSelectedModifiers(selectedModifiers.filter(m => m.id !== mod.id));
     } else {
@@ -29,6 +30,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
   const currentTotal = Number(product.price) + modifiersTotal;
 
   const handleConfirm = (e) => {
+    if (sounds?.playClick) sounds.playClick();
     const rect = e?.currentTarget?.getBoundingClientRect();
     onAddToCart({
       ...product,
@@ -40,50 +42,71 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
     onClose();
   };
 
+  const handleClose = () => {
+    if (sounds?.playClick) sounds.playClick();
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-slide-up flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
+      {/* Backdrop */}
+      <div 
+        onClick={handleClose}
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity animate-fade-in"
+      />
+
+      <div className="relative w-full sm:max-w-lg bg-[#0b0f19] rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-800 animate-slide-up flex flex-col max-h-[92dvh] sm:max-h-[90vh] z-10">
         
+        {/* Mobile Drag Indicator Bar */}
+        <div 
+          onClick={handleClose}
+          className="pt-2 pb-0.5 sm:hidden flex justify-center cursor-pointer shrink-0"
+        >
+          <div className="w-12 h-1 rounded-full bg-slate-700/80" />
+        </div>
+
         {/* Header with image */}
-        <div className="relative h-48 w-full bg-slate-100 dark:bg-slate-800 shrink-0">
+        <div className="relative h-40 sm:h-48 w-full bg-slate-900 shrink-0">
           <img
             src={product.image_url}
             alt={product.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-black/30 to-transparent" />
           
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/60 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-900 transition-colors"
+            onClick={handleClose}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-900/80 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-900 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
-          <div className="absolute bottom-4 left-4 right-4 text-white">
+          <div className="absolute bottom-3 left-4 right-4 text-white">
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-brand-500 text-[10px] font-black uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-brand-500 text-[10px] font-black uppercase tracking-wider text-white">
                 {product.category_name || 'Chef Special'}
               </span>
-              <span className="flex items-center gap-1 text-[11px] font-medium text-slate-200">
+              <span className="flex items-center gap-1 text-[11px] font-medium text-slate-300">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
                 {product.prep_time_min} {t('prepTime')}
               </span>
             </div>
-            <h3 className="text-xl font-black">{product.name}</h3>
+            <h3 className="text-lg sm:text-xl font-black leading-tight text-white">{product.name}</h3>
           </div>
         </div>
 
         {/* Content & Modifiers list */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            {product.description}
-          </p>
+        <div className="p-4 sm:p-5 overflow-y-auto overscroll-contain flex-1 space-y-3.5">
+          {product.description && (
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {product.description}
+            </p>
+          )}
 
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-brand-500" />
+          <div className="pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="text-xs sm:text-sm font-black text-white flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-brand-400" />
                 {t('selectModifiers')}
               </h4>
               <span className="text-[11px] text-slate-400">
@@ -92,7 +115,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
             </div>
 
             {modifiersList.length === 0 ? (
-              <div className="text-center py-4 text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl">
+              <div className="text-center py-4 text-xs text-slate-400 bg-slate-900/60 border border-slate-800 rounded-2xl">
                 Ushbu taom uchun standart retsept tavsiya etiladi.
               </div>
             ) : (
@@ -103,27 +126,27 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
                     <div
                       key={mod.id}
                       onClick={() => toggleModifier(mod)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
                         isChecked
-                          ? 'border-brand-500 bg-brand-500/10 dark:bg-brand-500/15'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-300'
+                          ? 'border-brand-500 bg-brand-500/15 ring-1 ring-brand-500/40'
+                          : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2.5">
                         <div
-                          className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                          className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
                             isChecked
                               ? 'bg-brand-500 text-white'
-                              : 'border-2 border-slate-300 dark:border-slate-600'
+                              : 'border-2 border-slate-600'
                           }`}
                         >
-                          {isChecked && <Check className="w-4 h-4 stroke-[3]" />}
+                          {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         </div>
-                        <span className={`text-xs font-bold ${isChecked ? 'text-brand-600 dark:text-brand-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                        <span className={`text-xs font-bold ${isChecked ? 'text-brand-400' : 'text-slate-200'}`}>
                           {mod.name}
                         </span>
                       </div>
-                      <span className="text-xs font-black text-slate-900 dark:text-white">
+                      <span className="text-xs font-black text-white">
                         {mod.price > 0 ? `+${Number(mod.price).toLocaleString()} so'm` : t('freeDelivery')}
                       </span>
                     </div>
@@ -135,19 +158,19 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
         </div>
 
         {/* Footer with action */}
-        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between gap-4 shrink-0">
+        <div className="p-4 sm:p-5 pb-6 sm:pb-5 border-t border-slate-800 bg-[#0b0f19]/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0">
           <div>
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
               {t('total')}
             </span>
-            <span className="text-lg font-black text-slate-900 dark:text-white">
+            <span className="text-base sm:text-lg font-black text-white">
               {currentTotal.toLocaleString()} {t('currency')}
             </span>
           </div>
 
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-500 hover:to-amber-400 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
+            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-brand-500 via-amber-500 to-brand-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-brand-500/25 active:scale-95 transition-transform"
           >
             <Plus className="w-4 h-4" />
             <span>{t('addModifiers')}</span>
