@@ -8,8 +8,19 @@ import OrderTrackerModal from './components/OrderTrackerModal';
 import CustomerView from './pages/CustomerView';
 import AdminView from './pages/AdminView';
 import CourierView from './pages/CourierView';
+import { useApp } from './context/AppContext';
 
 export default function App() {
+  const { 
+    isCartOpen, 
+    setIsCartOpen, 
+    isCheckoutOpen, 
+    setIsCheckoutOpen, 
+    isTrackerOpen, 
+    setIsTrackerOpen, 
+    cart 
+  } = useApp();
+
   // Sync view with window path or hash
   const getViewFromPath = () => {
     const path = window.location.pathname.toLowerCase();
@@ -37,8 +48,75 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Native Telegram WebApp Lifecycle & BackButton Integration
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
+    const tg = window.Telegram.WebApp;
+
+    try {
+      tg.ready();
+      tg.expand();
+      if (typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes();
+      }
+      if (tg.isVerticalSwipesEnabled !== undefined) {
+        tg.isVerticalSwipesEnabled = false;
+      }
+      if (typeof tg.setHeaderColor === 'function') {
+        tg.setHeaderColor('#0b0f19');
+      }
+      if (typeof tg.setBackgroundColor === 'function') {
+        tg.setBackgroundColor('#0b0f19');
+      }
+    } catch (_) {}
+
+    // Telegram Native BackButton handling
+    const backBtn = tg.BackButton;
+    if (backBtn) {
+      const hasOpenModal = isCheckoutOpen || isCartOpen || isTrackerOpen || currentView !== 'client';
+      if (hasOpenModal) {
+        backBtn.show();
+        const handleBack = () => {
+          if (isCheckoutOpen) {
+            setIsCheckoutOpen(false);
+            setIsCartOpen(true);
+          } else if (isCartOpen) {
+            setIsCartOpen(false);
+          } else if (isTrackerOpen) {
+            setIsTrackerOpen(false);
+          } else if (currentView !== 'client') {
+            handleSetView('client');
+          }
+        };
+        backBtn.onClick(handleBack);
+        return () => {
+          backBtn.offClick(handleBack);
+        };
+      } else {
+        backBtn.hide();
+      }
+    }
+  }, [isCheckoutOpen, isCartOpen, isTrackerOpen, currentView]);
+
+  // Telegram Closing Confirmation when cart has active items
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
+    const tg = window.Telegram.WebApp;
+    try {
+      if (cart.length > 0 || isCheckoutOpen) {
+        if (typeof tg.enableClosingConfirmation === 'function') {
+          tg.enableClosingConfirmation();
+        }
+      } else {
+        if (typeof tg.disableClosingConfirmation === 'function') {
+          tg.disableClosingConfirmation();
+        }
+      }
+    } catch (_) {}
+  }, [cart.length, isCheckoutOpen]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors">
+    <div className="min-h-[100dvh] flex flex-col bg-[#0b0f19] text-slate-100 transition-colors">
       {/* Apple-style Floating Dynamic Island Live Tracker */}
       <DynamicIslandTracker />
 

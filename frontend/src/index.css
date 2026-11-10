@@ -11,7 +11,9 @@
 html, body, #root {
   background-color: #0b0f19;
   color: #f1f5f9;
-  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer utilities {
@@ -41,8 +43,8 @@ html, body, #root {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: #0b0f19;
