@@ -56,11 +56,11 @@ export default function App() {
     try {
       tg.ready();
       tg.expand();
-      if (typeof tg.disableVerticalSwipes === 'function') {
-        tg.disableVerticalSwipes();
+      if (typeof tg.enableVerticalSwipes === 'function') {
+        tg.enableVerticalSwipes();
       }
       if (tg.isVerticalSwipesEnabled !== undefined) {
-        tg.isVerticalSwipesEnabled = false;
+        tg.isVerticalSwipesEnabled = true;
       }
       if (typeof tg.setHeaderColor === 'function') {
         tg.setHeaderColor('#0b0f19');
