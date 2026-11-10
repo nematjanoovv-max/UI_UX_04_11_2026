@@ -1,30 +1,39 @@
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
 
-async function fetchJson(endpoint, options = {}) {
+async function fetchJson(endpoint, options = {}, retries = 1) {
   const url = `${API_BASE}${endpoint}`;
   const defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers
+      }
+    });
+
+    if (!response.ok) {
+      let errorMsg = `Server xatosi: ${response.status}`;
+      try {
+        const errData = await response.json();
+        if (errData && errData.error) errorMsg = errData.error;
+      } catch (_) {}
+      throw new Error(errorMsg);
     }
-  });
 
-  if (!response.ok) {
-    let errorMsg = `Server xatosi: ${response.status}`;
-    try {
-      const errData = await response.json();
-      if (errData && errData.error) errorMsg = errData.error;
-    } catch (_) {}
-    throw new Error(errorMsg);
+    return await response.json();
+  } catch (err) {
+    if (retries > 0) {
+      // Auto-retry once after 1.5s in case backend was spinning up
+      await new Promise(r => setTimeout(r, 1500));
+      return fetchJson(endpoint, options, retries - 1);
+    }
+    throw err;
   }
-
-  return await response.json();
 }
 
 export const api = {
