@@ -34,9 +34,9 @@ GITHUB REPO          : https://github.com/nematjanoovv-max/UI_UX_04_11_2026
 --------------------------------------------------------------------------------
 2. TELEGRAM BOT MA'LUMOTLARI
 --------------------------------------------------------------------------------
-• Bot Nomi        : Smart_delivery
-• Bot Username    : @Smart_deliveryyy_bot
-• Bot Havolasi    : https://t.me/Smart_deliveryyy_bot
+• Bot Nomi        : SMART DELIVERY
+• Bot Username    : @Smart_delivery_fast_bot
+• Bot Havolasi    : https://t.me/Smart_delivery_fast_bot
 • Telegram WebApp : Ulandi (Chat ichida pastki chap burchakdagi "🌐 Smart Delivery" tugmasi)
 • Bosh Admin ID   : Maxfiy (.env / ADMIN_TELEGRAM_ID orqali xavfsiz biriktirilgan)
 • Holati          : 100% Active / Uzluksiz ishlamoqda (Long-Polling & WebApp)
