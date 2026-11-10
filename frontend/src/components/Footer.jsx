@@ -7,7 +7,6 @@ import {
   ShieldCheck, 
   Send, 
   CreditCard, 
-  Lock, 
   Sparkles,
   Bike,
   Heart,
@@ -61,8 +60,8 @@ export default function Footer({ setCurrentView }) {
                 <span>25-35 min Yetkazish</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-sky-400">
-                <Lock className="w-4 h-4 text-sky-400" />
-                <span>Xavfsiz To'lovlar</span>
+                <Sparkles className="w-4 h-4 text-sky-400" />
+                <span>Kafolatlangan Sifat</span>
               </span>
             </div>
 
@@ -244,12 +243,12 @@ export default function Footer({ setCurrentView }) {
 
         </div>
 
-        {/* Accepted Payment Systems & Security Bar */}
+        {/* Accepted Payment Systems */}
         <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Xavfsiz To'lov Tizimlari:
+              To'lov Turlari:
             </span>
           </div>
 
@@ -281,7 +280,7 @@ export default function Footer({ setCurrentView }) {
           <div className="flex items-center gap-4 text-[11px]">
             <span>100% Sertifikatlangan</span>
             <span>&bull;</span>
-            <span>256-bit SSL Shifrlash</span>
+            <span>Kafolatlangan sifat</span>
             <span>&bull;</span>
             <span>Toshkent, O'zbekiston</span>
           </div>
