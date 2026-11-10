@@ -23,8 +23,14 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
 
   const categoryBarRef = useRef(null);
   const pillRefs = useRef({});
+  const activeCategoryRef = useRef('all');
   const isManualScrollingRef = useRef(false);
   const scrollTimerRef = useRef(null);
+
+  // Sync activeCategoryRef
+  useEffect(() => {
+    activeCategoryRef.current = activeCategory;
+  }, [activeCategory]);
 
   // Load categories and products
   useEffect(() => {
@@ -63,7 +69,7 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
     p => !categories.some(c => c.id === p.category_id)
   );
 
-  // ScrollSpy: auto-detect active category section while scrolling
+  // ScrollSpy: auto-detect active category section while scrolling (butter-smooth 120Hz)
   useEffect(() => {
     if (loading || categories.length === 0) return;
 
@@ -82,8 +88,11 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
           const catalogEl = document.getElementById('catalog-section');
           if (catalogEl) {
             const catRect = catalogEl.getBoundingClientRect();
-            if (catRect.top > headerOffset + 50) {
-              setActiveCategory('all');
+            if (catRect.top > headerOffset + 40) {
+              if (activeCategoryRef.current !== 'all') {
+                activeCategoryRef.current = 'all';
+                setActiveCategory('all');
+              }
               return;
             }
           }
@@ -96,7 +105,10 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
 
           if (isAtBottom && activeCatsWithItems.length > 0) {
             const lastCat = activeCatsWithItems[activeCatsWithItems.length - 1];
-            setActiveCategory(lastCat.id);
+            if (activeCategoryRef.current !== lastCat.id) {
+              activeCategoryRef.current = lastCat.id;
+              setActiveCategory(lastCat.id);
+            }
             return;
           }
 
@@ -113,12 +125,17 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
             }
           }
 
-          if (currentId !== null) {
+          if (currentId !== null && currentId !== activeCategoryRef.current) {
+            activeCategoryRef.current = currentId;
             setActiveCategory(currentId);
-          } else if (catalogEl) {
+          } else if (catalogEl && currentId === null) {
             const catRect = catalogEl.getBoundingClientRect();
-            if (catRect.top <= headerOffset + 50 && activeCatsWithItems.length > 0) {
-              setActiveCategory(activeCatsWithItems[0].id);
+            if (catRect.top <= headerOffset + 40 && activeCatsWithItems.length > 0) {
+              const firstId = activeCatsWithItems[0].id;
+              if (activeCategoryRef.current !== firstId) {
+                activeCategoryRef.current = firstId;
+                setActiveCategory(firstId);
+              }
             }
           }
         });
@@ -133,11 +150,20 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
     };
   }, [loading, categories, searchedProducts]);
 
-  // Auto-scroll horizontal category bar smoothly so active pill stays centered
+  // Auto-scroll horizontal category bar smoothly WITHOUT ever touching window vertical scroll
   useEffect(() => {
     const pill = pillRefs.current[activeCategory];
-    if (pill && categoryBarRef.current) {
-      pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const bar = categoryBarRef.current;
+    if (pill && bar) {
+      const pillLeft = pill.offsetLeft;
+      const pillWidth = pill.offsetWidth;
+      const barWidth = bar.offsetWidth;
+      const targetLeft = pillLeft - (barWidth / 2) + (pillWidth / 2);
+
+      bar.scrollTo({
+        left: Math.max(0, targetLeft),
+        behavior: 'smooth'
+      });
     }
   }, [activeCategory]);
 
@@ -145,13 +171,15 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
   const handleCategoryClick = (catId) => {
     if (sounds?.playClick) sounds.playClick();
     if (haptics?.selection) haptics.selection();
+
+    activeCategoryRef.current = catId;
     setActiveCategory(catId);
     isManualScrollingRef.current = true;
 
     if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     scrollTimerRef.current = setTimeout(() => {
       isManualScrollingRef.current = false;
-    }, 700);
+    }, 850);
 
     if (catId === 'all') {
       const catalogEl = document.getElementById('catalog-section');
@@ -263,7 +291,7 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
       {/* Sticky Category Navigation Ribbon with ScrollSpy */}
       <nav 
         aria-label="Kategoriyalar menyusi"
-        className="sticky top-14 sm:top-16 md:top-20 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg py-2.5 transition-all"
+        className="sticky top-14 sm:top-16 md:top-20 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg py-2.5 transition-all smooth-gpu"
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div 

@@ -3,7 +3,7 @@ import { Clock, Plus, Minus, Check, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import ProductCustomizerModal from './ProductCustomizerModal';
 
-export default function ProductCard({ product }) {
+function ProductCard({ product }) {
   const { cart, addToCart, updateQuantity, showToast, t, language } = useApp();
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [tiltStyle, setTiltStyle] = useState({});
@@ -178,3 +178,5 @@ export default function ProductCard({ product }) {
     </div>
   );
 }
+
+export default React.memo(ProductCard);
