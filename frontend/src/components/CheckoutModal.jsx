@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Locate, Phone, User, CreditCard, Banknote, ShieldCheck, Loader2, Tag, Gift, Check, Sparkles } from 'lucide-react';
+import { X, MapPin, Locate, Phone, User, CreditCard, Banknote, ShieldCheck, Loader2, Tag, Gift, Check, Sparkles, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 import PaymentSimulatorModal from './PaymentSimulatorModal';
@@ -36,6 +36,75 @@ export default function CheckoutModal() {
 
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 6-Digit Telegram OTP Verification States
+  const [isPhoneVerified, setIsPhoneVerified] = useState(() => !!tgUser);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpNeedStart, setOtpNeedStart] = useState(false);
+  const [otpBotLink, setOtpBotLink] = useState('');
+
+  const handleRequestOtp = async () => {
+    const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
+    if (rawDigits.length < 9) {
+      showToast('Iltimos, to\'liq telefon raqamingizni kiriting (+998 90 123 45 67)', 'error');
+      return;
+    }
+
+    setIsSendingOtp(true);
+    sounds.playClick();
+    try {
+      const res = await api.sendTelegramOtp({
+        phone: formData.customer_phone,
+        telegram_id: formData.telegram_id,
+        telegram_username: formData.telegram_username
+      });
+
+      setOtpSent(true);
+      if (res.need_start) {
+        setOtpNeedStart(true);
+        setOtpBotLink(res.bot_link || 'https://t.me/Smart_delivery_fast_bot');
+        showToast(res.message, 'success');
+      } else {
+        setOtpNeedStart(false);
+        showToast('6 xonali tasdiqlash kodi Telegram botingizga yuborildi! 📩', 'success');
+      }
+    } catch (err) {
+      showToast(err.message || 'Xatolik yuz berdi', 'error');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 6) {
+      showToast('Iltimos, 6 xonali kodni to\'liq kiriting', 'error');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    sounds.playClick();
+    try {
+      const res = await api.verifyTelegramOtp({
+        phone: formData.customer_phone,
+        code: otpCode
+      });
+
+      if (res.ok) {
+        setIsPhoneVerified(true);
+        setOtpSent(false);
+        sounds.playSuccess();
+        showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
+      }
+    } catch (err) {
+      sounds.playPop();
+      showToast(err.message || 'Kod noto\'g\'ri', 'error');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
 
   // Promo code & Cashback states
   const [promoCodeInput, setPromoCodeInput] = useState('');
@@ -142,6 +211,10 @@ export default function CheckoutModal() {
     }
     if (!formData.delivery_address.trim()) {
       showToast('Iltimos, yetkazib berish manzilini kiriting', 'error');
+      return;
+    }
+    if (!isPhoneVerified) {
+      showToast('Iltimos, avval telefon raqamingizni Telegram orqali 6 xonali kod bilan tasdiqlang', 'error');
       return;
     }
 
@@ -265,11 +338,70 @@ export default function CheckoutModal() {
                     type="tel"
                     required
                     value={formData.customer_phone}
-                    onChange={e => setFormData({ ...formData, customer_phone: e.target.value })}
+                    onChange={e => {
+                      setFormData({ ...formData, customer_phone: e.target.value });
+                      if (isPhoneVerified && !tgUser) setIsPhoneVerified(false);
+                    }}
                     placeholder="+998 90 123 45 67"
                     className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   />
                 </div>
+
+                {/* 6-Digit Telegram Verification Badge / Inline Form */}
+                {isPhoneVerified ? (
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-emerald-400">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Telegram orqali tasdiqlangan raqam ✅</span>
+                  </div>
+                ) : (
+                  <div>
+                    {!otpSent ? (
+                      <button
+                        type="button"
+                        onClick={handleRequestOtp}
+                        disabled={isSendingOtp}
+                        className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-sky-400 hover:text-sky-300 transition-colors"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>{isSendingOtp ? 'Yuborilmoqda...' : '📲 Telegram orqali 6 xonali kod olish'}</span>
+                      </button>
+                    ) : (
+                      <div className="mt-2 p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-slate-300">Telegramga 6 xonali kod yuborildi:</span>
+                          {otpNeedStart && (
+                            <a
+                              href={otpBotLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-bold text-amber-400 underline hover:text-amber-300"
+                            >
+                              Botda Start bosish 👉
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={otpCode}
+                            onChange={e => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder="123456"
+                            className="flex-1 px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-center text-sm tracking-widest font-black text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={isVerifyingOtp || otpCode.length !== 6}
+                            className="px-3 py-1 rounded-lg bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow transition-all"
+                          >
+                            {isVerifyingOtp ? '...' : 'Tasdiqlash'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

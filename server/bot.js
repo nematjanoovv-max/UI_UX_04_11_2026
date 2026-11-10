@@ -269,6 +269,20 @@ class TelegramBotService {
     if (msg.contact) {
       const phone = msg.contact.phone_number.startsWith('+') ? msg.contact.phone_number : `+${msg.contact.phone_number}`;
 
+      // Save verified phone to users table
+      try {
+        db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [phone, String(chatId)]);
+        // Check if there is a pending 6-digit OTP code waiting for this phone
+        const pendingOtp = db.get('SELECT * FROM otp_codes WHERE phone LIKE ? AND is_verified = 0 AND expires_at > ? ORDER BY id DESC LIMIT 1', [
+          `%${phone.slice(-9)}%`,
+          Date.now()
+        ]);
+        if (pendingOtp) {
+          db.run('UPDATE otp_codes SET telegram_id = ? WHERE id = ?', [String(chatId), pendingOtp.id]);
+          await this.sendOtpCode(chatId, pendingOtp.code, phone);
+        }
+      } catch (_) {}
+
       // Courier registration by phone
       if (session.step === 'courier_phone') {
         const courier = db.get('SELECT id, name FROM couriers WHERE phone LIKE ?', [`%${phone.slice(-9)}%`]);
@@ -353,6 +367,25 @@ class TelegramBotService {
     if (text === '🌐 Til / Язык / Language' || text === '/lang' || text === '/language') {
       await this.sendLanguageSelection(chatId);
       return;
+    }
+
+    // Verification link handler from Web checkout: /start verify_123456
+    if (text.startsWith('/start verify_')) {
+      const code = text.replace('/start verify_', '').trim();
+      try {
+        const otp = db.get('SELECT * FROM otp_codes WHERE code = ? AND is_verified = 0 ORDER BY id DESC LIMIT 1', [code]);
+        if (otp) {
+          db.run('UPDATE otp_codes SET telegram_id = ? WHERE id = ?', [String(chatId), otp.id]);
+          db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [otp.phone, String(chatId)]);
+          await this.sendOtpCode(chatId, code, otp.phone);
+          await this.sendMessage(chatId, `✅ *Kodingiz yetkazildi!* Saytga qaytib ushbu *${code}* kodini kiriting va buyurtmani yakunlang.`, {
+            parse_mode: 'Markdown'
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('[verify_ start error]:', err);
+      }
     }
 
     // Commands
@@ -1512,6 +1545,16 @@ class TelegramBotService {
     } catch (e) {
       console.error('[notifyCustomerStatusProgress Error]:', e.message);
     }
+  }
+
+  // Send 6-Digit OTP verification code to user
+  async sendOtpCode(chatId, code, phone) {
+    const text = `🔐 *Smart Delivery — 6 xonali Tasdiqlash Kodi:*\n\n` +
+      `👉 \`${code}\`\n\n` +
+      `📱 Telefon raqam: *${phone}*\n` +
+      `⏱ Kod amal qilish muddati: *5 daqiqa*\n\n` +
+      `_Xavfsizlik eslatmasi: Ushbu kodni hech kimga, hatto Smart Delivery xodimlariga ham aytmang!_`;
+    return await this.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   }
 
   // Base sendMessage

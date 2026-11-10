@@ -116,5 +116,15 @@ export const api = {
   submitReview: (data) => fetchJson('/reviews', {
     method: 'POST',
     body: JSON.stringify(data)
+  }),
+
+  // Telegram 6-Digit OTP Verification
+  sendTelegramOtp: (data) => fetchJson('/auth/send-telegram-otp', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  verifyTelegramOtp: (data) => fetchJson('/auth/verify-telegram-otp', {
+    method: 'POST',
+    body: JSON.stringify(data)
   })
 };

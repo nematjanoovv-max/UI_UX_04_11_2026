@@ -716,6 +716,112 @@ app.post('/api/reviews', (req, res) => {
   }
 });
 
+// 5.4 Telegram 6-Digit OTP Verification API
+app.post('/api/auth/send-telegram-otp', async (req, res) => {
+  try {
+    const { phone, telegram_username, telegram_id } = req.body;
+    if (!phone) {
+      return res.status(400).json({ error: 'Telefon raqam kiritilishi shart' });
+    }
+
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const phoneSuffix = cleanPhone.slice(-9);
+    const db = getDb();
+
+    // Generate random 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + (5 * 60 * 1000); // 5 minutes
+
+    // Try finding target telegram_id
+    let targetChatId = telegram_id || null;
+
+    if (!targetChatId) {
+      const user = db.get('SELECT telegram_id FROM users WHERE phone LIKE ? AND telegram_id IS NOT NULL', [`%${phoneSuffix}%`]);
+      if (user && user.telegram_id) {
+        targetChatId = user.telegram_id;
+      }
+    }
+
+    if (!targetChatId && telegram_username) {
+      const cleanUsername = telegram_username.replace('@', '').toLowerCase();
+      const user = db.get('SELECT telegram_id FROM users WHERE LOWER(full_name) LIKE ? OR telegram_id = ?', [`%${cleanUsername}%`, cleanUsername]);
+      if (user && user.telegram_id) targetChatId = user.telegram_id;
+    }
+
+    // Save in otp_codes table
+    db.run(`
+      INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified)
+      VALUES (?, ?, ?, ?, 0)
+    `, [cleanPhone, code, targetChatId ? String(targetChatId) : null, expiresAt]);
+
+    const botUsername = botService.botInfo?.username || 'Smart_delivery_fast_bot';
+
+    if (targetChatId) {
+      await botService.sendOtpCode(targetChatId, code, phone);
+      return res.json({
+        ok: true,
+        sent: true,
+        bot_username: botUsername,
+        message: '6 xonali tasdiqlash kodi Telegram botingizga yuborildi!'
+      });
+    } else {
+      // Need user to click start on bot
+      return res.json({
+        ok: true,
+        sent: false,
+        need_start: true,
+        bot_username: botUsername,
+        bot_link: `https://t.me/${botUsername}?start=verify_${code}`,
+        message: `@${botUsername} ga 1 marta kirib Start bosing, kodingiz shu zahoti yetib keladi.`
+      });
+    }
+  } catch (err) {
+    console.error('[send-telegram-otp Error]:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/verify-telegram-otp', (req, res) => {
+  try {
+    const { phone, code } = req.body;
+    if (!phone || !code) {
+      return res.status(400).json({ error: 'Telefon raqam va 6 xonali kod kiritilishi shart' });
+    }
+
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const cleanCode = String(code).trim();
+    const db = getDb();
+
+    const record = db.get(`
+      SELECT * FROM otp_codes
+      WHERE phone LIKE ? AND code = ? AND is_verified = 0
+      ORDER BY id DESC LIMIT 1
+    `, [`%${cleanPhone.slice(-9)}%`, cleanCode]);
+
+    if (!record) {
+      return res.status(400).json({ ok: false, error: "Kiritilgan 6 xonali kod noto'g'ri" });
+    }
+
+    if (Date.now() > record.expires_at) {
+      return res.status(400).json({ ok: false, error: 'Ushbu kodning 5 daqiqalik amal qilish muddati o\'tgan. Yangi kod so\'rang.' });
+    }
+
+    // Mark as verified
+    db.run('UPDATE otp_codes SET is_verified = 1 WHERE id = ?', [record.id]);
+    if (record.telegram_id) {
+      db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [cleanPhone, record.telegram_id]);
+    }
+
+    res.json({
+      ok: true,
+      verified: true,
+      message: 'Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 6. Admin Stats & Analytics
 app.get('/api/stats', (req, res) => {
   try {

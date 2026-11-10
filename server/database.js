@@ -139,6 +139,19 @@ function initDatabase() {
     try { db.exec('ALTER TABLE couriers ADD COLUMN rating_count INTEGER DEFAULT 0;'); } catch (_) {}
     try { db.exec("ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'uz';"); } catch (_) {}
     try { db.exec('ALTER TABLE users ADD COLUMN cashback_balance REAL DEFAULT 0;'); } catch (_) {}
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS otp_codes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          phone TEXT NOT NULL,
+          code TEXT NOT NULL,
+          telegram_id TEXT,
+          expires_at INTEGER NOT NULL,
+          is_verified INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+    } catch (_) {}
 
     // Wrapper helper methods to make queries uniform
     return {
