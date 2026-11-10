@@ -18,7 +18,10 @@ export default function App() {
     setIsCheckoutOpen, 
     isTrackerOpen, 
     setIsTrackerOpen, 
-    cart 
+    cart,
+    grandTotal,
+    haptics,
+    t
   } = useApp();
 
   // Sync view with window path or hash
@@ -114,6 +117,75 @@ export default function App() {
       }
     } catch (_) {}
   }, [cart.length, isCheckoutOpen]);
+
+  // Telegram Native MainButton (Bottom Action Button) Integration
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
+    const tg = window.Telegram.WebApp;
+    const mainBtn = tg.MainButton;
+    if (!mainBtn) return;
+
+    if (currentView !== 'client') {
+      mainBtn.hide();
+      return;
+    }
+
+    if (isCheckoutOpen) {
+      mainBtn.setText(`Tasdiqlash • ${grandTotal.toLocaleString()} so'm`);
+      mainBtn.setParams({
+        color: '#ea580c',
+        text_color: '#ffffff',
+        is_active: true
+      });
+      mainBtn.show();
+
+      const handleClick = () => {
+        haptics?.medium();
+        const submitBtn = document.querySelector('form button[type="submit"]');
+        if (submitBtn) submitBtn.click();
+      };
+      mainBtn.onClick(handleClick);
+      return () => mainBtn.offClick(handleClick);
+    } else if (isCartOpen) {
+      if (cart.length > 0) {
+        mainBtn.setText(`Buyurtmaga o'tish • ${grandTotal.toLocaleString()} so'm`);
+        mainBtn.setParams({
+          color: '#ea580c',
+          text_color: '#ffffff',
+          is_active: true
+        });
+        mainBtn.show();
+
+        const handleClick = () => {
+          haptics?.medium();
+          setIsCartOpen(false);
+          setIsCheckoutOpen(true);
+        };
+        mainBtn.onClick(handleClick);
+        return () => mainBtn.offClick(handleClick);
+      } else {
+        mainBtn.hide();
+      }
+    } else if (cart.length > 0) {
+      const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      mainBtn.setText(`Savatcha (${totalQty}) • ${grandTotal.toLocaleString()} so'm`);
+      mainBtn.setParams({
+        color: '#ea580c',
+        text_color: '#ffffff',
+        is_active: true
+      });
+      mainBtn.show();
+
+      const handleClick = () => {
+        haptics?.medium();
+        setIsCartOpen(true);
+      };
+      mainBtn.onClick(handleClick);
+      return () => mainBtn.offClick(handleClick);
+    } else {
+      mainBtn.hide();
+    }
+  }, [currentView, isCheckoutOpen, isCartOpen, cart, grandTotal, haptics]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors overflow-x-hidden">

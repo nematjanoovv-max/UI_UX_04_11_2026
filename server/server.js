@@ -893,10 +893,34 @@ app.get('*', (req, res, next) => {
   });
 });
 
+// Keep-Alive Self-Ping: Prevents Render free tier from sleeping after 15 minutes
+const keepAliveTargetUrl = EXTERNAL_URL || 'https://smart-delivery-system-sy6e.onrender.com';
+const KEEP_ALIVE_INTERVAL_MS = 9 * 60 * 1000; // Ping every 9 minutes
+
+function startKeepAlivePing() {
+  console.log(`[KeepAlive] Scheduled self-ping to ${keepAliveTargetUrl}/api/health every 9 minutes`);
+  setInterval(async () => {
+    try {
+      const pingUrl = `${keepAliveTargetUrl}/api/health`;
+      const pingRes = await fetch(pingUrl, {
+        headers: { 'User-Agent': 'SmartDeliveryKeepAlive/1.0' }
+      });
+      if (pingRes.ok) {
+        console.log(`[KeepAlive] ✅ Ping successful at ${new Date().toISOString()} (HTTP ${pingRes.status})`);
+      } else {
+        console.warn(`[KeepAlive] ⚠️ Ping returned status ${pingRes.status}`);
+      }
+    } catch (err) {
+      console.warn(`[KeepAlive] Ping error: ${err.message}`);
+    }
+  }, KEEP_ALIVE_INTERVAL_MS);
+}
+
 // Start Server and Telegram Bot
 app.listen(PORT, async () => {
   console.log(`[SERVER] Smart Delivery backend running on port ${PORT}`);
   await botService.init(EXTERNAL_URL);
+  startKeepAlivePing();
 });
 
 module.exports = app;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../i18n/translations';
 import { sounds } from '../utils/soundEffects';
+import { haptics } from '../utils/haptics';
 import FlyingCartOverlay from '../components/FlyingCartOverlay';
 
 const AppContext = createContext();
@@ -116,6 +117,7 @@ export function AppProvider({ children }) {
   }, [cart]);
 
   const addToCart = (product, startRect = null) => {
+    haptics.medium();
     const key = product.customKey || product.id;
     setCart(prev => {
       const existing = prev.find(item => (item.customKey || item.id) === key);
@@ -135,6 +137,7 @@ export function AppProvider({ children }) {
   };
 
   const updateQuantity = (keyOrId, delta) => {
+    haptics.light();
     sounds.playClick();
     setCart(prev => {
       return prev.map(item => {
@@ -148,11 +151,15 @@ export function AppProvider({ children }) {
   };
 
   const removeFromCart = (keyOrId) => {
+    haptics.light();
     sounds.playClick();
     setCart(prev => prev.filter(item => (item.customKey || item.id) !== keyOrId));
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    haptics.light();
+    setCart([]);
+  };
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = cartTotal >= 150000 || cartTotal === 0 ? 0 : 15000;
@@ -172,6 +179,11 @@ export function AppProvider({ children }) {
   // Toast Notification
   const [toast, setToast] = useState(null);
   const showToast = (message, type = 'success') => {
+    if (type === 'error') {
+      haptics.error();
+    } else {
+      haptics.success();
+    }
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
@@ -204,6 +216,7 @@ export function AppProvider({ children }) {
       toast,
       showToast,
       sounds,
+      haptics,
       soundMuted,
       toggleSoundMute
     }}>

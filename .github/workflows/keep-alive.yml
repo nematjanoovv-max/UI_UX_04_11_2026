@@ -1,0 +1,24 @@
+name: Render Backend 24/7 Keep-Alive
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free instance spin-down
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive-ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Smart Delivery Render Backend
+        run: |
+          echo "Sending Keep-Alive ping to Smart Delivery API..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health)
+          echo "HTTP response status code: $STATUS"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "✅ Smart Delivery backend is active and healthy!"
+          else
+            echo "⚠️ Warning: Received HTTP $STATUS, retrying once..."
+            sleep 5
+            curl -s --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health
+          fi

@@ -15,7 +15,7 @@ import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export default function CustomerView({ searchQuery, setSearchQuery, setCurrentView }) {
-  const { setIsTrackerOpen, t, language, sounds } = useApp();
+  const { setIsTrackerOpen, t, language, sounds, haptics } = useApp();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -144,6 +144,7 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
   // Click handler for category pills
   const handleCategoryClick = (catId) => {
     if (sounds?.playClick) sounds.playClick();
+    if (haptics?.selection) haptics.selection();
     setActiveCategory(catId);
     isManualScrollingRef.current = true;
 
