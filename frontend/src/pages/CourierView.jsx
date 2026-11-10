@@ -219,7 +219,7 @@ export default function CourierView() {
           </span>
         </div>
         <a
-          href="https://t.me/Smart_deliveryyy_bot"
+          href="https://t.me/Smart_delivery_fast_bot"
           target="_blank"
           rel="noopener noreferrer"
           className="px-3 py-1.5 rounded-xl bg-sky-500 text-white font-bold text-xs shrink-0 hover:bg-sky-600"

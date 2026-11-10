@@ -73,7 +73,7 @@ Bot imkoniyatlari:
 [x] Web Sayt (Vercel)                    — 100% ISHLAMOQDA
 [x] Admin Panel                          — 100% ISHLAMOQDA
 [x] Kuryer Paneli                        — 100% ISHLAMOQDA
-[x] Telegram Bot (@Smart_deliveryyy_bot)  — 100% ISHLAMOQDA
+[x] Telegram Bot (@Smart_delivery_fast_bot) — 100% ISHLAMOQDA
 [x] Real-time Sinxronizatsiya            — 100% ISHLAMOQDA
 [x] Xavfsizlik va Maxfiylik              — 100% TA'MINLANGAN
 ================================================================================

@@ -375,7 +375,7 @@ class TelegramBotService {
     if (text === '📞 Bog\'lanish va Yordam' || text === '/contact') {
       await this.sendMessage(chatId, `📞 *Smart Delivery — 24/7 Yordam Markazi:*\n\n` +
         `☎️ Telefon: *+998 71 200-00-00*\n` +
-        `💬 Qo'llab-quvvatlash: @Smart_deliveryyy_bot\n` +
+        `💬 Qo'llab-quvvatlash: @Smart_delivery_fast_bot\n` +
         `🌐 Rasmiy saytimiz: ${webAppUrl}\n` +
         `⏰ Ish tartibi: Dam olish kunlarisiz, 24 soat uzluksiz xizmat`, {
         parse_mode: 'Markdown',

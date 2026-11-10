@@ -146,7 +146,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
 
             {/* Telegram Bot Link */}
             <a
-              href="https://t.me/Smart_deliveryyy_bot"
+              href="https://t.me/Smart_delivery_fast_bot"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-xs sm:text-sm font-semibold transition-colors"
