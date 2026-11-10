@@ -324,7 +324,7 @@ export default function AdminView({ setCurrentView }) {
                 required
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="Login (admin)"
+                placeholder="Login"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -338,7 +338,7 @@ export default function AdminView({ setCurrentView }) {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Parol (admin123)"
+                placeholder="Parol"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
@@ -351,19 +351,11 @@ export default function AdminView({ setCurrentView }) {
             </button>
           </form>
 
-          {/* Quick Credential Hint */}
-          <div className="mt-5 p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 text-center">
-            <p className="text-[11px] text-amber-400 font-bold uppercase tracking-wider mb-1">Standart Login Ma'lumotlari</p>
-            <p className="text-xs font-mono text-slate-300">
-              Login: <span className="text-brand-400 font-bold">admin</span> &bull; Parol: <span className="text-brand-400 font-bold">admin123</span>
-            </p>
-          </div>
-
           {/* Back to Client Store Button */}
           <button
             type="button"
             onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
-            className="w-full mt-3 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+            className="w-full mt-4 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
           >
             <UtensilsCrossed className="w-3.5 h-3.5 text-brand-400" />
             <span>Do'konga (Menyuga) qaytish</span>
