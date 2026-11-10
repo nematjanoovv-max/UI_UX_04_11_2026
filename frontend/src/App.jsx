@@ -209,8 +209,8 @@ export default function App() {
             setCurrentView={handleSetView}
           />
         )}
-        {currentView === 'admin' && <AdminView />}
-        {currentView === 'courier' && <CourierView />}
+        {currentView === 'admin' && <AdminView setCurrentView={handleSetView} />}
+        {currentView === 'courier' && <CourierView setCurrentView={handleSetView} />}
       </main>
 
       {/* Mobile Bottom Dock (Fixed at bottom on phones, clean 4 buttons) */}

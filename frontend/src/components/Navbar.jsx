@@ -123,6 +123,29 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
               </button>
             </div>
 
+            {/* Mobile View Switcher (Admin / Store toggle) */}
+            <div className="md:hidden flex items-center gap-1">
+              {currentView !== 'client' ? (
+                <button
+                  onClick={() => setCurrentView('client')}
+                  className="btn-spring flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-500/30"
+                  title="Menyuga qaytish"
+                >
+                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                  <span>Menyu</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setCurrentView('admin')}
+                  className="btn-spring flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 hover:text-white text-xs font-bold"
+                  title="Admin Panel"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Admin</span>
+                </button>
+              )}
+            </div>
+
             {/* Language Switcher (1-tap toggle on mobile, full selector on desktop) */}
             <button
               onClick={nextLanguage}

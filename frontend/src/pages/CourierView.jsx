@@ -11,12 +11,13 @@ import {
   Send,
   User,
   ShieldCheck,
-  ShoppingBag
+  ShoppingBag,
+  UtensilsCrossed
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
 
-export default function CourierView() {
+export default function CourierView({ setCurrentView }) {
   const { showToast, t, language } = useApp();
 
   const [couriers, setCouriers] = useState([]);
@@ -125,6 +126,26 @@ export default function CourierView() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-24">
       
+      {/* Top Navigation & Action Bar */}
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <button
+          onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
+          className="btn-secondary flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold text-white shadow-sm"
+        >
+          <UtensilsCrossed className="w-3.5 h-3.5 text-brand-400" />
+          <span>Menyuga qaytish</span>
+        </button>
+
+        <button
+          onClick={loadCourierOrders}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition-colors"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>Yangilash</span>
+        </button>
+      </div>
+
       {/* Top Profile Card */}
       <div className="p-6 rounded-3xl glass-card mb-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

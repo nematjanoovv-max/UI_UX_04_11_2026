@@ -37,7 +37,7 @@ const DEFAULT_CATEGORIES = [
   { id: 10, name: 'Salatlar & Gazaklar', icon: '🥗' }
 ];
 
-export default function AdminView() {
+export default function AdminView({ setCurrentView }) {
   const { showToast, t, language } = useApp();
 
   // Simple auth state
@@ -294,13 +294,13 @@ export default function AdminView() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-[85vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-slate-800 shadow-2xl animate-slide-up">
           
-          <div className="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-500 mx-auto flex items-center justify-center mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center mb-4">
             <ShieldAlert className="w-7 h-7" />
           </div>
 
-          <h2 className="text-2xl font-black text-center text-slate-900 dark:text-white">
+          <h2 className="text-2xl font-black text-center text-white">
             Smart Delivery Admin
           </h2>
           <p className="text-xs text-center text-slate-400 mt-1 mb-6">
@@ -308,15 +308,15 @@ export default function AdminView() {
           </p>
 
           {authError && (
-            <div className="p-3 mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 text-xs font-semibold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-3 mb-4 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{authError}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-slate-300 mb-1">
                 Admin Logini
               </label>
               <input
@@ -324,13 +324,13 @@ export default function AdminView() {
                 required
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="Login"
-                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                placeholder="Login (admin)"
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-slate-300 mb-1">
                 Parol
               </label>
               <input
@@ -338,18 +338,36 @@ export default function AdminView() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Parol"
-                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                placeholder="Parol (admin123)"
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
+              className="btn-primary w-full py-3 rounded-2xl text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
             >
               Tizimga kirish
             </button>
           </form>
+
+          {/* Quick Credential Hint */}
+          <div className="mt-5 p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 text-center">
+            <p className="text-[11px] text-amber-400 font-bold uppercase tracking-wider mb-1">Standart Login Ma'lumotlari</p>
+            <p className="text-xs font-mono text-slate-300">
+              Login: <span className="text-brand-400 font-bold">admin</span> &bull; Parol: <span className="text-brand-400 font-bold">admin123</span>
+            </p>
+          </div>
+
+          {/* Back to Client Store Button */}
+          <button
+            type="button"
+            onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
+            className="w-full mt-3 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+          >
+            <UtensilsCrossed className="w-3.5 h-3.5 text-brand-400" />
+            <span>Do'konga (Menyuga) qaytish</span>
+          </button>
 
         </div>
       </div>
@@ -381,20 +399,29 @@ export default function AdminView() {
 
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-transform active:scale-95"
+            title="Mijoz menyusiga qaytish"
+          >
+            <UtensilsCrossed className="w-3.5 h-3.5" />
+            <span>Do'konga qaytish</span>
+          </button>
+
+          <button
             onClick={loadAllData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Yangilash</span>
+            <span className="hidden sm:inline">Yangilash</span>
           </button>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 text-xs font-bold hover:bg-rose-100 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 text-xs font-bold hover:bg-rose-100 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Chiqish</span>
+            <span className="hidden sm:inline">Chiqish</span>
           </button>
         </div>
       </div>

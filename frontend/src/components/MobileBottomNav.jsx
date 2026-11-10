@@ -4,7 +4,8 @@ import {
   MapPin, 
   Search, 
   ShoppingBag,
-  Compass
+  Compass,
+  ShieldAlert
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -109,6 +110,23 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
           <span className="text-[11px]">
             {cartTotal > 0 ? `${(cartTotal / 1000).toFixed(0)}k` : t('cart')}
           </span>
+        </button>
+
+        {/* 5. Admin Panel */}
+        <button
+          onClick={() => {
+            sounds?.playClick?.();
+            haptics?.selection?.();
+            setCurrentView(currentView === 'admin' ? 'client' : 'admin');
+          }}
+          className={`btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl ${
+            currentView === 'admin'
+              ? 'text-amber-400 bg-amber-500/15 border border-amber-500/30 font-extrabold scale-102'
+              : 'text-slate-400 hover:text-slate-200 font-medium'
+          }`}
+        >
+          <ShieldAlert className="w-5 h-5 mb-0.5 text-amber-400" />
+          <span className="text-[11px]">Admin</span>
         </button>
 
       </div>
