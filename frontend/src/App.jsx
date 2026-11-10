@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import AnnouncementBar from './components/AnnouncementBar';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
 import DynamicIslandTracker from './components/DynamicIslandTracker';
 import CartDrawer from './components/CartDrawer';
@@ -122,6 +124,8 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
     const tg = window.Telegram.WebApp;
+    // Only engage Telegram MainButton if actually running inside Telegram WebApp
+    if (!tg.initData) return;
     const mainBtn = tg.MainButton;
     if (!mainBtn) return;
 
@@ -189,6 +193,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors overflow-x-hidden">
+      {/* Top Floating Promo Announcement Bar */}
+      <AnnouncementBar />
+
       {/* Apple-style Floating Dynamic Island Live Tracker */}
       <DynamicIslandTracker />
 
@@ -201,7 +208,7 @@ export default function App() {
       />
 
       {/* Main View Body */}
-      <main className="flex-1 pb-24 md:pb-12">
+      <main className="flex-1 pb-20 md:pb-8">
         {currentView === 'client' && (
           <CustomerView
             searchQuery={searchQuery}
@@ -213,7 +220,7 @@ export default function App() {
         {currentView === 'courier' && <CourierView setCurrentView={handleSetView} />}
       </main>
 
-      {/* Mobile Bottom Dock (Fixed at bottom on phones, clean 4 buttons) */}
+      {/* Mobile Bottom Dock (Only on small screens) */}
       <MobileBottomNav 
         currentView={currentView} 
         setCurrentView={handleSetView} 
@@ -224,17 +231,8 @@ export default function App() {
       <CheckoutModal />
       <OrderTrackerModal />
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 glass py-6 pb-28 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 space-y-1.5">
-          <p className="font-bold text-slate-300">
-            Smart Delivery © 2026 — Zamonaviy Yetkazib Berish Tizimi
-          </p>
-          <p className="text-[11px] text-slate-500">
-            Yagona Realtime API • SQLite DB • Telegram Bot (@Smart_delivery_fast_bot) • Vite React
-          </p>
-        </div>
-      </footer>
+      {/* Comprehensive World-Class Multi-Column Footer */}
+      <Footer setCurrentView={handleSetView} />
     </div>
   );
 }
