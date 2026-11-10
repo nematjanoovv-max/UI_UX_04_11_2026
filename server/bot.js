@@ -153,6 +153,18 @@ class TelegramBotService {
           admins.forEach(a => this.adminChatIds.add(Number(a.telegram_id)));
         } catch (_) {}
 
+        // Configure native Chat Menu Button to open WebApp directly
+        try {
+          const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+          await this.callApi('setChatMenuButton', {
+            menu_button: {
+              type: 'web_app',
+              text: '🍔 Do\'konni ochish',
+              web_app: { url: rawBaseUrl }
+            }
+          });
+        } catch (_) {}
+
         if (externalUrl && (externalUrl.startsWith('https://') || externalUrl.startsWith('http://'))) {
           const webhookUrl = `${externalUrl}/api/telegram-webhook`;
           console.log(`[BOT] Webhook o'rnatilmoqda: ${webhookUrl}`);
@@ -358,6 +370,20 @@ class TelegramBotService {
             [{ text: '🛒 WebApp-da ochish & Buyurtma berish', web_app: { url: webAppUrl } }],
             [{ text: '📋 Menyu bo\'yicha ko\'rish', callback_data: 'back_to_cats' }]
           ]
+        }
+      });
+      return;
+    }
+
+    // Intercept animations (GIFs) and stickers
+    if (msg.animation || msg.sticker || msg.video_note) {
+      await this.sendMessage(chatId, `🍔 *Smart Delivery Bot*\n\nTaom tanlash va buyurtma berish uchun quyidagi tugmalardan foydalaning:`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          keyboard: this.getMainKeyboard(webAppUrl, session.language),
+          resize_keyboard: true,
+          is_persistent: true,
+          input_field_placeholder: 'Tugmalardan birini tanlang...'
         }
       });
       return;
@@ -839,7 +865,9 @@ class TelegramBotService {
       parse_mode: 'Markdown',
       reply_markup: {
         keyboard: this.getMainKeyboard(webAppUrl, lang),
-        resize_keyboard: true
+        resize_keyboard: true,
+        is_persistent: true,
+        input_field_placeholder: 'Tugmalardan birini tanlang...'
       }
     });
   }
