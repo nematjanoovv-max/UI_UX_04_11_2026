@@ -145,7 +145,7 @@ export default function PaymentSimulatorModal({ isOpen, paymentMethod, amount, o
               <button
                 onClick={handlePay}
                 disabled={isProcessing}
-                className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${provider.color} hover:opacity-95 text-white font-black text-xs sm:text-sm shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition-transform active:scale-95`}
+                className={`btn-spring w-full py-3.5 rounded-2xl bg-gradient-to-r ${provider.color} hover:opacity-95 text-white font-black text-xs sm:text-sm shadow-lg shadow-brand-500/25 border-t border-white/20 flex items-center justify-center gap-2`}
               >
                 {isProcessing ? (
                   <>

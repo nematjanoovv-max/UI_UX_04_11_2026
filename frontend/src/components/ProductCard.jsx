@@ -118,36 +118,47 @@ export default function ProductCard({ product }) {
 
           {isAvailable ? (
             cartItem ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-brand-950/60 border border-brand-500/40 rounded-xl p-0.5 sm:p-1 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-brand-950/80 border border-brand-500/50 rounded-xl p-0.5 sm:p-1 shrink-0 shadow-md shadow-brand-500/20">
                 <button
                   onClick={() => updateQuantity(product.id, -1)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-800 text-brand-400 flex items-center justify-center shadow-sm hover:bg-brand-500 hover:text-white transition-colors"
+                  className="stepper-btn w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/40 border border-slate-700/60"
+                  aria-label="Kamaytirish"
                 >
-                  <Minus className="w-3 h-3" />
+                  <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="font-bold text-xs sm:text-sm text-white px-1">
+                <span className="font-black text-xs sm:text-sm text-white px-1.5 min-w-[20px] text-center">
                   {cartItem.quantity}
                 </span>
                 <button
                   onClick={() => updateQuantity(product.id, 1)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-sm hover:bg-brand-600 transition-colors"
+                  className="stepper-btn w-7 h-7 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25"
+                  aria-label="Ko'paytirish"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
               </div>
+            ) : hasModifiers ? (
+              <button
+                onClick={handleAdd}
+                className="btn-spring flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-600 to-brand-600 hover:from-amber-500 hover:to-brand-500 border-t border-white/25 text-white text-xs font-black shadow-md shadow-amber-500/25 shrink-0"
+                title={language === 'ru' ? 'Выбрать параметры' : (language === 'en' ? 'Customize options' : 'Retseptni sozlash')}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
+                <span className="text-[11px] font-extrabold">{language === 'ru' ? 'Выбрать' : (language === 'en' ? 'Select' : 'Tanlash')}</span>
+              </button>
             ) : (
               <button
                 onClick={handleAdd}
-                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 active:scale-95 transition-all shrink-0"
-                title={hasModifiers ? 'Tanlash' : t('addToCart')}
+                className="btn-spring flex items-center justify-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-500 hover:to-amber-400 border-t border-white/25 text-white text-xs font-black shadow-md shadow-brand-500/30 shrink-0"
+                title={t('addToCart')}
               >
-                {hasModifiers ? <Sparkles className="w-3.5 h-3.5 text-amber-200" /> : <Plus className="w-4 h-4" />}
-                <span className="hidden sm:inline">{hasModifiers ? (language === 'ru' ? 'Выбрать' : (language === 'en' ? 'Select' : 'Tanlash')) : t('addToCart')}</span>
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span className="hidden sm:inline font-extrabold">{t('addToCart')}</span>
               </button>
             )
           ) : (
-            <span className="text-[10px] text-slate-500 font-medium">
-              Yo'q
+            <span className="text-[11px] text-slate-500 font-bold px-2 py-1 rounded-lg bg-slate-800/60 border border-slate-700/50">
+              {t('notAvailable') || 'Mavjud emas'}
             </span>
           )}
         </div>

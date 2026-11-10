@@ -274,10 +274,10 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
             <button
               ref={el => pillRefs.current['all'] = el}
               onClick={() => handleCategoryClick('all')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+              className={`btn-spring flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 ${
                 activeCategory === 'all'
-                  ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-md shadow-brand-500/25 ring-2 ring-brand-400/40 scale-102'
-                  : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-brand-500/50 hover:text-white active:scale-95'
+                  ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-lg shadow-brand-500/35 border-t border-white/25 ring-2 ring-brand-400/40 scale-102 font-extrabold'
+                  : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
               }`}
             >
               <span>✨</span>
@@ -300,10 +300,10 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
                   key={cat.id}
                   ref={el => pillRefs.current[cat.id] = el}
                   onClick={() => handleCategoryClick(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+                  className={`btn-spring flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 ${
                     isActive
-                      ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-md shadow-brand-500/25 ring-2 ring-brand-400/40 scale-102'
-                      : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-brand-500/50 hover:text-white active:scale-95'
+                      ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-lg shadow-brand-500/35 border-t border-white/25 ring-2 ring-brand-400/40 scale-102 font-extrabold'
+                      : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
                   }`}
                 >
                   <span className="text-sm">{cat.icon || '🍽'}</span>

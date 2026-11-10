@@ -134,7 +134,7 @@ export default function CartDrawer() {
               </p>
               <button
                 onClick={handleClose}
-                className="mt-5 px-6 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
+                className="btn-secondary mt-5 px-6 py-2.5 rounded-2xl text-xs sm:text-sm"
               >
                 {t('menu')}
               </button>
@@ -175,10 +175,10 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, -1);
                       }}
-                      className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center active:scale-90 transition-all border border-slate-700/60"
+                      className="stepper-btn w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60"
                       aria-label="Kamaytirish"
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3.5 h-3.5" />
                     </button>
                     <span className="text-xs font-black w-4 text-center text-white">
                       {item.quantity}
@@ -188,10 +188,10 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, 1);
                       }}
-                      className="w-6 h-6 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center active:scale-90 transition-all shadow-sm shadow-brand-500/30"
+                      className="stepper-btn w-7 h-7 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25"
                       aria-label="Ko'paytirish"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
                   </div>
 
@@ -204,7 +204,7 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         removeFromCart(item.customKey || item.id);
                       }}
-                      className="text-slate-500 hover:text-rose-400 p-0.5 transition-colors"
+                      className="btn-spring text-slate-500 hover:text-rose-400 p-1 rounded-md transition-colors"
                       title="O'chirish"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -244,7 +244,7 @@ export default function CartDrawer() {
 
             <button
               onClick={handleProceedToCheckout}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-brand-500 via-amber-500 to-brand-500 hover:from-brand-600 hover:to-amber-600 text-white font-black text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all"
+              className="btn-primary btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl text-sm"
             >
               <span>{t('proceedToCheckout')}</span>
               <ArrowRight className="w-4 h-4" />

@@ -170,7 +170,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
 
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-brand-500 via-amber-500 to-brand-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-brand-500/25 active:scale-95 transition-transform"
+            className="btn-primary flex items-center gap-1.5 px-6 py-3 rounded-2xl text-xs sm:text-sm"
           >
             <Plus className="w-4 h-4" />
             <span>{t('addModifiers')}</span>

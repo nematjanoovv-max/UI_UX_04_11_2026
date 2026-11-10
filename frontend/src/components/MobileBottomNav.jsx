@@ -15,11 +15,13 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
     setIsCartOpen, 
     setIsTrackerOpen, 
     t, 
-    sounds 
+    sounds,
+    haptics 
   } = useApp();
 
   const handleMenuClick = () => {
-    sounds.playClick();
+    sounds?.playClick?.();
+    haptics?.selection?.();
     if (currentView !== 'client') {
       setCurrentView('client');
     }
@@ -32,7 +34,8 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
   };
 
   const handleSearchFocus = () => {
-    sounds.playClick();
+    sounds?.playClick?.();
+    haptics?.light?.();
     if (currentView !== 'client') {
       setCurrentView('client');
     }
@@ -53,9 +56,9 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
         {/* 1. Menyu */}
         <button
           onClick={handleMenuClick}
-          className={`flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl transition-all ${
+          className={`btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl ${
             currentView === 'client' 
-              ? 'text-brand-400 bg-brand-500/10 font-bold scale-102' 
+              ? 'text-brand-400 bg-brand-500/15 border border-brand-500/30 font-extrabold scale-102' 
               : 'text-slate-400 hover:text-slate-200 font-medium'
           }`}
         >
@@ -66,7 +69,7 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
         {/* 2. Qidiruv (Search) */}
         <button
           onClick={handleSearchFocus}
-          className="flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium transition-all"
+          className="btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium"
         >
           <Search className="w-5 h-5 mb-0.5 text-amber-400" />
           <span className="text-[11px]">{t('searchBtn') || 'Qidiruv'}</span>
@@ -75,10 +78,11 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
         {/* 3. Xarita / Buyurtma Kuzatuv */}
         <button
           onClick={() => {
-            sounds.playClick();
+            sounds?.playClick?.();
+            haptics?.light?.();
             setIsTrackerOpen(true);
           }}
-          className="flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium transition-all"
+          className="btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium"
         >
           <MapPin className="w-5 h-5 mb-0.5 text-sky-400" />
           <span className="text-[11px]">{t('trackOrder')}</span>
@@ -88,15 +92,16 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
         <button
           id="mobile-cart-btn"
           onClick={() => {
-            sounds.playClick();
+            sounds?.playClick?.();
+            haptics?.medium?.();
             setIsCartOpen(true);
           }}
-          className="relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl bg-gradient-to-r from-brand-600 to-amber-600 text-white font-bold shadow-lg shadow-brand-500/25 active:scale-95 transition-all"
+          className="btn-spring relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl bg-gradient-to-r from-brand-600 to-amber-600 text-white font-black shadow-lg shadow-brand-500/30 border-t border-white/20"
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5" />
             {cartItemCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-rose-600 text-white font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-bounce">
+              <span className="absolute -top-1.5 -right-2 bg-rose-600 text-white font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-bounce">
                 {cartItemCount}
               </span>
             )}

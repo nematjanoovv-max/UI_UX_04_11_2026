@@ -402,7 +402,7 @@ export default function CheckoutModal() {
                             type="button"
                             onClick={handleVerifyOtp}
                             disabled={isVerifyingOtp || otpCode.length !== 6}
-                            className="px-3 py-1 rounded-lg bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow transition-all"
+                            className="btn-spring px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-sky-500/25 border-t border-white/20"
                           >
                             {isVerifyingOtp ? '...' : 'Tasdiqlash'}
                           </button>
@@ -499,7 +499,7 @@ export default function CheckoutModal() {
                     type="button"
                     onClick={handleApplyPromo}
                     disabled={isApplyingPromo}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+                    className="btn-spring px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 border-t border-white/20"
                   >
                     {isApplyingPromo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('apply')}
                   </button>
@@ -601,7 +601,7 @@ export default function CheckoutModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-500 via-amber-500 to-brand-500 hover:from-brand-600 hover:to-amber-600 text-white font-extrabold text-sm shadow-xl shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
+                className="btn-primary btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl text-sm disabled:opacity-50 mt-2"
               >
                 {isSubmitting ? (
                   <>
