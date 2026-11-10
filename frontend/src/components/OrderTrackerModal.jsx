@@ -102,6 +102,18 @@ export default function OrderTrackerModal() {
     }
   };
 
+  // Check URL query param on mount (e.g. from Telegram WebApp button ?track=#SD-1002)
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackParam = urlParams.get('track');
+      if (trackParam) {
+        setTrackedOrderNumber(trackParam);
+        setIsTrackerOpen(true);
+      }
+    } catch (_) {}
+  }, []);
+
   useEffect(() => {
     if (isTrackerOpen && trackedOrderNumber) {
       setSearchQuery(trackedOrderNumber);

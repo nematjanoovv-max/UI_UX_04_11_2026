@@ -3,6 +3,7 @@ import { X, MapPin, Locate, Phone, User, CreditCard, Banknote, ShieldCheck, Load
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 import PaymentSimulatorModal from './PaymentSimulatorModal';
+import { sounds } from '../utils/soundEffects';
 
 export default function CheckoutModal() {
   const {
@@ -79,6 +80,7 @@ export default function CheckoutModal() {
       const res = await api.validatePromo(promoCodeInput.trim(), cartTotal);
       if (res && res.valid) {
         setAppliedPromo(res);
+        sounds.playCoin();
         showToast(res.message);
       }
     } catch (err) {
@@ -178,6 +180,10 @@ export default function CheckoutModal() {
       };
 
       const res = await api.createOrder(orderPayload);
+
+      // Save for Dynamic Island live tracker
+      localStorage.setItem('sd_last_order', res.order_number);
+      sounds.playSuccess();
 
       clearCart();
       setShowPaymentGateway(false);

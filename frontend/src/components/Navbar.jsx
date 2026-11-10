@@ -9,7 +9,9 @@ import {
   ShieldAlert, 
   Bike, 
   Compass,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -22,7 +24,10 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
     toggleDarkMode, 
     cartItemCount, 
     setIsCartOpen, 
-    setIsTrackerOpen 
+    setIsTrackerOpen,
+    soundMuted,
+    toggleSoundMute,
+    sounds
   } = useApp();
 
   return (
@@ -156,9 +161,24 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
               <span className="hidden xl:inline">TG Bot</span>
             </a>
 
+            {/* Sound Mute / Unmute Toggle */}
+            <button
+              onClick={() => {
+                const next = toggleSoundMute();
+                if (!next) sounds.playPop();
+              }}
+              className="p-2 sm:p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              title={soundMuted ? 'Ovozni yoqish' : 'Ovozni o\'chirish'}
+            >
+              {soundMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-500" />}
+            </button>
+
             {/* Dark/Light Toggle */}
             <button
-              onClick={toggleDarkMode}
+              onClick={() => {
+                sounds.playClick();
+                toggleDarkMode();
+              }}
               className="p-2 sm:p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
               title="Dark/Light Mode"
             >
@@ -167,8 +187,12 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
 
             {/* Cart Trigger Button */}
             <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center justify-center p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/30 transition-transform active:scale-95"
+              id="main-cart-btn"
+              onClick={() => {
+                sounds.playClick();
+                setIsCartOpen(true);
+              }}
+              className="relative flex items-center justify-center p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/30 transition-all duration-200 active:scale-95"
             >
               <ShoppingBag className="w-5 h-5" />
               <span className="hidden sm:inline font-bold text-sm ml-2">{t('cart')}</span>

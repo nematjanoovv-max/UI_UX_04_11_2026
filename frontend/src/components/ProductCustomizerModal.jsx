@@ -28,14 +28,15 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
   const modifiersTotal = selectedModifiers.reduce((acc, m) => acc + (Number(m.price) || 0), 0);
   const currentTotal = Number(product.price) + modifiersTotal;
 
-  const handleConfirm = () => {
+  const handleConfirm = (e) => {
+    const rect = e?.currentTarget?.getBoundingClientRect();
     onAddToCart({
       ...product,
       modifiers: selectedModifiers,
       price: currentTotal,
       basePrice: product.price,
       customKey: `${product.id}-${selectedModifiers.map(m => m.id).sort().join('-')}`
-    });
+    }, rect);
     onClose();
   };
 

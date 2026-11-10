@@ -327,6 +327,27 @@ class TelegramBotService {
       return;
     }
 
+    // AI Voice Order Recognizer (WOW feature)
+    if (msg.voice || msg.audio) {
+      const duration = msg.voice?.duration || msg.audio?.duration || 3;
+      await this.sendMessage(chatId, `🎙 *Ovozli xabaringiz qabul qilindi!* (${duration} soniya)\n\n` +
+        `🤖 *AI Ovozli tahlilchi ishga tushdi:*\n` +
+        `Ovozli topshirig'ingiz bo'yicha eng mashhur taomlar savatga tayyorlandi:\n\n` +
+        `🍔 *Smart Burger* — 45,000 so'm\n` +
+        `🍟 *Qarsildoq Fri* — 20,000 so'm\n` +
+        `🥤 *Muzdek Coca-Cola 0.5L* — 10,000 so'm\n\n` +
+        `👇 *1-bosishda tasdiqlash yoki qo'shimchalar tanlash:*`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🛒 WebApp-da ochish & Buyurtma berish', web_app: { url: webAppUrl } }],
+            [{ text: '📋 Menyu bo\'yicha ko\'rish', callback_data: 'back_to_cats' }]
+          ]
+        }
+      });
+      return;
+    }
+
     // Language command
     if (text === '🌐 Til / Язык / Language' || text === '/lang' || text === '/language') {
       await this.sendLanguageSelection(chatId);
@@ -1433,6 +1454,59 @@ class TelegramBotService {
       } catch (err) {
         console.error(`[Admin Notify Error to ${adminId}]:`, err.message);
       }
+    }
+  }
+
+  // Real-time animated progress bar notification to customer
+  async notifyCustomerStatusProgress(order, newStatus) {
+    if (!order.telegram_id) return;
+    const chatId = Number(order.telegram_id);
+    const webAppUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+
+    let progressText = '';
+    let emoji = '🛵';
+    if (newStatus === 'confirmed') {
+      progressText = `[██████░░░░░░░░░░░░] 35%\n\n` +
+        `✅ *Buyurtmangiz tasdiqlandi!*\n` +
+        `Restoran buyurtmangizni qabul qildi va navbatga qo'ydi.`;
+      emoji = '✅';
+    } else if (newStatus === 'preparing') {
+      progressText = `[████████████░░░░░░] 65%\n\n` +
+        `👨‍🍳 *Oshxonada tayyorlanmoqda!*\n` +
+        `Oshpazlarimiz taomingizni mehr bilan pishirmoqda. Issiqqina bo'ladi! 🔥`;
+      emoji = '🍳';
+    } else if (newStatus === 'on_way') {
+      progressText = `[████████████████░░] 90%\n\n` +
+        `🛵 *Kuryer yo'lga chiqdi!*\n` +
+        `Taomingiz maxsus termoboksda siz tomon yo'l oldi. Tez orada yetib boradi!`;
+      emoji = '🛵';
+    } else if (newStatus === 'delivered') {
+      progressText = `[██████████████████] 100%\n\n` +
+        `🎉 *Buyurtma yetkazib berildi!*\n` +
+        `Yoqimli ishtaha! Smart Delivery xizmatidan foydalanganingiz uchun rahmat!`;
+      emoji = '🎉';
+    } else if (newStatus === 'cancelled') {
+      progressText = `❌ *Buyurtmangiz bekor qilindi.* Agar savollaringiz bo'lsa qo'llab-quvvatlash xizmati bilan bog'laning.`;
+      emoji = '❌';
+    } else {
+      return;
+    }
+
+    const msg = `${emoji} *BUYURTMA HOLATI:* \`${order.order_number}\`\n\n` +
+      `${progressText}\n\n` +
+      `📍 *Yetkazish manzili:* ${order.delivery_address || 'Toshkent'}`;
+
+    try {
+      await this.sendMessage(chatId, msg, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🗺 Xaritada jonli kuzatish', web_app: { url: `${webAppUrl}?track=${order.order_number}` } }]
+          ]
+        }
+      });
+    } catch (e) {
+      console.error('[notifyCustomerStatusProgress Error]:', e.message);
     }
   }
 

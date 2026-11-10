@@ -444,6 +444,11 @@ app.patch('/api/orders/:id/status', async (req, res) => {
       }
     }
 
+    // Notify customer about progress via Telegram with live progress bar
+    if (order.telegram_id && status !== 'delivered') {
+      botService.notifyCustomerStatusProgress(order, status).catch(e => console.error('[Progress notify err]:', e.message));
+    }
+
     res.json({ success: true, message: `Buyurtma statusi "${status}" ga o'zgartirildi` });
   } catch (err) {
     res.status(500).json({ error: err.message });

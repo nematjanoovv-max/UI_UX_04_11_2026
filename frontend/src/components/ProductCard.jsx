@@ -6,6 +6,8 @@ import ProductCustomizerModal from './ProductCustomizerModal';
 export default function ProductCard({ product }) {
   const { cart, addToCart, updateQuantity, showToast, t, language } = useApp();
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [tiltStyle, setTiltStyle] = useState({});
+  const [glowPos, setGlowPos] = useState({ x: 50, y: 50, opacity: 0 });
 
   const cartItem = cart.find(item => item.id === product.id);
   const isAvailable = product.is_available === 1;
@@ -18,18 +20,62 @@ export default function ProductCard({ product }) {
     }
   } catch (_) {}
 
-  const handleAdd = () => {
+  // 3D Tilt & Glow Handler
+  const handleMouseMove = (e) => {
+    const card = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - card.left;
+    const y = e.clientY - card.top;
+    const centerX = card.width / 2;
+    const centerY = card.height / 2;
+
+    const rotateX = ((y - centerY) / centerY) * -7;
+    const rotateY = ((x - centerX) / centerX) * 7;
+
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`,
+      transition: 'transform 0.1s ease-out',
+    });
+
+    setGlowPos({
+      x: (x / card.width) * 100,
+      y: (y / card.height) * 100,
+      opacity: 0.15
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTiltStyle({
+      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+      transition: 'transform 0.5s ease-out',
+    });
+    setGlowPos(prev => ({ ...prev, opacity: 0 }));
+  };
+
+  const handleAdd = (e) => {
     if (!isAvailable) return;
+    const rect = e?.currentTarget?.getBoundingClientRect();
     if (hasModifiers) {
       setIsCustomizerOpen(true);
       return;
     }
-    addToCart(product);
+    addToCart(product, rect);
     showToast(`"${product.name}" ${language === 'ru' ? 'добавлен в корзину!' : (language === 'en' ? 'added to cart!' : 'savatga qo\'shildi!')}`);
   };
 
   return (
-    <div className="group relative flex flex-col rounded-3xl overflow-hidden glass-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={tiltStyle}
+      className="group relative flex flex-col rounded-3xl overflow-hidden glass-card transition-shadow duration-300 hover:shadow-2xl hover:border-brand-500/40 will-change-transform"
+    >
+      {/* Dynamic Cursor Spotlight Ambient Glow */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${glowPos.x}% ${glowPos.y}%, rgba(234, 88, 12, ${glowPos.opacity}), transparent 70%)`
+        }}
+      />
       {/* Product Image */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
         <img
@@ -121,8 +167,8 @@ export default function ProductCard({ product }) {
           product={product}
           isOpen={isCustomizerOpen}
           onClose={() => setIsCustomizerOpen(false)}
-          onAddToCart={(customizedProduct) => {
-            addToCart(customizedProduct);
+          onAddToCart={(customizedProduct, rect) => {
+            addToCart(customizedProduct, rect);
             showToast(`"${product.name}" ${language === 'ru' ? 'с добавками добавлен в корзину!' : (language === 'en' ? 'with extras added to cart!' : 'qo\'shimchalar bilan savatga qo\'shildi!')}`);
           }}
         />

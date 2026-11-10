@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import DynamicIslandTracker from './components/DynamicIslandTracker';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import OrderTrackerModal from './components/OrderTrackerModal';
@@ -37,6 +38,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+      {/* Apple-style Floating Dynamic Island Live Tracker */}
+      <DynamicIslandTracker />
+
       {/* Top Navbar */}
       <Navbar
         currentView={currentView}
