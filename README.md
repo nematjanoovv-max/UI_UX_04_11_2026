@@ -76,6 +76,16 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - **Yagona Web Audio Context (Singleton Engine):**
   - Har tugma bosilganda yangi `AudioContext` ochilib mobil brauzerni qotirishining oldi olindi. Singleton kontekst birinchi teginishda faollashtiriladi (`resume()`), va barcha tovush effektlari `try/catch` bilan himoyalanib, audio xatosi dastur ishlashiga hech qachon to'sqinlik qilmaydi.
 
+### 8. 🎯 API Validatsiyasi va Optimistik (Instant) Holat Yangilanishi
+- **To'liq Ma'lumotlar Validatsiyasi:**
+  - O'zbekiston telefon raqamlari qat'iy formatlandi (`+998 XX XXX-XX-XX`). Noto'g'ri raqam yoki xato kiritilganda frontend va backendda aniq tushuntirish xabari chiqadi.
+  - Bo'sh savatcha bilan buyurtma berish bloklandi va xatolik matni ko'rsatiladi.
+  - Noto'g'ri yoki muddati o'tgan promokod kiritilganda aniq nom bilan tushuntirish beriladi.
+  - Mavjud bo'lmagan buyurtma raqamini kuzatishda (`/api/orders/track/:query`) aniq ko'rsatma va xatolik darchasi aks etadi.
+- **Kuryer va Admin Optimistik UI Yangilanishi (Instant State Update):**
+  - Admin kuryer biriktirganda yoki buyurtma holatini o'zgartirganda sahifa qayta yuklanmasdan, 0ms kechikish bilan ekranda darhol yangilanadi. Serverda xato yuz bersa, holat avtomatik orqaga qaytariladi (rollback).
+  - Kuryer "Yo'lga chiqdim" yoki "Yetkazib berdim" tugmasini bosganida holat darhol o'zgaradi va fonda server bilan sinxronlashadi.
+
 ---
 
 ## 🛠 Texnologik Stek

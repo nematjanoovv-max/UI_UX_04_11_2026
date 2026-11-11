@@ -84,53 +84,78 @@ export default function CourierView({ setCurrentView }) {
 
   const activeCourier = couriers.find(c => String(c.id) === String(selectedCourierId));
 
-  // Action: Accept / On Way
+  // Action: Accept / On Way (Instant Optimistic Update)
   const handleStartDelivery = async (orderId) => {
     if (updatingOrderId) return;
     setUpdatingOrderId(orderId);
+
+    const prevOrders = orders;
+    const prevCouriers = couriers;
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'on_way' } : o));
+    if (activeCourier) {
+      setCouriers(prev => prev.map(c => String(c.id) === String(activeCourier.id) ? { ...c, status: 'busy' } : c));
+    }
+
     try {
       await api.updateOrderStatus(orderId, 'on_way');
       if (activeCourier) {
         await api.updateCourierStatus(activeCourier.id, 'busy');
       }
       showToast('🚀 Yo\'lga chiqdingiz! Mijozga xabar berildi.');
-      await loadCourierOrders();
-      await loadCouriers();
+      loadCourierOrders();
+      loadCouriers();
     } catch (err) {
+      setOrders(prevOrders);
+      setCouriers(prevCouriers);
       showToast(err.message, 'error');
     } finally {
       setUpdatingOrderId(null);
     }
   };
 
-  // Action: Complete Delivery
+  // Action: Complete Delivery (Instant Optimistic Update)
   const handleCompleteDelivery = async (orderId) => {
     if (updatingOrderId) return;
     setUpdatingOrderId(orderId);
+
+    const prevOrders = orders;
+    const prevCouriers = couriers;
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'delivered' } : o));
+    if (activeCourier) {
+      setCouriers(prev => prev.map(c => String(c.id) === String(activeCourier.id) ? { ...c, status: 'free', total_delivered: (c.total_delivered || 0) + 1 } : c));
+    }
+
     try {
       await api.updateOrderStatus(orderId, 'delivered');
       if (activeCourier) {
         await api.updateCourierStatus(activeCourier.id, 'free');
       }
       showToast('🎉 Buyurtma muvaffaqiyatli yetkazildi! Barakalla.');
-      await loadCourierOrders();
-      await loadCouriers();
+      loadCourierOrders();
+      loadCouriers();
     } catch (err) {
+      setOrders(prevOrders);
+      setCouriers(prevCouriers);
       showToast(err.message, 'error');
     } finally {
       setUpdatingOrderId(null);
     }
   };
 
-  // Status Switcher
+  // Status Switcher (Instant Optimistic Update)
   const handleStatusChange = async (newStatus) => {
     if (!activeCourier || updatingStatus) return;
     setUpdatingStatus(true);
+
+    const prevCouriers = couriers;
+    setCouriers(prev => prev.map(c => String(c.id) === String(activeCourier.id) ? { ...c, status: newStatus } : c));
+
     try {
       await api.updateCourierStatus(activeCourier.id, newStatus);
       showToast(`Holatingiz "${newStatus}" ga o'zgartirildi`);
-      await loadCouriers();
+      loadCouriers();
     } catch (err) {
+      setCouriers(prevCouriers);
       showToast(err.message, 'error');
     } finally {
       setUpdatingStatus(false);

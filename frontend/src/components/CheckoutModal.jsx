@@ -98,8 +98,8 @@ export default function CheckoutModal() {
 
   const handleRequestOtp = async () => {
     if (isSendingOtp) return;
-    const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
-    if (rawDigits.length < 9) {
+    const rawDigits = (formData.customer_phone || '').replace(/[^0-9]/g, '');
+    if (!rawDigits || (rawDigits.length !== 9 && !(rawDigits.length === 12 && rawDigits.startsWith('998')))) {
       showToast('Iltimos, to\'liq telefon raqamingizni kiriting (+998 90 123 45 67)', 'error');
       return;
     }
@@ -258,14 +258,24 @@ export default function CheckoutModal() {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (!cart || cart.length === 0) {
+      showToast('Savatchangiz bo\'sh. Iltimos, avval menyudan taom tanlang.', 'error');
+      setIsCheckoutOpen(false);
+      return;
+    }
+
     if (!formData.customer_name.trim()) {
       showToast('Iltimos, ismingizni kiriting', 'error');
       return;
     }
-    if (!formData.customer_phone || formData.customer_phone.length < 9) {
-      showToast('Iltimos, to\'g\'ri telefon raqam kiriting', 'error');
+
+    const rawDigits = (formData.customer_phone || '').replace(/[^0-9]/g, '');
+    if (!rawDigits || (rawDigits.length !== 9 && !(rawDigits.length === 12 && rawDigits.startsWith('998')))) {
+      showToast('Iltimos, to\'g\'ri telefon raqam kiriting (+998 90 123 45 67)', 'error');
       return;
     }
+
     if (!formData.delivery_address.trim()) {
       showToast('Iltimos, yetkazib berish manzilini kiriting', 'error');
       return;

@@ -255,13 +255,20 @@ app.get('/api/orders', (req, res) => {
 // Live Track Order by order_number (e.g. #SD-1001 or SD-1001 or 1001) or phone number
 app.get('/api/orders/track/:query', (req, res) => {
   try {
-    const query = decodeURIComponent(req.params.query).trim();
+    const rawQuery = (req.params.query || '').trim();
+    if (!rawQuery) {
+      return res.status(400).json({ error: "Qidirish uchun buyurtma raqami yoki telefon raqamingizni kiriting" });
+    }
+    const query = decodeURIComponent(rawQuery).trim();
     const db = getDb();
 
     let cleanNum = query;
     if (!cleanNum.startsWith('#SD-') && /^\d+$/.test(cleanNum)) {
       cleanNum = `#SD-${cleanNum}`;
     }
+
+    const digitsOnly = query.replace(/[^0-9]/g, '');
+    const phoneParam = digitsOnly.length >= 4 ? `%${digitsOnly.slice(-9)}%` : '___NONE___';
 
     const order = db.get(`
       SELECT o.*, c.name as courier_name, c.phone as courier_phone, c.vehicle_type as courier_vehicle
@@ -270,10 +277,10 @@ app.get('/api/orders/track/:query', (req, res) => {
       WHERE o.order_number = ? OR o.order_number = ? OR o.customer_phone LIKE ?
       ORDER BY o.id DESC
       LIMIT 1
-    `, [query, cleanNum, `%${query.replace(/[^0-9]/g, '')}%`]);
+    `, [query, cleanNum, phoneParam]);
 
     if (!order) {
-      return res.status(404).json({ error: 'Buyurtma topilmadi' });
+      return res.status(404).json({ error: `"${query}" bo'yicha hech qanday buyurtma topilmadi. Raqamni tekshirib qayta urinib ko'ring.` });
     }
 
     const items = db.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
@@ -302,8 +309,21 @@ app.post('/api/orders', async (req, res) => {
       cashback_used
     } = req.body;
 
-    if (!customer_name || !customer_phone || !delivery_address || !items || items.length === 0) {
-      return res.status(400).json({ error: 'Iltimos, barcha majburiy maydonlarni to\'ldiring va savatga taom qo\'shing' });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Savatchangiz bo'sh. Iltimos, buyurtma berish uchun taom qo'shing." });
+    }
+
+    if (!customer_name || !customer_name.trim()) {
+      return res.status(400).json({ error: "Ismingizni kiritishingiz shart." });
+    }
+
+    const phoneDigits = String(customer_phone || '').replace(/[^0-9]/g, '');
+    if (!phoneDigits || (phoneDigits.length !== 9 && !(phoneDigits.length === 12 && phoneDigits.startsWith('998')))) {
+      return res.status(400).json({ error: "Telefon raqamingiz noto'g'ri formatda. Iltimos, +998 (XX) XXX-XX-XX formatida to'liq kiriting." });
+    }
+
+    if (!delivery_address || !delivery_address.trim()) {
+      return res.status(400).json({ error: "Yetkazib berish manzilini kiritishingiz shart." });
     }
 
     const db = getDb();
@@ -581,10 +601,15 @@ app.get('/api/promocodes', (req, res) => {
 app.post('/api/promocodes/validate', (req, res) => {
   try {
     const { code, amount } = req.body;
-    if (!code) return res.status(400).json({ valid: false, message: 'Promo-kod kiritilmadi' });
+    if (!code || !code.trim()) {
+      return res.status(400).json({ valid: false, message: 'Iltimos, promo-kodni kiriting' });
+    }
+    const cleanCode = code.trim().toUpperCase();
     const db = getDb();
-    const promo = db.get('SELECT * FROM promocodes WHERE UPPER(code) = UPPER(?) AND is_active = 1', [code.trim()]);
-    if (!promo) return res.status(404).json({ valid: false, message: 'Bunday promo-kod mavjud emas yoki muddati o\'tgan' });
+    const promo = db.get('SELECT * FROM promocodes WHERE UPPER(code) = ? AND is_active = 1', [cleanCode]);
+    if (!promo) {
+      return res.status(404).json({ valid: false, message: `"${code.trim()}" nomli promo-kod mavjud emas yoki muddati o'tgan` });
+    }
 
     const subtotal = Number(amount) || 0;
     if (subtotal < (promo.min_order_amount || 0)) {
@@ -729,6 +754,11 @@ const sendOtpHandler = async (req, res) => {
       return res.status(400).json({ error: 'Telefon raqam kiritilishi shart' });
     }
 
+    const cleanDigits = String(phone).replace(/[^0-9]/g, '');
+    if (!cleanDigits || (cleanDigits.length !== 9 && !(cleanDigits.length === 12 && cleanDigits.startsWith('998')))) {
+      return res.status(400).json({ error: "Telefon raqamingiz noto'g'ri formatda. Iltimos, +998 (XX) XXX-XX-XX formatida to'liq kiriting." });
+    }
+
     const normPhone = smsService.normalizePhone(phone);
     const phoneSuffix = smsService.getPhoneSuffix(phone);
     const db = getDb();
@@ -837,12 +867,15 @@ const verifyOtpHandler = (req, res) => {
   try {
     const { phone, code } = req.body;
     if (!phone || !code) {
-      return res.status(400).json({ error: 'Telefon raqam va 6 xonali kod kiritilishi shart' });
+      return res.status(400).json({ error: 'Telefon raqam va 6 xonali tasdiqlash kodi kiritilishi shart' });
+    }
+
+    const cleanCode = String(code).trim();
+    if (!/^\d{6}$/.test(cleanCode)) {
+      return res.status(400).json({ ok: false, error: "Tasdiqlash kodi aynan 6 ta raqamdan iborat bo'lishi kerak" });
     }
 
     const normPhone = smsService.normalizePhone(phone);
-    const phoneSuffix = smsService.getPhoneSuffix(phone);
-    const cleanCode = String(code).trim();
     const db = getDb();
 
     // Check fast cache first

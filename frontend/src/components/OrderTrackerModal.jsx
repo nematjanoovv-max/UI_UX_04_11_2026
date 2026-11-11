@@ -96,7 +96,7 @@ export default function OrderTrackerModal() {
       }
     } catch (err) {
       setOrder(null);
-      setError(err.message || 'Buyurtma topilmadi');
+      setError(err.message || 'Bunday buyurtma topilmadi. Raqamni tekshirib qayta urinib ko\'ring.');
     } finally {
       setLoading(false);
     }
@@ -141,7 +141,10 @@ export default function OrderTrackerModal() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      setError('Iltimos, qidirish uchun buyurtma raqamini (#SD-...) yoki telefon raqamingizni kiriting');
+      return;
+    }
     fetchOrder(searchQuery.trim());
   };
 

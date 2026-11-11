@@ -170,30 +170,67 @@ export default function AdminView({ setCurrentView }) {
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  // Order Status Change
+  // Order Status Change (Instant Optimistic Update)
   const handleStatusChange = async (orderId, newStatus) => {
     if (updatingOrderId) return;
     setUpdatingOrderId(orderId);
+
+    // Instant optimistic UI update
+    const previousOrders = orders;
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+
     try {
       await api.updateOrderStatus(orderId, newStatus);
       showToast(`Buyurtma statusi "${newStatus}" ga o'zgartirildi`);
-      await loadAllData();
+      // Background sync
+      api.getOrders().then(data => setOrders(data)).catch(() => {});
+      api.getStats().then(data => setStats(data)).catch(() => {});
     } catch (err) {
+      setOrders(previousOrders);
       showToast(err.message, 'error');
     } finally {
       setUpdatingOrderId(null);
     }
   };
 
-  // Assign Courier to Order
+  // Assign Courier to Order (Instant Optimistic Update)
   const handleAssignCourier = async (orderId, courierId) => {
     if (updatingOrderId) return;
     setUpdatingOrderId(orderId);
+
+    const numericCourierId = courierId ? Number(courierId) : null;
+    const courierObj = couriers.find(c => Number(c.id) === numericCourierId);
+
+    // Instant optimistic UI update
+    const previousOrders = orders;
+    const previousCouriers = couriers;
+    setOrders(prev => prev.map(o => {
+      if (o.id === orderId) {
+        const nextStatus = (!numericCourierId ? o.status : (o.status === 'new' || o.status === 'confirmed') ? 'preparing' : o.status);
+        return {
+          ...o,
+          courier_id: numericCourierId,
+          courier_name: courierObj ? courierObj.name : null,
+          courier_phone: courierObj ? courierObj.phone : null,
+          status: nextStatus
+        };
+      }
+      return o;
+    }));
+
+    if (numericCourierId) {
+      setCouriers(prev => prev.map(c => Number(c.id) === numericCourierId ? { ...c, status: 'busy' } : c));
+    }
+
     try {
-      await api.assignCourier(orderId, courierId ? Number(courierId) : null);
-      showToast('Kuryer biriktirildi va unga bildirishnoma yuborildi!');
-      await loadAllData();
+      await api.assignCourier(orderId, numericCourierId);
+      showToast(numericCourierId ? `Kuryer "${courierObj?.name || ''}" biriktirildi!` : 'Kuryer ajratildi');
+      // Background sync
+      api.getOrders().then(data => setOrders(data)).catch(() => {});
+      api.getCouriers().then(data => setCouriers(data)).catch(() => {});
     } catch (err) {
+      setOrders(previousOrders);
+      setCouriers(previousCouriers);
       showToast(err.message, 'error');
     } finally {
       setUpdatingOrderId(null);
