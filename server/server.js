@@ -799,8 +799,22 @@ const sendOtpHandler = async (req, res) => {
     } catch (_) {}
 
     const botUsername = botService.botInfo?.username || 'Smart_delivery_fast_bot';
-    // Clean, secure bot link without exposing phone number in public URL
-    const botLink = `https://t.me/${botUsername}?start=v_${code}`;
+    // Clean, direct bot link passing both the code and phoneSuffix
+    const botLink = `https://t.me/${botUsername}?start=v_${code}_${phoneSuffix}`;
+
+    // Sync OTP to Render backend in background so bot knows it immediately
+    try {
+      fetch('https://smart-delivery-system-sy6e.onrender.com/api/auth/sync-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: normPhone,
+          code,
+          expires_at: expiresAt,
+          telegram_id: targetChatId
+        })
+      }).catch(() => {});
+    } catch (_) {}
 
     // Dispatch via Eskiz real SMS and/or Telegram Bot
     const dispatchResult = await smsService.dispatchOtp({
@@ -858,6 +872,40 @@ app.post('/api/auth/bot-verified', (req, res) => {
     } catch (_) {}
 
     return res.json({ ok: true, verified: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Sync OTP between server instances (e.g. Vercel <-> Render)
+app.post('/api/auth/sync-otp', (req, res) => {
+  try {
+    const { phone, code, expires_at, telegram_id } = req.body;
+    if (!code) return res.status(400).json({ error: 'Code is required' });
+
+    const cleanCode = String(code).trim();
+    const phoneSuffix = phone ? smsService.getPhoneSuffix(phone) : null;
+    const db = getDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS otp_codes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          phone TEXT NOT NULL,
+          code TEXT NOT NULL,
+          telegram_id TEXT,
+          expires_at INTEGER NOT NULL,
+          is_verified INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      db.run(`
+        INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified)
+        VALUES (?, ?, ?, ?, 0)
+      `, [phone || '+998', cleanCode, telegram_id ? String(telegram_id) : null, expires_at || (Date.now() + 300000)]);
+    } catch (_) {}
+
+    return res.json({ ok: true, synced: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

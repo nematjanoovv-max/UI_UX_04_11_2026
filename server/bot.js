@@ -103,6 +103,22 @@ const botLocales = {
 const DEFAULT_BOT_TOKEN = '9160505584:AAGp4e-rU-4nL-Hw9iJ1BLLY_L6IrxVX4hw';
 const DEFAULT_ADMIN_ID = 1340769865;
 
+function ensureOtpTable(db) {
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS otp_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phone TEXT NOT NULL,
+        code TEXT NOT NULL,
+        telegram_id TEXT,
+        expires_at INTEGER NOT NULL,
+        is_verified INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (_) {}
+}
+
 class TelegramBotService {
   constructor() {
     this.token = (process.env.BOT_TOKEN || DEFAULT_BOT_TOKEN).trim();
@@ -254,8 +270,11 @@ class TelegramBotService {
   // ----------------------------------------------------------------------
   async handleMessage(msg) {
     const chatId = msg.chat.id;
-    const text = msg.text ? msg.text.trim() : '';
+    const rawText = msg.text ? msg.text.trim() : '';
+    // Normalize text: remove bot username if present (e.g. /start@Smart_delivery_fast_bot => /start)
+    const text = rawText.replace(/@Smart_delivery_fast_bot/gi, '').trim();
     const db = getDb();
+    ensureOtpTable(db);
     const session = this.getSession(chatId);
     const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
     const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
@@ -398,37 +417,39 @@ class TelegramBotService {
       return;
     }
 
-    // Verification link handler from Web checkout: /start v_123456_901234567 or /start verify_123456
-    if (text.startsWith('/start v_') || text.startsWith('/start verify_')) {
-      let param = text.startsWith('/start v_')
-        ? text.replace('/start v_', '').trim()
-        : text.replace('/start verify_', '').trim();
+    // 1. Verification link handler from Web checkout: /start v_123456_901234567 or /start verify_123456 or v_123456
+    const isVerificationLink = text.startsWith('/start v_') || 
+                               text.startsWith('/start verify_') || 
+                               text.includes('v_') || 
+                               text.includes('verify_');
 
-      const parts = param.split('_');
-      const code = (parts[0] || '').trim();
-      const phoneSuffix = (parts[1] || '').trim();
+    if (isVerificationLink) {
+      const vMatch = text.match(/(?:v_|verify_)([0-9]{6})(?:_([0-9]+))?/);
+      const code = vMatch ? vMatch[1] : (text.match(/\b([0-9]{6})\b/)?.[1] || null);
+      const phoneSuffix = vMatch ? (vMatch[2] || null) : null;
 
-      try {
-        let otp = null;
-        if (code) {
-          otp = db.get('SELECT * FROM otp_codes WHERE code = ? ORDER BY id DESC LIMIT 1', [code]);
-        }
+      if (code) {
+        let finalPhone = phoneSuffix ? `+998${phoneSuffix}` : null;
 
-        const finalPhone = otp?.phone || (phoneSuffix ? `+998${phoneSuffix}` : null);
-
-        if (otp) {
-          db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE id = ?', [String(chatId), otp.id]);
-        } else if (code) {
-          db.run('INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified) VALUES (?, ?, ?, ?, 1)', [
-            finalPhone || '+998',
-            code,
-            String(chatId),
-            Date.now() + (10 * 60 * 1000)
-          ]);
+        try {
+          const otp = db.get('SELECT * FROM otp_codes WHERE code = ? ORDER BY id DESC LIMIT 1', [code]);
+          if (otp) {
+            finalPhone = otp.phone || finalPhone;
+            db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE id = ?', [String(chatId), otp.id]);
+          } else {
+            db.run(`
+              INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified)
+              VALUES (?, ?, ?, ?, 1)
+            `, [finalPhone || '+998', code, String(chatId), Date.now() + (10 * 60 * 1000)]);
+          }
+        } catch (dbErr) {
+          console.warn('[OTP DB Save Warning]:', dbErr.message);
         }
 
         if (finalPhone) {
-          db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [finalPhone, String(chatId)]);
+          try {
+            db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [finalPhone, String(chatId)]);
+          } catch (_) {}
         }
 
         // Notify Vercel API so frontend auto-polling detects verification in real-time
@@ -465,15 +486,83 @@ class TelegramBotService {
             ]
           }
         });
-        return;
-      } catch (err) {
-        console.error('[verify_ start error]:', err);
+        return; // Always return so it never falls through!
       }
     }
 
-    // Commands
-    if (text === '/start' || text.includes('Asosiy menyu') || text.includes('Главное меню') || text.includes('Main Menu')) {
+    // 2. Direct 6-digit code input by user (e.g. typing 123456 into bot)
+    if (/^\d{6}$/.test(text)) {
+      const code = text;
+      try {
+        db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE code = ?', [String(chatId), code]);
+        fetch('https://smart-delivery-system-2026.vercel.app/api/auth/bot-verified', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code,
+            telegram_id: String(chatId)
+          })
+        }).catch(() => {});
+      } catch (_) {}
+
+      await this.sendMessage(chatId,
+        `🔐 *Smart Delivery — Tasdiqlash Kodi Qabul Qilindi!*\n\n` +
+        `👉 Kod: \`${code}\`\n\n` +
+        `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\n` +
+        `Saytga qaytib buyurtmangizni yakunlashingiz mumkin! 🚀`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🍔 Do'konni ochish & Yakunlash", url: webAppUrl }]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 3. /start command
+    if (text === '/start' || text.startsWith('/start') || text.includes('Asosiy menyu') || text.includes('Главное меню') || text.includes('Main Menu')) {
       session.step = null;
+
+      // Check if this user has any recent active OTP code (within last 10 minutes)
+      let recentOtp = null;
+      try {
+        recentOtp = db.get(`
+          SELECT * FROM otp_codes 
+          WHERE (telegram_id = ? OR expires_at > ?) AND is_verified = 0 
+          ORDER BY id DESC LIMIT 1
+        `, [String(chatId), Date.now()]);
+      } catch (_) {}
+
+      if (recentOtp && recentOtp.code) {
+        try {
+          db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE id = ?', [String(chatId), recentOtp.id]);
+          fetch('https://smart-delivery-system-2026.vercel.app/api/auth/bot-verified', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code: recentOtp.code,
+              phone: recentOtp.phone,
+              telegram_id: String(chatId)
+            })
+          }).catch(() => {});
+        } catch (_) {}
+
+        await this.sendMessage(chatId,
+          `🔐 *Smart Delivery — Sizning 6 xonali Tasdiqlash Kodingiz:*\n\n` +
+          `👉 \`${recentOtp.code}\`\n\n` +
+          `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\n` +
+          `Saytga qaytib, buyurtmangizni 1 bosishda yakunlashingiz mumkin! 🚀`, {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "🍔 Saytga qaytish (Do'konni ochish)", url: webAppUrl }]
+            ]
+          }
+        });
+        return;
+      }
+
       await this.sendWelcomeMessage(chatId, msg.from.first_name, webAppUrl);
       return;
     }

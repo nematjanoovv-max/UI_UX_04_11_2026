@@ -33,6 +33,11 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 ### 2. 🔐 Xavfsiz Telegram OTP Tasdiqlash (Pullik SMS'larsiz)
 - **Eskiz.uz talab etilmaydi:** Pullik uchinchi tomon SMS shlyuzlarisiz, to'g'ridan-to'g'ri Telegram bot orqali ishlaydigan 6 xonali OTP tizimi.
 - **1-Bosishda Botga O'tish (Deep-Link):** Buyurtma berishda `[📲 Telegram botda kodni ochish]` orqali [@Smart_delivery_fast_bot](https://t.me/Smart_delivery_fast_bot) ochiladi.
+- **Universal /start va Kodni Qabul Qilish:**
+  - Foydalanuvchi bot linkini bosganda (`/start v_123456_90...`) bot darhol 6 xonali kodni chiroyli xabar shaklida taqdim etadi va raqamni tasdiqlaydi.
+  - Foydalanuvchi botga shunchaki `/start` yuborsa ham unga biriktirilgan faol kod darhol yuboriladi yoki asosiy menyu ochiladi (hech qachon "buyruq tushunarsiz" xatosi chiqmaydi).
+  - Foydalanuvchi botga 6 xonali kodni to'g'ridan-to'g'ri yozib yuborsa ham bot kodni tanib olib avtomatik tasdiqlaydi.
+- **Ko'p Serverli Sinxronizatsiya (Vercel & Render Sync):** Vercel va Render o'rtasida OTP kodlar real-vaqtda sinxronlanadi.
 - **Avto-Polling Tasdiqlash:** Foydalanuvchi botda "START" bosganida yoki 6 xonali kodni olganida, veb-sahifa har 1.8 soniyada holatni tekshirib, sahifani avtomatik yashil tasdiqlangan holatga o'tkazadi.
 - **To'liq Maxfiylik va Shaxsiy Ma'lumotlar Himoyasi:**
   - Havolalarda ochiq telefon raqamlari qoldirilmaydi.

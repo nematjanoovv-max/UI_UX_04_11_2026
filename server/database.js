@@ -207,15 +207,16 @@ function createFallbackDatabase(filePath) {
       data = { ...data, ...parsed };
       if (!data.promocodes) data.promocodes = [];
       if (!data.reviews) data.reviews = [];
+      if (!data.otp_codes) data.otp_codes = [];
     } catch (_) {}
   }
 
   const getTable = (lower) => {
     const match = lower.match(/(?:from|into|update)\s+([a-z_]+)/);
-    if (match && ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews'].includes(match[1])) {
+    if (match && ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews', 'otp_codes'].includes(match[1])) {
       return match[1];
     }
-    return ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews'].find(t => lower.includes(t)) || 'products';
+    return ['order_items', 'orders', 'products', 'categories', 'couriers', 'users', 'promocodes', 'reviews', 'otp_codes'].find(t => lower.includes(t)) || 'products';
   };
 
   return {
@@ -361,6 +362,8 @@ function createFallbackDatabase(filePath) {
           record = { id: newId, order_id: params[0], product_id: params[1], product_name: params[2], quantity: params[3], unit_price: params[4], total_price: params[5] };
         } else if (table === 'users') {
           record = { id: newId, telegram_id: params[0], full_name: params[1], role: params[2] || 'client', language: 'uz', created_at: new Date().toISOString() };
+        } else if (table === 'otp_codes') {
+          record = { id: newId, phone: params[0], code: params[1], telegram_id: params[2] || null, expires_at: params[3] || (Date.now() + 300000), is_verified: params[4] || 0, created_at: new Date().toISOString() };
         }
 
         data[table].push(record);
