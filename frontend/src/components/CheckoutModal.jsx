@@ -38,7 +38,7 @@ export default function CheckoutModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 6-Digit SMS & Telegram OTP Verification States
-  const [isPhoneVerified, setIsPhoneVerified] = useState(() => !!tgUser);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -46,6 +46,20 @@ export default function CheckoutModal() {
   const [otpNeedStart, setOtpNeedStart] = useState(false);
   const [otpBotLink, setOtpBotLink] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Restore OTP state on mount if user had requested a code in this session
+  useEffect(() => {
+    try {
+      const savedPhone = sessionStorage.getItem('sd_otp_phone');
+      const savedSent = sessionStorage.getItem('sd_otp_sent');
+      const savedLink = sessionStorage.getItem('sd_otp_link');
+      if (savedSent === 'true' && savedPhone) {
+        setFormData(prev => ({ ...prev, customer_phone: savedPhone }));
+        setOtpSent(true);
+        if (savedLink) setOtpBotLink(savedLink);
+      }
+    } catch (_) {}
+  }, []);
 
   // 60-second Countdown timer for resend
   useEffect(() => {
@@ -78,7 +92,11 @@ export default function CheckoutModal() {
         if (res && res.verified) {
           setIsPhoneVerified(true);
           setOtpSent(false);
-          sounds.playSuccess();
+          try {
+            sessionStorage.removeItem('sd_otp_sent');
+            sessionStorage.removeItem('sd_otp_link');
+          } catch (_) {}
+          sounds?.playSuccess?.();
           showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
         }
       } catch (err) {
@@ -94,7 +112,7 @@ export default function CheckoutModal() {
       clearInterval(interval);
       abortController.abort();
     };
-  }, [isCheckoutOpen, otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
+  }, [isCheckoutOpen, otpSent, isPhoneVerified, formData.customer_phone, otpCode, sounds, showToast]);
 
   const handleRequestOtp = async () => {
     if (isSendingOtp) return;
@@ -105,7 +123,7 @@ export default function CheckoutModal() {
     }
 
     setIsSendingOtp(true);
-    sounds.playClick();
+    sounds?.playClick?.();
     try {
       const res = await api.sendOtp({
         phone: formData.customer_phone,
@@ -115,6 +133,12 @@ export default function CheckoutModal() {
 
       setOtpSent(true);
       setOtpCountdown(60);
+
+      try {
+        sessionStorage.setItem('sd_otp_phone', formData.customer_phone);
+        sessionStorage.setItem('sd_otp_sent', 'true');
+        if (res.bot_link) sessionStorage.setItem('sd_otp_link', res.bot_link);
+      } catch (_) {}
 
       if (res.bot_link) {
         setOtpNeedStart(true);
@@ -131,6 +155,69 @@ export default function CheckoutModal() {
     }
   };
 
+  // Instant 1-Tap Telegram Verification for users active in Telegram Web / WebApp
+  const handleTelegramVerify = async () => {
+    if (isVerifyingOtp) return;
+    const rawDigits = (formData.customer_phone || '').replace(/[^0-9]/g, '');
+    if (!rawDigits || (rawDigits.length !== 9 && !(rawDigits.length === 12 && rawDigits.startsWith('998')))) {
+      showToast('Iltimos, to\'liq telefon raqamingizni kiriting (+998 90 123 45 67)', 'error');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    sounds?.playClick?.();
+    try {
+      const res = await api.verifyTelegramSession({
+        phone: formData.customer_phone,
+        telegram_id: formData.telegram_id,
+        telegram_username: formData.telegram_username
+      });
+
+      if (res && res.ok) {
+        setIsPhoneVerified(true);
+        setOtpSent(false);
+        try {
+          sessionStorage.removeItem('sd_otp_sent');
+          sessionStorage.removeItem('sd_otp_link');
+        } catch (_) {}
+        sounds?.playSuccess?.();
+        showToast('Telefon raqamingiz Telegram orqali muvaffaqiyatli tasdiqlandi! ✅', 'success');
+      }
+    } catch (err) {
+      showToast(err.message || 'Xatolik yuz berdi. Kod orqali tasdiqlang.', 'error');
+      handleRequestOtp();
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleOpenBotLink = (e) => {
+    e?.preventDefault?.();
+    if (!otpBotLink) return;
+
+    // 1. If running inside Telegram WebApp, use official SDK method
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(otpBotLink);
+      return;
+    }
+
+    // 2. If mobile device, try tg:// resolve with fallback to web
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      try {
+        const tgDirect = otpBotLink.replace('https://t.me/', 'tg://resolve?domain=').replace('?start=', '&start=');
+        window.location.href = tgDirect;
+        setTimeout(() => {
+          window.open(otpBotLink, '_blank', 'noopener,noreferrer');
+        }, 800);
+        return;
+      } catch (_) {}
+    }
+
+    // 3. Desktop / Web browser: Open official t.me link in new tab safely
+    window.open(otpBotLink, '_blank', 'noopener,noreferrer');
+  };
+
   const handleVerifyOtp = async (codeToVerify) => {
     if (isVerifyingOtp) return;
     const code = String(codeToVerify || otpCode).trim();
@@ -140,7 +227,7 @@ export default function CheckoutModal() {
     }
 
     setIsVerifyingOtp(true);
-    sounds.playClick();
+    sounds?.playClick?.();
     try {
       const res = await api.verifyOtp({
         phone: formData.customer_phone,
@@ -150,11 +237,15 @@ export default function CheckoutModal() {
       if (res.ok) {
         setIsPhoneVerified(true);
         setOtpSent(false);
-        sounds.playSuccess();
+        try {
+          sessionStorage.removeItem('sd_otp_sent');
+          sessionStorage.removeItem('sd_otp_link');
+        } catch (_) {}
+        sounds?.playSuccess?.();
         showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
       }
     } catch (err) {
-      sounds.playError?.();
+      sounds?.playError?.();
       showToast(err.message || 'Kod noto\'g\'ri', 'error');
     } finally {
       setIsVerifyingOtp(false);
@@ -418,7 +509,7 @@ export default function CheckoutModal() {
                     value={formData.customer_phone}
                     onChange={e => {
                       setFormData({ ...formData, customer_phone: e.target.value });
-                      if (isPhoneVerified && !tgUser) setIsPhoneVerified(false);
+                      if (isPhoneVerified) setIsPhoneVerified(false);
                     }}
                     placeholder="+998 90 123 45 67"
                     className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
@@ -434,40 +525,44 @@ export default function CheckoutModal() {
                 ) : (
                   <div className="mt-2">
                     {!otpSent ? (
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        {tgUser && (
+                          <button
+                            type="button"
+                            onClick={handleTelegramVerify}
+                            disabled={isVerifyingOtp || formData.customer_phone.replace(/[^0-9]/g, '').length < 9}
+                            className="min-h-[44px] flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-md shadow-emerald-500/25 disabled:opacity-60 disabled:pointer-events-none active:scale-95 cursor-pointer select-none touch-manipulation"
+                            title="Telegram sessiyangiz orqali telefoningizni darhol tasdiqlash"
+                          >
+                            {isVerifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4 text-emerald-200" />}
+                            <span>⚡ Telegram orqali 1-bosishda tasdiqlash</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={handleRequestOtp}
                           disabled={isSendingOtp || formData.customer_phone.replace(/[^0-9]/g, '').length < 9}
-                          className="btn-primary min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none active:scale-95 cursor-pointer select-none touch-manipulation"
+                          className={`btn-primary min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none active:scale-95 cursor-pointer select-none touch-manipulation ${
+                            tgUser ? 'w-full sm:w-auto' : 'w-full'
+                          }`}
                         >
                           {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                          <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS / Telegram kodini olish'}</span>
+                          <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS / Botdan kod olish'}</span>
                         </button>
                       </div>
                     ) : (
                       <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-inner space-y-3">
                         {otpBotLink && (
-                          <a
-                            href={otpBotLink}
-                            onClick={(e) => {
-                              // On Android/mobile, try direct tg:// protocol first to launch Telegram app directly
-                              try {
-                                const tgDirect = otpBotLink
-                                  .replace('https://t.me/', 'tg://resolve?domain=')
-                                  .replace('?start=', '&start=');
-                                window.location.href = tgDirect;
-                              } catch (_) {}
-                            }}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={handleOpenBotLink}
                             className="flex items-center justify-center gap-2 w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/40 text-xs font-extrabold transition-all shadow-sm group active:scale-95 cursor-pointer select-none touch-manipulation"
                           >
                             <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                               <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.92 9.07c-.14.65-.53.81-1.07.51l-2.95-2.17-1.42 1.37c-.16.16-.29.29-.6.29l.21-3.01 5.48-4.95c.24-.21-.05-.33-.37-.12l-6.77 4.26-2.92-.91c-.63-.2-.65-.63.13-.94l11.41-4.4c.53-.19.99.13.8.95z"/>
                             </svg>
-                            <span>📲 Telegram botda kodni ko'rish / ochish</span>
-                          </a>
+                            <span>📲 Telegram botda kodni ochish / ko'rish</span>
+                          </button>
                         )}
 
                         <div className="flex items-center justify-between text-xs">

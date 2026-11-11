@@ -163,6 +163,11 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  verifyTelegramSession: (data, options = {}) => fetchJson('/auth/verify-telegram-session', {
+    ...options,
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
   checkOtpStatus: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
     return fetchJson(`/auth/check-otp-status${qs ? `?${qs}` : ''}`, options);

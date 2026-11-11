@@ -104,6 +104,7 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
   - **Yuqori Navbar tor ekranlarda siqilishi (< 380px):** Logo, til almashtirgich va ovoz tugmalari ixchamlashtirildi, `MobileBottomNav` da mavjud bo'lgan takroriy Admin tugmasi tor ekranlarda yashirilib, o'ng tomondan kesilib ketish to'liq yo'qotildi.
   - **OTP Tasdiqlash tugmasi kesilishi:** Mobil Chrome brauzerida `Tasdiqlash` tugmasi `min-w-[100px]` o'rniga dinamik `whitespace-nowrap shrink-0` bilan moslashtirilib, 6 ta raqam terilishi bilan avtomatik tasdiqlash ulandi.
   - **"Tanlash" (Retsept sozlash) Modali Qisilib Qolishi:** `ProductCard` kartochkasining `overflow-hidden` va 3D tilt transformatsiyasi sababli kartochka ichiga qamalib qolgan modal React `createPortal` orqali to'g'ridan-to'g'ri `document.body` ga ko'chirildi. Natijada butun ekran bo'ylab silliq, to'liq va proporsional ochiluvchi mobil bottom sheet ta'minlandi.
+  - **Telegram Web / WebApp 1-Bosishda Tasdiqlash & Holat Saqlanishi:** Telegram Web / WebApp orqali kirgan foydalanuvchilar uchun `POST /api/auth/verify-telegram-session` orqali Telegram hisobi bilan 1-bosishda tezkor tasdiqlash imkoniyati yaratildi. Shuningdek, `sessionStorage` orqali OTP holati saqlanib qolinadi, va Telegram WebApp ichida havolani ochish xatoliksiz `Telegram.WebApp.openTelegramLink` orqali xavfsiz amalga oshiriladi.
 
 ---
 

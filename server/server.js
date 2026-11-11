@@ -821,21 +821,7 @@ const sendOtpHandler = async (req, res) => {
     // Clean, direct bot link passing both the code and phoneSuffix
     const botLink = `https://t.me/${botUsername}?start=v_${code}_${phoneSuffix}`;
 
-    // Sync OTP to Render backend in background so bot knows it immediately
-    try {
-      fetch('https://smart-delivery-system-sy6e.onrender.com/api/auth/sync-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: normPhone,
-          code,
-          expires_at: expiresAt,
-          telegram_id: targetChatId
-        })
-      }).catch(() => {});
-    } catch (_) {}
-
-    // Dispatch via Eskiz real SMS and/or Telegram Bot
+    // Dispatch via Eskiz real SMS and/or Telegram Bot (instant <100ms)
     const dispatchResult = await smsService.dispatchOtp({
       phone: normPhone,
       code,
@@ -865,6 +851,46 @@ const sendOtpHandler = async (req, res) => {
 
 app.post('/api/auth/send-telegram-otp', sendOtpHandler);
 app.post('/api/auth/send-otp', sendOtpHandler);
+
+// Direct 1-Tap Verification for users active in Telegram Web / WebApp
+app.post('/api/auth/verify-telegram-session', (req, res) => {
+  try {
+    const { phone, telegram_id, telegram_username } = req.body;
+    if (!phone || !telegram_id) {
+      return res.status(400).json({ error: 'Telefon raqam va Telegram hisobi talab qilinadi' });
+    }
+
+    const cleanDigits = String(phone).replace(/[^0-9]/g, '');
+    if (!cleanDigits || (cleanDigits.length !== 9 && !(cleanDigits.length === 12 && cleanDigits.startsWith('998')))) {
+      return res.status(400).json({ error: "Telefon raqamingiz noto'g'ri formatda. Iltimos, +998 (XX) XXX-XX-XX formatida to'liq kiriting." });
+    }
+
+    const normPhone = smsService.normalizePhone(phone);
+    const phoneSuffix = smsService.getPhoneSuffix(phone);
+    const db = getDb();
+    ensureOtpTable(db);
+
+    // Save/update user with this phone
+    try {
+      db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [normPhone, String(telegram_id)]);
+    } catch (_) {}
+
+    verifiedPhones.add(phoneSuffix);
+
+    // Notify user in their Telegram chat
+    try {
+      botService.sendMessage(Number(telegram_id), `✅ *Smart Delivery — Telefon raqamingiz muvaffaqiyatli tasdiqlandi!*\n\n📱 Raqam: *${normPhone}*\n🚀 Do'konda buyurtmangizni 1 bosishda yakunlashingiz mumkin!`, { parse_mode: 'Markdown' }).catch(() => {});
+    } catch (_) {}
+
+    res.json({
+      ok: true,
+      verified: true,
+      message: 'Telefon raqamingiz Telegram orqali muvaffaqiyatli tasdiqlandi! ✅'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Endpoint called by Telegram webhook when user clicks bot Start link
 app.post('/api/auth/bot-verified', (req, res) => {
