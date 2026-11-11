@@ -26,6 +26,24 @@ try {
   console.error('[DB Seed Warning]:', e.message);
 }
 
+function ensureOtpTable(db) {
+  try {
+    if (db && typeof db.exec === 'function') {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS otp_codes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          phone TEXT NOT NULL,
+          code TEXT NOT NULL,
+          telegram_id TEXT,
+          expires_at INTEGER NOT NULL,
+          is_verified INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+    }
+  } catch (_) {}
+}
+
 // -------------------------------------------------------------
 // REST API ENDPOINTS
 // -------------------------------------------------------------
