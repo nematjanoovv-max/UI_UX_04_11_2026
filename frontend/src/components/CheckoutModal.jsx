@@ -450,6 +450,15 @@ export default function CheckoutModal() {
                         {otpBotLink && (
                           <a
                             href={otpBotLink}
+                            onClick={(e) => {
+                              // On Android/mobile, try direct tg:// protocol first to launch Telegram app directly
+                              try {
+                                const tgDirect = otpBotLink
+                                  .replace('https://t.me/', 'tg://resolve?domain=')
+                                  .replace('?start=', '&start=');
+                                window.location.href = tgDirect;
+                              } catch (_) {}
+                            }}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/40 text-xs font-extrabold transition-all shadow-sm group active:scale-95 cursor-pointer select-none touch-manipulation"
@@ -466,9 +475,11 @@ export default function CheckoutModal() {
                           <span className="text-[11px] text-slate-400">Telegram bot orqali</span>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           <input
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             maxLength={6}
                             value={otpCode}
                             onChange={e => {
@@ -477,13 +488,13 @@ export default function CheckoutModal() {
                               if (val.length === 6) handleVerifyOtp(val);
                             }}
                             placeholder="● ● ● ● ● ●"
-                            className="min-h-[44px] flex-1 px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-center text-lg font-black tracking-[0.4em] font-mono text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                            className="min-h-[44px] flex-1 min-w-0 px-2 sm:px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-center text-base sm:text-lg font-black tracking-[0.25em] sm:tracking-[0.4em] font-mono text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                           />
                           <button
                             type="button"
                             onClick={() => handleVerifyOtp(otpCode)}
                             disabled={isVerifyingOtp || otpCode.length !== 6}
-                            className="btn-primary min-h-[44px] min-w-[100px] px-4 py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none shrink-0 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center gap-1.5"
+                            className="btn-primary min-h-[44px] px-3 sm:px-4 py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none shrink-0 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center gap-1 whitespace-nowrap"
                           >
                             {isVerifyingOtp ? (
                               <>

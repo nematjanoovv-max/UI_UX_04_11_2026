@@ -68,8 +68,12 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
         {/* Header with image */}
         <div className="relative h-40 sm:h-48 w-full bg-slate-900 shrink-0">
           <img
-            src={product.image_url}
+            src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
             alt={product.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
+            }}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-black/30 to-transparent" />

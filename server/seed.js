@@ -80,7 +80,7 @@ function seedDatabase(force = false) {
       name: 'Oltin Kartoshka Fri & Sous',
       description: 'Tilla rangda qovurilgan qarsildoq fri, dengiz tuzi va ketchup hamda pishloqli sous bilan birga.',
       price: 22000,
-      image_url: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop&q=80',
+      image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&auto=format&fit=crop&q=80',
       prep_time_min: 10,
       is_available: 1
     },

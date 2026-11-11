@@ -170,23 +170,9 @@ export default function App() {
       } else {
         mainBtn.hide();
       }
-    } else if (cart.length > 0) {
-      const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
-      mainBtn.setText(`Savatcha (${totalQty}) • ${grandTotal.toLocaleString()} so'm`);
-      mainBtn.setParams({
-        color: '#ea580c',
-        text_color: '#ffffff',
-        is_active: true
-      });
-      mainBtn.show();
-
-      const handleClick = () => {
-        haptics?.medium();
-        setIsCartOpen(true);
-      };
-      mainBtn.onClick(handleClick);
-      return () => mainBtn.offClick(handleClick);
     } else {
+      // On main catalog view, MobileBottomNav provides the floating navigation & glowing cart button,
+      // so we keep Telegram native MainButton hidden to prevent dual stacked bottom bars
       mainBtn.hide();
     }
   }, [currentView, isCheckoutOpen, isCartOpen, cart, grandTotal, haptics]);

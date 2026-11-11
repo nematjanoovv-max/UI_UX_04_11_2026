@@ -149,6 +149,10 @@ export default function CartDrawer() {
                 <img
                   src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
                   alt={item.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
+                  }}
                   className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shrink-0 border border-slate-800"
                 />
                 

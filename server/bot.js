@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { getDb } = require('./database');
+const { smsService } = require('./smsService');
 
 const botLocales = {
   uz: {

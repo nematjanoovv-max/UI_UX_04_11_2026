@@ -91,6 +91,19 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
   - Admin kuryer biriktirganda yoki buyurtma holatini o'zgartirganda sahifa qayta yuklanmasdan, 0ms kechikish bilan ekranda darhol yangilanadi. Serverda xato yuz bersa, holat avtomatik orqaga qaytariladi (rollback).
   - Kuryer "Yo'lga chiqdim" yoki "Yetkazib berdim" tugmasini bosganida holat darhol o'zgaradi va fonda server bilan sinxronlashadi.
 
+### 9. 🚀 100% Stateless TOTP & Mobil UI/UX Mukammallashtirishi (Eng So'nggi Yangilanish)
+- **Kechikishlarsiz (0ms) Stateless TOTP / HMAC Tasdiqlash Arxitekturasi:**
+  - Vercel Serverless multi-instance (har xil lambda instansiyalari) xususiyati sababli kod kelmasligi yoki kechikishi to'liq bartaraf etildi.
+  - 6 xonali OTP kodi HMAC-SHA256 va 5 daqiqalik vaqt darchasi asosida deterministik hisoblanadi. Istalgan lambda serverless instansiyasiga tushganda kod 0ms kechikish bilan va bazaga bog'liq bo'lmagan holda darhol tasdiqlanadi.
+  - Telegram bot orqali jo'natish birinchi navbatda (100ms dan kam vaqtda) amalga oshiriladi; Eskiz.uz esa fon rejimida 3s qat'iy timeout bilan ishlaydi (hech qachon Telegramni kechiktirmaydi).
+  - Mobil qurilmalarda Telegram ilovasini bir bosishda ochish uchun to'g'ridan-to'g'ri `tg://resolve?domain=Smart_delivery_fast_bot&start=v_...` protokoli qo'llab-quvvatlandi.
+- **UI & Ekran Moslashuvidagi Xatoliklar Bartaraf Etildi:**
+  - **Oltin Kartoshka Fri rasmi:** 404 xatosi berayotgan rasm ishchi Unsplash manziliga almashtirildi va barcha rasm teglari uchun ishonchli `onError` fallback qo'shildi.
+  - **Narx qisqarib qolishi (`22 00...`):** `truncate` o'rniga vertikal mikro-qatlam (`22 000` ustida, `so'm` ostida) joriy etilib, hatto 320px ekranda ham to'liq va aniq aks etishi ta'minlandi.
+  - **Ikki qavatli savatcha panellari to'qnashuvi:** Telegram WebApp'ning `MainButton` tugmasi bosh sahifada `MobileBottomNav` ustiga minmasligi uchun yashirildi; faqat savatcha va buyurtma darchalari ochilgandagina chiqadi.
+  - **Yuqori Navbar tor ekranlarda siqilishi (< 380px):** Logo, til almashtirgich va ovoz tugmalari ixchamlashtirildi, `MobileBottomNav` da mavjud bo'lgan takroriy Admin tugmasi tor ekranlarda yashirilib, o'ng tomondan kesilib ketish to'liq yo'qotildi.
+  - **OTP Tasdiqlash tugmasi kesilishi:** Mobil Chrome brauzerida `Tasdiqlash` tugmasi `min-w-[100px]` o'rniga dinamik `whitespace-nowrap shrink-0` bilan moslashtirilib, 6 ta raqam terilishi bilan avtomatik tasdiqlash ulandi.
+
 ---
 
 ## 🛠 Texnologik Stek

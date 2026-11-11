@@ -75,6 +75,10 @@ function ProductCard({ product }) {
         <img
           src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
           alt={product.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
+          }}
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
             !isAvailable ? 'grayscale opacity-60' : ''
           }`}
@@ -109,10 +113,13 @@ function ProductCard({ product }) {
         </div>
 
         {/* Bottom Actions: Price and Add Button */}
-        <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1.5">
-          <div className="min-w-0 pr-1">
-            <span className="text-xs sm:text-base font-black text-white truncate block">
-              {Number(product.price).toLocaleString()} <span className="text-[10px] font-semibold text-brand-400">{t('currency')}</span>
+        <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
+          <div className="min-w-0 pr-1 flex flex-col justify-center">
+            <span className="text-xs sm:text-base font-black text-white tracking-tight leading-none whitespace-nowrap">
+              {Number(product.price).toLocaleString()}
+            </span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-brand-400 leading-tight mt-0.5 whitespace-nowrap">
+              {t('currency')}
             </span>
           </div>
 

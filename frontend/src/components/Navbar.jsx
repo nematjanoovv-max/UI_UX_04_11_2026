@@ -52,21 +52,21 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0b0f19]/95 backdrop-blur-xl transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-1.5 sm:gap-4">
           
           {/* Brand Logo & Kitchen Status */}
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-2 sm:gap-5 min-w-0">
             <div 
               onClick={() => setCurrentView('client')}
               className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none group shrink-0"
             >
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-amber-500 to-brand-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
-                <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-brand-600 via-amber-500 to-brand-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
+                <UtensilsCrossed className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-lg sm:text-2xl tracking-tight text-white">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1">
+                  <span className="font-black text-base sm:text-2xl tracking-tight text-white whitespace-nowrap">
                     Smart<span className="text-brand-500">Delivery</span>
                   </span>
                   <span className="hidden xl:inline-block text-[9px] font-black uppercase tracking-wider bg-brand-500/15 border border-brand-500/30 text-brand-400 px-2 py-0.5 rounded-full">
@@ -164,28 +164,19 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
               </button>
             </div>
 
-            {/* Mobile View Switcher (Admin / Store toggle) */}
-            <div className="md:hidden flex items-center gap-1">
-              {currentView !== 'client' ? (
+            {/* Mobile Return to Menu (when in admin/courier mode) */}
+            {currentView !== 'client' && (
+              <div className="md:hidden flex items-center">
                 <button
                   onClick={() => setCurrentView('client')}
-                  className="btn-spring min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-500/30 active:scale-95 cursor-pointer select-none touch-manipulation"
+                  className="btn-spring min-h-[40px] flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-500/30 active:scale-95 cursor-pointer select-none touch-manipulation shrink-0"
                   title="Menyuga qaytish"
                 >
-                  <UtensilsCrossed className="w-4 h-4" />
+                  <UtensilsCrossed className="w-3.5 h-3.5" />
                   <span>Menyu</span>
                 </button>
-              ) : (
-                <button
-                  onClick={() => setCurrentView('admin')}
-                  className="btn-spring min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-900 border border-amber-500/40 text-amber-400 hover:text-white text-xs font-bold active:scale-95 cursor-pointer select-none touch-manipulation"
-                  title="Admin Panel"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Admin</span>
-                </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Desktop Track Order Link */}
             <button
@@ -200,11 +191,11 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
             {/* Language Switcher */}
             <button
               onClick={nextLanguage}
-              className="min-h-[44px] min-w-[44px] px-2.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer select-none touch-manipulation"
+              className="min-h-[40px] px-2 sm:px-2.5 py-1.5 rounded-xl sm:rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer select-none touch-manipulation shrink-0"
               title="Tilni almashtirish"
             >
               <span>{language === 'uz' ? '🇺🇿' : (language === 'ru' ? '🇷🇺' : '🇬🇧')}</span>
-              <span className="uppercase text-[11px]">{language}</span>
+              <span className="uppercase text-[11px] font-bold">{language}</span>
             </button>
 
             {/* Sound Mute / Unmute Toggle */}
@@ -213,7 +204,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
                 const next = toggleSoundMute();
                 if (!next) sounds?.playPop?.();
               }}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95 cursor-pointer touch-manipulation"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl sm:rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95 cursor-pointer touch-manipulation shrink-0"
               title={soundMuted ? 'Ovozni yoqish' : 'Ovozni o\'chirish'}
             >
               {soundMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}

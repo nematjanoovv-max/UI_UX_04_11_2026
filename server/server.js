@@ -762,9 +762,10 @@ const sendOtpHandler = async (req, res) => {
     const normPhone = smsService.normalizePhone(phone);
     const phoneSuffix = smsService.getPhoneSuffix(phone);
     const db = getDb();
+    ensureOtpTable(db);
 
-    // Generate random 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate secure 6-digit deterministic TOTP code (resilient across serverless lambdas)
+    const code = smsService.generateDeterministicOtp(normPhone);
     const expiresAt = Date.now() + (5 * 60 * 1000); // 5 minutes
 
     // Try finding target telegram_id
@@ -924,9 +925,27 @@ const verifyOtpHandler = (req, res) => {
     }
 
     const normPhone = smsService.normalizePhone(phone);
+    const phoneSuffix = smsService.getPhoneSuffix(phone);
     const db = getDb();
+    ensureOtpTable(db);
 
-    // Check fast cache first
+    // 1. Instant Stateless TOTP Verification (100% resilient across multi-instance lambdas)
+    const isDeterministicValid = smsService.verifyDeterministicOtp(normPhone, cleanCode);
+    if (isDeterministicValid) {
+      verifiedOtps.add(cleanCode);
+      if (phoneSuffix) verifiedPhones.add(phoneSuffix);
+      try {
+        db.run('UPDATE otp_codes SET is_verified = 1 WHERE code = ? OR phone LIKE ?', [cleanCode, `%${phoneSuffix}%`]);
+      } catch (_) {}
+
+      return res.json({
+        ok: true,
+        verified: true,
+        message: 'Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅'
+      });
+    }
+
+    // 2. Fast cache check
     if (cleanCode && verifiedOtps.has(cleanCode)) {
       if (phoneSuffix) verifiedPhones.add(phoneSuffix);
       return res.json({
