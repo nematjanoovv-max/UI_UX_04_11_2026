@@ -45,7 +45,6 @@ export default function CheckoutModal() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpNeedStart, setOtpNeedStart] = useState(false);
   const [otpBotLink, setOtpBotLink] = useState('');
-  const [demoCode, setDemoCode] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
 
   // 60-second Countdown timer for resend
@@ -65,7 +64,7 @@ export default function CheckoutModal() {
       try {
         const res = await api.checkOtpStatus({
           phone: formData.customer_phone,
-          code: otpCode || demoCode || undefined
+          code: otpCode || undefined
         });
         if (res && res.verified) {
           setIsPhoneVerified(true);
@@ -77,7 +76,7 @@ export default function CheckoutModal() {
     }, 1800);
 
     return () => clearInterval(interval);
-  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode, demoCode]);
+  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
 
   const handleRequestOtp = async () => {
     const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
@@ -97,7 +96,6 @@ export default function CheckoutModal() {
 
       setOtpSent(true);
       setOtpCountdown(60);
-      setDemoCode(res.demo_code || '');
 
       if (res.bot_link) {
         setOtpNeedStart(true);
@@ -373,22 +371,6 @@ export default function CheckoutModal() {
                     className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   />
                 </div>
-
-                <div className="mt-2.5">
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                    Telegram username <span className="text-slate-500 font-normal">(ixtiyoriy)</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">@</span>
-                    <input
-                      type="text"
-                      value={formData.telegram_username.replace(/^@/, '')}
-                      onChange={e => setFormData({ ...formData, telegram_username: e.target.value ? `@${e.target.value.replace(/^@/, '')}` : '' })}
-                      placeholder="username (masalan: Nematjanovvvv)"
-                      className="w-full pl-8 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-600 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-                    />
-                  </div>
-                </div>
               </div>
 
               <div>
@@ -448,25 +430,8 @@ export default function CheckoutModal() {
 
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-white">6 xonali tasdiqlash kodi:</span>
-                          <span className="text-[11px] text-slate-400">Telegram yoki SMS</span>
+                          <span className="text-[11px] text-slate-400">Telegram bot orqali</span>
                         </div>
-
-                        {/* Fast code chip if available */}
-                        {demoCode && (
-                          <div className="flex items-center justify-between p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs">
-                            <span className="text-amber-300 font-medium">Kodni tezkor kiritish: <b className="font-mono">{demoCode}</b></span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOtpCode(demoCode);
-                                handleVerifyOtp(demoCode);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm transition-all"
-                            >
-                              Avto-to'ldirish ⚡
-                            </button>
-                          </div>
-                        )}
 
                         <div className="flex gap-2">
                           <input

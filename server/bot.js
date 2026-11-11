@@ -444,11 +444,16 @@ class TelegramBotService {
           }).catch(() => {});
         } catch (_) {}
 
+        const cleanDigits = (finalPhone || '').replace(/[^0-9]/g, '');
+        const masked = cleanDigits.length >= 9
+          ? `+998 ${cleanDigits.slice(-9, -7)} *** ** ${cleanDigits.slice(-2)}`
+          : finalPhone;
+
         // Send OTP confirmation message directly to user in Telegram
         await this.sendMessage(chatId,
           `🔐 *Smart Delivery — 6 xonali Tasdiqlash Kodi:*\n\n` +
           `👉 \`${code}\`\n\n` +
-          (finalPhone ? `📱 Telefon raqam: *${finalPhone}*\n` : '') +
+          (masked ? `📱 Telefon: *${masked}*\n` : '') +
           `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\n` +
           `Saytga qaytib, buyurtmangizni 1 bosishda yakunlashingiz mumkin! 🚀`, {
           parse_mode: 'Markdown',
@@ -1629,11 +1634,15 @@ class TelegramBotService {
 
   // Send 6-Digit OTP verification code to user
   async sendOtpCode(chatId, code, phone) {
+    const cleanDigits = (phone || '').replace(/[^0-9]/g, '');
+    const masked = cleanDigits.length >= 9
+      ? `+998 ${cleanDigits.slice(-9, -7)} *** ** ${cleanDigits.slice(-2)}`
+      : phone;
     const text = `🔐 *Smart Delivery — 6 xonali Tasdiqlash Kodi:*\n\n` +
       `👉 \`${code}\`\n\n` +
-      `📱 Telefon raqam: *${phone}*\n` +
+      (masked ? `📱 Telefon: *${masked}*\n` : '') +
       `⏱ Kod amal qilish muddati: *5 daqiqa*\n\n` +
-      `_Xavfsizlik eslatmasi: Ushbu kodni hech kimga, hatto Smart Delivery xodimlariga ham aytmang!_`;
+      `_Xavfsizlik eslatmasi: Ushbu maxfiy kodni hech kimga aytmang!_`;
     return await this.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   }
 

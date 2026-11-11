@@ -124,13 +124,12 @@ class SmsService {
     }
 
     const hasRealChannel = sentVia.length > 0;
-    console.log(`[OTP Dispatch] Phone: ${normPhone} | Code: ${code} | Channels: ${sentVia.join(', ') || 'DEMO_FALLBACK'}`);
+    console.log(`[OTP Dispatch] Phone: ${normPhone} | Channels: ${sentVia.join(', ') || 'DEMO_FALLBACK'}`);
 
     return {
       ok: true,
       sentVia,
-      isDemo: !hasRealChannel,
-      code: code // Always provide code so web user can auto-fill or test with zero blockers
+      isDemo: !hasRealChannel
     };
   }
 }

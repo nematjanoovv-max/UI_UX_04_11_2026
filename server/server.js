@@ -769,7 +769,8 @@ const sendOtpHandler = async (req, res) => {
     } catch (_) {}
 
     const botUsername = botService.botInfo?.username || 'Smart_delivery_fast_bot';
-    const botLink = `https://t.me/${botUsername}?start=v_${code}_${phoneSuffix}`;
+    // Clean, secure bot link without exposing phone number in public URL
+    const botLink = `https://t.me/${botUsername}?start=v_${code}`;
 
     // Dispatch via Eskiz real SMS and/or Telegram Bot
     const dispatchResult = await smsService.dispatchOtp({
@@ -789,8 +790,6 @@ const sendOtpHandler = async (req, res) => {
       ok: true,
       sent: true,
       channels: sentVia,
-      is_demo: dispatchResult.isDemo,
-      demo_code: dispatchResult.code || code,
       bot_username: botUsername,
       bot_link: botLink,
       message
