@@ -184,14 +184,12 @@ class TelegramBotService {
           });
         } catch (_) {}
 
-        if (externalUrl && (externalUrl.startsWith('https://') || externalUrl.startsWith('http://'))) {
-          const webhookUrl = `${externalUrl}/api/telegram-webhook`;
+        // Ensure Webhook is always active and points to high-availability Vercel endpoint
+        try {
+          const webhookUrl = process.env.WEBHOOK_URL || 'https://smart-delivery-system-2026.vercel.app/api/telegram-webhook';
           console.log(`[BOT] Webhook o'rnatilmoqda: ${webhookUrl}`);
           await this.callApi('setWebhook', { url: webhookUrl });
-        } else {
-          await this.callApi('deleteWebhook');
-          this.startPolling();
-        }
+        } catch (_) {}
 
         return { ok: true, botInfo: this.botInfo };
       } else {
