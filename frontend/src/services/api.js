@@ -127,12 +127,25 @@ export const api = {
     body: JSON.stringify(data)
   }),
 
-  // Telegram 6-Digit OTP Verification
-  sendTelegramOtp: (data) => fetchJson('/auth/send-telegram-otp', {
+  // SMS & Telegram 6-Digit OTP Verification
+  sendOtp: (data) => fetchJson('/auth/send-otp', {
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  verifyTelegramOtp: (data) => fetchJson('/auth/verify-telegram-otp', {
+  verifyOtp: (data) => fetchJson('/auth/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  checkOtpStatus: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return fetchJson(`/auth/check-otp-status${qs ? `?${qs}` : ''}`);
+  },
+  // Backward compatibility
+  sendTelegramOtp: (data) => fetchJson('/auth/send-otp', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  verifyTelegramOtp: (data) => fetchJson('/auth/verify-otp', {
     method: 'POST',
     body: JSON.stringify(data)
   })

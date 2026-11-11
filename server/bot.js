@@ -401,10 +401,10 @@ class TelegramBotService {
       try {
         const otp = db.get('SELECT * FROM otp_codes WHERE code = ? AND is_verified = 0 ORDER BY id DESC LIMIT 1', [code]);
         if (otp) {
-          db.run('UPDATE otp_codes SET telegram_id = ? WHERE id = ?', [String(chatId), otp.id]);
+          db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE id = ?', [String(chatId), otp.id]);
           db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [otp.phone, String(chatId)]);
           await this.sendOtpCode(chatId, code, otp.phone);
-          await this.sendMessage(chatId, `✅ *Kodingiz yetkazildi!* Saytga qaytib ushbu *${code}* kodini kiriting va buyurtmani yakunlang.`, {
+          await this.sendMessage(chatId, `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\nSaytga qaytib buyurtmani darhol tasdiqlashingiz mumkin! 🚀`, {
             parse_mode: 'Markdown'
           });
           return;

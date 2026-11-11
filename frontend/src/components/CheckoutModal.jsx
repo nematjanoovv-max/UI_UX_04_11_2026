@@ -37,7 +37,7 @@ export default function CheckoutModal() {
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 6-Digit Telegram OTP Verification States
+  // 6-Digit SMS & Telegram OTP Verification States
   const [isPhoneVerified, setIsPhoneVerified] = useState(() => !!tgUser);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
@@ -45,6 +45,39 @@ export default function CheckoutModal() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpNeedStart, setOtpNeedStart] = useState(false);
   const [otpBotLink, setOtpBotLink] = useState('');
+  const [demoCode, setDemoCode] = useState('');
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // 60-second Countdown timer for resend
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
+  // Polling to auto-detect verification when user taps bot Start link
+  useEffect(() => {
+    if (!otpSent || isPhoneVerified || !formData.customer_phone) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.checkOtpStatus({
+          phone: formData.customer_phone,
+          code: otpCode || undefined
+        });
+        if (res && res.verified) {
+          setIsPhoneVerified(true);
+          setOtpSent(false);
+          sounds.playSuccess();
+          showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
+        }
+      } catch (_) {}
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
 
   const handleRequestOtp = async () => {
     const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
@@ -56,21 +89,24 @@ export default function CheckoutModal() {
     setIsSendingOtp(true);
     sounds.playClick();
     try {
-      const res = await api.sendTelegramOtp({
+      const res = await api.sendOtp({
         phone: formData.customer_phone,
         telegram_id: formData.telegram_id,
         telegram_username: formData.telegram_username
       });
 
       setOtpSent(true);
-      if (res.need_start) {
+      setOtpCountdown(60);
+      setDemoCode(res.demo_code || '');
+
+      if (res.bot_link) {
         setOtpNeedStart(true);
-        setOtpBotLink(res.bot_link || 'https://t.me/Smart_delivery_fast_bot');
-        showToast(res.message, 'success');
+        setOtpBotLink(res.bot_link);
       } else {
         setOtpNeedStart(false);
-        showToast('6 xonali tasdiqlash kodi Telegram botingizga yuborildi! 📩', 'success');
       }
+
+      showToast(res.message || 'Tasdiqlash kodi yuborildi!', 'success');
     } catch (err) {
       showToast(err.message || 'Xatolik yuz berdi', 'error');
     } finally {
@@ -78,8 +114,9 @@ export default function CheckoutModal() {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otpCode.length !== 6) {
+  const handleVerifyOtp = async (codeToVerify) => {
+    const code = String(codeToVerify || otpCode).trim();
+    if (code.length !== 6) {
       showToast('Iltimos, 6 xonali kodni to\'liq kiriting', 'error');
       return;
     }
@@ -87,9 +124,9 @@ export default function CheckoutModal() {
     setIsVerifyingOtp(true);
     sounds.playClick();
     try {
-      const res = await api.verifyTelegramOtp({
+      const res = await api.verifyOtp({
         phone: formData.customer_phone,
-        code: otpCode
+        code
       });
 
       if (res.ok) {
@@ -214,7 +251,8 @@ export default function CheckoutModal() {
       return;
     }
     if (!isPhoneVerified) {
-      showToast('Iltimos, avval telefon raqamingizni Telegram orqali 6 xonali kod bilan tasdiqlang', 'error');
+      showToast('Iltimos, avval telefon raqamingizni tasdiqlang (SMS yoki Telegram kodini kiriting)', 'error');
+      if (!otpSent) handleRequestOtp();
       return;
     }
 
@@ -356,57 +394,99 @@ export default function CheckoutModal() {
                   />
                 </div>
 
-                {/* 6-Digit Telegram Verification Badge / Inline Form */}
+                {/* 6-Digit SMS & Telegram Verification Section */}
                 {isPhoneVerified ? (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-emerald-400">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Telegram orqali tasdiqlangan raqam ✅</span>
+                  <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-emerald-400">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Telefon raqami muvaffaqiyatli tasdiqlangan ✅</span>
                   </div>
                 ) : (
-                  <div>
+                  <div className="mt-2">
                     {!otpSent ? (
-                      <button
-                        type="button"
-                        onClick={handleRequestOtp}
-                        disabled={isSendingOtp}
-                        className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-sky-400 hover:text-sky-300 transition-colors"
-                      >
-                        <Send className="w-3 h-3" />
-                        <span>{isSendingOtp ? 'Yuborilmoqda...' : '📲 Telegram orqali 6 xonali kod olish'}</span>
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleRequestOtp}
+                          disabled={isSendingOtp || formData.customer_phone.replace(/[^0-9]/g, '').length < 9}
+                          className="btn-primary flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-brand-500/25 disabled:opacity-50"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS tasdiqlash kodini olish'}</span>
+                        </button>
+                      </div>
                     ) : (
-                      <div className="mt-2 p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-slate-300">Telegramga 6 xonali kod yuborildi:</span>
+                      <div className="p-3 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-inner space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-white">6 xonali tasdiqlash kodi:</span>
                           {otpNeedStart && (
                             <a
                               href={otpBotLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-bold text-amber-400 underline hover:text-amber-300"
+                              className="font-bold text-amber-400 underline hover:text-amber-300 text-[11px]"
                             >
-                              Botda Start bosish 👉
+                              Botda ochish 👉
                             </a>
                           )}
                         </div>
+
+                        {/* Demo/Fast code chip if available */}
+                        {demoCode && (
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs">
+                            <span className="text-amber-300 font-medium">Tasdiqlash kodi: <b className="font-mono">{demoCode}</b></span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOtpCode(demoCode);
+                                handleVerifyOtp(demoCode);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm transition-all"
+                            >
+                              Avto-to'ldirish ⚡
+                            </button>
+                          </div>
+                        )}
+
                         <div className="flex gap-2">
                           <input
                             type="text"
                             maxLength={6}
                             value={otpCode}
-                            onChange={e => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                            placeholder="123456"
-                            className="flex-1 px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-center text-sm tracking-widest font-black text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              setOtpCode(val);
+                              if (val.length === 6) handleVerifyOtp(val);
+                            }}
+                            placeholder="&bull;&bull;&bull;&bull;&bull;&bull;"
+                            className="flex-1 px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-center text-lg font-black tracking-[0.4em] font-mono text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                           />
                           <button
                             type="button"
-                            onClick={handleVerifyOtp}
+                            onClick={() => handleVerifyOtp(otpCode)}
                             disabled={isVerifyingOtp || otpCode.length !== 6}
-                            className="btn-spring px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-sky-500/25 border-t border-white/20"
+                            className="btn-primary px-4 py-2 rounded-xl text-white font-bold text-xs shadow-md shadow-brand-500/25 disabled:opacity-50 shrink-0"
                           >
                             {isVerifyingOtp ? '...' : 'Tasdiqlash'}
                           </button>
                         </div>
+
+                        {/* Resend button with countdown */}
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                          <span>Kod kelmadimi?</span>
+                          {otpCountdown > 0 ? (
+                            <span className="text-slate-500 font-mono">Qayta yuborish ({otpCountdown}s)</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleRequestOtp}
+                              disabled={isSendingOtp}
+                              className="text-brand-400 font-bold hover:underline"
+                            >
+                              Qayta kod so'rash 🔄
+                            </button>
+                          )}
+                        </div>
+
                       </div>
                     )}
                   </div>

@@ -5,6 +5,7 @@ const path = require('path');
 const { getDb } = require('./database');
 const { seedDatabase } = require('./seed');
 const { botService } = require('./bot');
+const { smsService } = require('./smsService');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -716,16 +717,16 @@ app.post('/api/reviews', (req, res) => {
   }
 });
 
-// 5.4 Telegram 6-Digit OTP Verification API
-app.post('/api/auth/send-telegram-otp', async (req, res) => {
+// 5.4 SMS & Telegram 6-Digit OTP Verification API
+const sendOtpHandler = async (req, res) => {
   try {
     const { phone, telegram_username, telegram_id } = req.body;
     if (!phone) {
       return res.status(400).json({ error: 'Telefon raqam kiritilishi shart' });
     }
 
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const phoneSuffix = cleanPhone.slice(-9);
+    const normPhone = smsService.normalizePhone(phone);
+    const phoneSuffix = smsService.getPhoneSuffix(phone);
     const db = getDb();
 
     // Generate random 6-digit code
@@ -752,54 +753,69 @@ app.post('/api/auth/send-telegram-otp', async (req, res) => {
     db.run(`
       INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified)
       VALUES (?, ?, ?, ?, 0)
-    `, [cleanPhone, code, targetChatId ? String(targetChatId) : null, expiresAt]);
+    `, [normPhone, code, targetChatId ? String(targetChatId) : null, expiresAt]);
 
     const botUsername = botService.botInfo?.username || 'Smart_delivery_fast_bot';
 
-    if (targetChatId) {
-      await botService.sendOtpCode(targetChatId, code, phone);
-      return res.json({
-        ok: true,
-        sent: true,
-        bot_username: botUsername,
-        message: '6 xonali tasdiqlash kodi Telegram botingizga yuborildi!'
-      });
+    // Dispatch via Eskiz real SMS and/or Telegram Bot
+    const dispatchResult = await smsService.dispatchOtp({
+      phone: normPhone,
+      code,
+      telegramId: targetChatId,
+      botService
+    });
+
+    const sentVia = dispatchResult.sentVia;
+    let message = 'Tasdiqlash kodi tayyorlandi.';
+    if (sentVia.includes('sms') && sentVia.includes('telegram')) {
+      message = '6 xonali tasdiqlash kodi SMS va Telegram botingizga yuborildi!';
+    } else if (sentVia.includes('sms')) {
+      message = '6 xonali tasdiqlash kodi telefoningizga SMS orqali yuborildi!';
+    } else if (sentVia.includes('telegram')) {
+      message = '6 xonali tasdiqlash kodi Telegram botingizga yuborildi!';
     } else {
-      // Need user to click start on bot
-      return res.json({
-        ok: true,
-        sent: false,
-        need_start: true,
-        bot_username: botUsername,
-        bot_link: `https://t.me/${botUsername}?start=verify_${code}`,
-        message: `@${botUsername} ga 1 marta kirib Start bosing, kodingiz shu zahoti yetib keladi.`
-      });
+      message = 'Tasdiqlash kodi yuborildi. Telegram bot orqali yoki test kodini kiritib tasdiqlang.';
     }
+
+    return res.json({
+      ok: true,
+      sent: true,
+      channels: sentVia,
+      is_demo: dispatchResult.isDemo,
+      demo_code: dispatchResult.code || null,
+      bot_username: botUsername,
+      bot_link: `https://t.me/${botUsername}?start=verify_${code}`,
+      message
+    });
   } catch (err) {
-    console.error('[send-telegram-otp Error]:', err.message);
+    console.error('[send-otp Error]:', err.message);
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-app.post('/api/auth/verify-telegram-otp', (req, res) => {
+app.post('/api/auth/send-telegram-otp', sendOtpHandler);
+app.post('/api/auth/send-otp', sendOtpHandler);
+
+const verifyOtpHandler = (req, res) => {
   try {
     const { phone, code } = req.body;
     if (!phone || !code) {
       return res.status(400).json({ error: 'Telefon raqam va 6 xonali kod kiritilishi shart' });
     }
 
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const normPhone = smsService.normalizePhone(phone);
+    const phoneSuffix = smsService.getPhoneSuffix(phone);
     const cleanCode = String(code).trim();
     const db = getDb();
 
     const record = db.get(`
       SELECT * FROM otp_codes
-      WHERE phone LIKE ? AND code = ? AND is_verified = 0
+      WHERE (phone LIKE ? OR phone LIKE ?) AND code = ? AND is_verified = 0
       ORDER BY id DESC LIMIT 1
-    `, [`%${cleanPhone.slice(-9)}%`, cleanCode]);
+    `, [`%${phoneSuffix}%`, `%${normPhone}%`, cleanCode]);
 
     if (!record) {
-      return res.status(400).json({ ok: false, error: "Kiritilgan 6 xonali kod noto'g'ri" });
+      return res.status(400).json({ ok: false, error: "Kiritilgan 6 xonali kod noto'g'ri yoki muddati o'tgan" });
     }
 
     if (Date.now() > record.expires_at) {
@@ -809,7 +825,7 @@ app.post('/api/auth/verify-telegram-otp', (req, res) => {
     // Mark as verified
     db.run('UPDATE otp_codes SET is_verified = 1 WHERE id = ?', [record.id]);
     if (record.telegram_id) {
-      db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [cleanPhone, record.telegram_id]);
+      db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [normPhone, record.telegram_id]);
     }
 
     res.json({
@@ -819,6 +835,38 @@ app.post('/api/auth/verify-telegram-otp', (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+app.post('/api/auth/verify-telegram-otp', verifyOtpHandler);
+app.post('/api/auth/verify-otp', verifyOtpHandler);
+
+// Polling endpoint to check if phone became verified (e.g. user clicked Telegram Start link)
+app.get('/api/auth/check-otp-status', (req, res) => {
+  try {
+    const { phone, code } = req.query;
+    if (!phone) return res.json({ verified: false });
+
+    const phoneSuffix = smsService.getPhoneSuffix(phone);
+    const db = getDb();
+
+    let sql = 'SELECT * FROM otp_codes WHERE phone LIKE ?';
+    let params = [`%${phoneSuffix}%`];
+
+    if (code) {
+      sql += ' AND code = ?';
+      params.push(String(code).trim());
+    }
+
+    sql += ' ORDER BY id DESC LIMIT 1';
+
+    const record = db.get(sql, params);
+    if (record && record.is_verified === 1) {
+      return res.json({ ok: true, verified: true });
+    }
+    return res.json({ ok: true, verified: false });
+  } catch (err) {
+    res.json({ ok: false, verified: false });
   }
 });
 
