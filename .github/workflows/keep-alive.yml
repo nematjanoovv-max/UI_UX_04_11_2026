@@ -1,8 +1,8 @@
-name: Render Backend 24/7 Keep-Alive
+name: 24/7 High-Availability Keep-Alive Monitor
 
 on:
   schedule:
-    # Run every 10 minutes to prevent Render free instance spin-down
+    # Run every 10 minutes to guarantee zero spin-down across all services
     - cron: '*/10 * * * *'
   workflow_dispatch:
 
@@ -10,15 +10,26 @@ jobs:
   keep-alive-ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Smart Delivery Render Backend
+      - name: Ping Smart Delivery Services
         run: |
-          echo "Sending Keep-Alive ping to Smart Delivery API..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health)
-          echo "HTTP response status code: $STATUS"
-          if [ "$STATUS" -eq 200 ]; then
-            echo "✅ Smart Delivery backend is active and healthy!"
+          echo "=================================================="
+          echo "🚀 Smart Delivery 24/7 Keep-Alive Health Monitor"
+          echo "Timestamp: $(date -u)"
+          echo "=================================================="
+
+          echo "1. Pinging Vercel API & WebApp..."
+          VERCEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://smart-delivery-system-2026.vercel.app/api/health)
+          echo "Vercel API HTTP Status: $VERCEL_STATUS"
+
+          echo "2. Pinging Render Backend..."
+          RENDER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health)
+          echo "Render Backend HTTP Status: $RENDER_STATUS"
+
+          if [ "$VERCEL_STATUS" -eq 200 ] && [ "$RENDER_STATUS" -eq 200 ]; then
+            echo "✅ All Smart Delivery services are online, healthy, and awake!"
           else
-            echo "⚠️ Warning: Received HTTP $STATUS, retrying once..."
+            echo "⚠️ Warning: Detected status Vercel=$VERCEL_STATUS, Render=$RENDER_STATUS. Retrying in 5s..."
             sleep 5
+            curl -s --max-time 45 https://smart-delivery-system-2026.vercel.app/api/health
             curl -s --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health
           fi
