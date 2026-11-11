@@ -213,29 +213,29 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden pb-10">
       
       {/* Premier Interactive Hero Section (Stories + Promo Carousel + Luxury Tiles) */}
       <HeroSection onSelectCategory={handleCategoryClick} />
 
       {/* Catalog Anchor */}
-      <div id="catalog-section" className="scroll-mt-20" />
+      <div id="catalog-section" className="scroll-mt-24 sm:scroll-mt-28 md:scroll-mt-32" />
 
       {/* Sticky Category Navigation Ribbon with ScrollSpy */}
       <nav 
         aria-label="Kategoriyalar menyusi"
-        className="sticky top-14 sm:top-16 md:top-20 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg py-2.5 transition-all smooth-gpu"
+        className="sticky top-14 sm:top-16 md:top-20 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg py-2 transition-all smooth-gpu"
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div 
             ref={categoryBarRef}
-            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth -mx-1 px-1"
+            className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto scrollbar-none scroll-smooth -mx-1 px-1 py-1"
           >
             {/* All Categories Button */}
             <button
               ref={el => pillRefs.current['all'] = el}
               onClick={() => handleCategoryClick('all')}
-              className={`btn-spring flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 ${
+              className={`btn-spring min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 cursor-pointer select-none active:scale-95 touch-manipulation ${
                 activeCategory === 'all'
                   ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-lg shadow-brand-500/35 border-t border-white/25 ring-2 ring-brand-400/40 scale-102 font-extrabold'
                   : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
@@ -261,13 +261,13 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
                   key={cat.id}
                   ref={el => pillRefs.current[cat.id] = el}
                   onClick={() => handleCategoryClick(cat.id)}
-                  className={`btn-spring flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 ${
+                  className={`btn-spring min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 cursor-pointer select-none active:scale-95 touch-manipulation ${
                     isActive
                       ? 'bg-gradient-to-r from-brand-600 to-amber-500 text-white shadow-lg shadow-brand-500/35 border-t border-white/25 ring-2 ring-brand-400/40 scale-102 font-extrabold'
                       : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
                   }`}
                 >
-                  <span className="text-sm">{cat.icon || '🍽'}</span>
+                  <span className="text-base">{cat.icon || '🍽'}</span>
                   <span>{cat.name}</span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${
                     isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
@@ -286,7 +286,7 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           
           {/* Quick Dietary & Tag Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
             {[
               { id: 'all', label: 'Barchasi', icon: Sparkles },
               { id: 'hit', label: '🔥 Xit Taomlar', icon: Flame },
@@ -298,12 +298,13 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
                   sounds?.playClick?.();
                   setDietFilter(f.id);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 ${
+                className={`btn-spring min-h-[38px] sm:min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer select-none active:scale-95 touch-manipulation ${
                   dietFilter === f.id
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
                     : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
+                <f.icon className="w-3.5 h-3.5" />
                 <span>{f.label}</span>
               </button>
             ))}
@@ -315,7 +316,7 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer"
+              className="min-h-[38px] sm:min-h-[44px] px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer"
             >
               <option value="default">Saralash: Standart</option>
               <option value="popular">Reyting bo'yicha</option>

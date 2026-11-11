@@ -100,7 +100,7 @@ function ProductCard({ product }) {
       {/* Content */}
       <div className="flex flex-col flex-1 p-2.5 sm:p-4">
         <div className="flex-1">
-          <h3 className="font-bold text-xs sm:text-base text-white line-clamp-1 group-hover:text-brand-400 transition-colors">
+          <h3 className="font-bold text-xs sm:text-base text-white line-clamp-2 leading-snug group-hover:text-brand-400 transition-colors">
             {product.name}
           </h3>
           <p className="hidden sm:block mt-1 text-xs text-slate-400 line-clamp-2 leading-relaxed">
@@ -110,50 +110,50 @@ function ProductCard({ product }) {
 
         {/* Bottom Actions: Price and Add Button */}
         <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1.5">
-          <div className="min-w-0">
-            <span className="text-[11px] sm:text-base font-black text-white truncate block">
+          <div className="min-w-0 pr-1">
+            <span className="text-xs sm:text-base font-black text-white truncate block">
               {Number(product.price).toLocaleString()} <span className="text-[10px] font-semibold text-brand-400">{t('currency')}</span>
             </span>
           </div>
 
           {isAvailable ? (
             cartItem ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-brand-950/80 border border-brand-500/50 rounded-xl p-0.5 sm:p-1 shrink-0 shadow-md shadow-brand-500/20">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-brand-950/80 border border-brand-500/50 rounded-2xl p-1 shrink-0 shadow-md shadow-brand-500/20">
                 <button
                   onClick={() => updateQuantity(product.id, -1)}
-                  className="stepper-btn w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/40 border border-slate-700/60"
+                  className="stepper-btn w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-slate-800 text-slate-200 hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/40 border border-slate-700/60 active:scale-90 transition-transform touch-manipulation cursor-pointer flex items-center justify-center select-none"
                   aria-label="Kamaytirish"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-4 h-4 stroke-[2.5]" />
                 </button>
-                <span className="font-black text-xs sm:text-sm text-white px-1.5 min-w-[20px] text-center">
+                <span className="font-black text-xs sm:text-sm text-white px-1.5 min-w-[22px] text-center select-none">
                   {cartItem.quantity}
                 </span>
                 <button
                   onClick={() => updateQuantity(product.id, 1)}
-                  className="stepper-btn w-7 h-7 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25"
+                  className="stepper-btn w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25 active:scale-90 transition-transform touch-manipulation cursor-pointer flex items-center justify-center select-none"
                   aria-label="Ko'paytirish"
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                 </button>
               </div>
             ) : hasModifiers ? (
               <button
                 onClick={handleAdd}
-                className="btn-spring flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-600 to-brand-600 hover:from-amber-500 hover:to-brand-500 border-t border-white/25 text-white text-xs font-black shadow-md shadow-amber-500/25 shrink-0"
+                className="btn-spring min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-brand-600 hover:from-amber-500 hover:to-brand-500 border-t border-white/25 text-white text-xs font-black shadow-md shadow-amber-500/25 shrink-0 cursor-pointer select-none active:scale-95 transition-all touch-manipulation"
                 title={language === 'ru' ? 'Выбрать параметры' : (language === 'en' ? 'Customize options' : 'Retseptni sozlash')}
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
-                <span className="text-[11px] font-extrabold">{language === 'ru' ? 'Выбрать' : (language === 'en' ? 'Select' : 'Tanlash')}</span>
+                <span className="text-[11px] font-extrabold">{language === 'ru' ? 'Tanlash' : (language === 'en' ? 'Select' : 'Tanlash')}</span>
               </button>
             ) : (
               <button
                 onClick={handleAdd}
-                className="btn-spring flex items-center justify-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-500 hover:to-amber-400 border-t border-white/25 text-white text-xs font-black shadow-md shadow-brand-500/30 shrink-0"
+                className="btn-spring min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-500 hover:to-amber-400 border-t border-white/25 text-white text-xs font-black shadow-md shadow-brand-500/30 shrink-0 cursor-pointer select-none active:scale-95 transition-all touch-manipulation"
                 title={t('addToCart')}
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
-                <span className="hidden sm:inline font-extrabold">{t('addToCart')}</span>
+                <span className="text-[11px] sm:text-xs font-extrabold">{t('addToCart')}</span>
               </button>
             )
           ) : (

@@ -169,19 +169,19 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
               {currentView !== 'client' ? (
                 <button
                   onClick={() => setCurrentView('client')}
-                  className="btn-spring flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-500/30"
+                  className="btn-spring min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-brand-500 text-white text-xs font-black shadow-md shadow-brand-500/30 active:scale-95 cursor-pointer select-none touch-manipulation"
                   title="Menyuga qaytish"
                 >
-                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                  <UtensilsCrossed className="w-4 h-4" />
                   <span>Menyu</span>
                 </button>
               ) : (
                 <button
                   onClick={() => setCurrentView('admin')}
-                  className="btn-spring flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 hover:text-white text-xs font-bold"
+                  className="btn-spring min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-900 border border-amber-500/40 text-amber-400 hover:text-white text-xs font-bold active:scale-95 cursor-pointer select-none touch-manipulation"
                   title="Admin Panel"
                 >
-                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <ShieldAlert className="w-4 h-4" />
                   <span>Admin</span>
                 </button>
               )}
@@ -190,7 +190,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
             {/* Desktop Track Order Link */}
             <button
               onClick={() => setIsTrackerOpen(true)}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-colors"
+              className="hidden lg:flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-colors cursor-pointer select-none"
               title={t('trackOrder')}
             >
               <MapPin className="w-3.5 h-3.5 text-sky-400" />
@@ -200,7 +200,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
             {/* Language Switcher */}
             <button
               onClick={nextLanguage}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-colors flex items-center gap-1"
+              className="min-h-[44px] min-w-[44px] px-2.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer select-none touch-manipulation"
               title="Tilni almashtirish"
             >
               <span>{language === 'uz' ? '🇺🇿' : (language === 'ru' ? '🇷🇺' : '🇬🇧')}</span>
@@ -213,7 +213,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
                 const next = toggleSoundMute();
                 if (!next) sounds?.playPop?.();
               }}
-              className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95 cursor-pointer touch-manipulation"
               title={soundMuted ? 'Ovozni yoqish' : 'Ovozni o\'chirish'}
             >
               {soundMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
@@ -226,7 +226,7 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
                 sounds?.playClick?.();
                 setIsCartOpen(true);
               }}
-              className="btn-primary relative flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-white font-black text-xs sm:text-sm shadow-lg shadow-brand-500/25 active:scale-95 transition-all"
+              className="btn-primary min-h-[44px] relative flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-white font-black text-xs sm:text-sm shadow-lg shadow-brand-500/25 active:scale-95 transition-all cursor-pointer select-none touch-manipulation"
             >
               <div className="relative">
                 <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -254,14 +254,14 @@ export default function Navbar({ currentView, setCurrentView, searchQuery, setSe
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('searchPlaceholder') || "Taom yoki mahsulot qidirish..."}
-                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500/50 placeholder:text-slate-500"
+                className="w-full min-h-[44px] pl-10 pr-9 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500/50 placeholder:text-slate-500"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white"
+                  className="min-h-[44px] min-w-[36px] absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-slate-400 hover:text-white"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>

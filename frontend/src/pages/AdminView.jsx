@@ -293,8 +293,8 @@ export default function AdminView({ setCurrentView }) {
   // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-slate-800 shadow-2xl animate-slide-up">
+      <div className="min-h-[100dvh] w-full flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl animate-slide-up">
           
           <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center mb-4">
             <ShieldAlert className="w-7 h-7" />
@@ -325,7 +325,7 @@ export default function AdminView({ setCurrentView }) {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Login"
-                className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
 
@@ -339,13 +339,13 @@ export default function AdminView({ setCurrentView }) {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Parol"
-                className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               />
             </div>
 
             <button
               type="submit"
-              className="btn-primary w-full py-3 rounded-2xl text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95"
+              className="btn-primary w-full min-h-[48px] py-3 rounded-2xl text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition-transform active:scale-95 cursor-pointer select-none touch-manipulation"
             >
               Tizimga kirish
             </button>
@@ -355,7 +355,7 @@ export default function AdminView({ setCurrentView }) {
           <button
             type="button"
             onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
-            className="w-full mt-4 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+            className="w-full min-h-[44px] mt-4 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all active:scale-95 cursor-pointer select-none touch-manipulation"
           >
             <UtensilsCrossed className="w-3.5 h-3.5 text-brand-400" />
             <span>Do'konga (Menyuga) qaytish</span>
@@ -373,10 +373,10 @@ export default function AdminView({ setCurrentView }) {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+    <div className="min-h-[100dvh] w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 pb-28 sm:pb-24 overflow-x-hidden">
       
       {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] uppercase tracking-wider">
@@ -384,42 +384,42 @@ export default function AdminView({ setCurrentView }) {
             </span>
             <span className="text-xs text-slate-400">Har 8 soniyada avto-yangilanadi</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-1">
             Smart Delivery Dispetcherlik Markazi
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
             onClick={() => setCurrentView ? setCurrentView('client') : (window.location.href = '/')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-transform active:scale-95"
+            className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-500/20 transition-transform active:scale-95 cursor-pointer select-none touch-manipulation"
             title="Mijoz menyusiga qaytish"
           >
-            <UtensilsCrossed className="w-3.5 h-3.5" />
+            <UtensilsCrossed className="w-4 h-4" />
             <span>Do'konga qaytish</span>
           </button>
 
           <button
             onClick={loadAllData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+            className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all active:scale-95 cursor-pointer select-none touch-manipulation"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Yangilash</span>
           </button>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 text-xs font-bold hover:bg-rose-100 transition-colors"
+            className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 text-xs font-bold hover:bg-rose-100 transition-all active:scale-95 cursor-pointer select-none touch-manipulation"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Chiqish</span>
           </button>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 border-b border-slate-200 dark:border-slate-800 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
         {[
           { id: 'dashboard', label: t('dashboardTab'), icon: LayoutDashboard },
           { id: 'orders', label: `${t('ordersTab')} (${orders.length})`, icon: ShoppingBag },
@@ -431,13 +431,13 @@ export default function AdminView({ setCurrentView }) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
+            className={`min-h-[44px] flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer select-none active:scale-95 touch-manipulation ${
               activeTab === tab.id
                 ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25 scale-102'
                 : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
             }`}
           >
-            <tab.icon className="w-4 h-4" />
+            <tab.icon className="w-4 h-4 shrink-0" />
             <span>{tab.label}</span>
           </button>
         ))}
@@ -580,7 +580,7 @@ export default function AdminView({ setCurrentView }) {
         <div className="space-y-6 animate-fade-in">
           
           {/* Order Status Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
             {[
               { id: 'all', label: 'Barchasi' },
               { id: 'new', label: 'Yangi' },
@@ -593,10 +593,10 @@ export default function AdminView({ setCurrentView }) {
               <button
                 key={f.id}
                 onClick={() => setOrderFilter(f.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                className={`min-h-[44px] px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer select-none active:scale-95 touch-manipulation ${
                   orderFilter === f.id
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
+                    : 'bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                 }`}
               >
                 {f.label}
@@ -604,8 +604,210 @@ export default function AdminView({ setCurrentView }) {
             ))}
           </div>
 
-          {/* Orders Table */}
-          <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+          {/* MOBILE CARD VIEW (< md screens) */}
+          <div className="md:hidden space-y-3.5">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 glass-card rounded-3xl text-slate-400 text-sm">
+                Ushbu filtr bo'yicha buyurtmalar topilmadi.
+              </div>
+            ) : (
+              filteredOrders.map(order => (
+                <div 
+                  key={order.id} 
+                  className="p-4 sm:p-5 rounded-3xl glass-card border border-slate-200/80 dark:border-slate-800 shadow-lg space-y-3"
+                >
+                  {/* Card Header: Order Number, Source, Time, Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black text-base text-slate-900 dark:text-white">
+                          {order.order_number}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                          order.source === 'telegram_bot'
+                            ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
+                            : 'bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300'
+                        }`}>
+                          {order.source === 'telegram_bot' ? '🤖 TG Bot' : '💻 Web Sayt'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 block mt-0.5">
+                        {new Date(order.created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })} • {new Date(order.created_at).toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' })}
+                      </span>
+                    </div>
+
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+                      order.status === 'new' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
+                      order.status === 'confirmed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300' :
+                      order.status === 'preparing' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300' :
+                      order.status === 'on_way' ? 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300' :
+                      order.status === 'delivered' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' :
+                      'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                    }`}>
+                      {order.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Customer Info & Address */}
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800/80 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                        👤 {order.customer_name}
+                      </span>
+                      <a
+                        href={`tel:${order.customer_phone}`}
+                        className="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 active:scale-95 cursor-pointer touch-manipulation shrink-0"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{order.customer_phone}</span>
+                      </a>
+                    </div>
+
+                    {order.telegram_username ? (
+                      <a
+                        href={`https://t.me/${order.telegram_username.replace('@', '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:underline bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800"
+                      >
+                        <span>✈️ @{order.telegram_username.replace('@', '')}</span>
+                      </a>
+                    ) : order.telegram_id ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                        🆔 TG: {order.telegram_id}
+                      </span>
+                    ) : null}
+
+                    <div className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                      <MapPin className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
+                      <span className="line-clamp-2">{order.delivery_address}</span>
+                    </div>
+                  </div>
+
+                  {/* Items, Total, Payment */}
+                  <div className="space-y-1.5 text-xs">
+                    <div className="space-y-0.5 text-slate-600 dark:text-slate-300">
+                      {order.items && order.items.map(i => {
+                        let parsedMods = [];
+                        try {
+                          parsedMods = typeof i.modifiers === 'string' ? JSON.parse(i.modifiers) : (i.modifiers || []);
+                        } catch (_) {}
+                        return (
+                          <div key={i.id} className="text-xs flex justify-between">
+                            <span>• {i.product_name} x {i.quantity}</span>
+                            {parsedMods.length > 0 && (
+                              <span className="text-[10px] text-amber-500 truncate max-w-[140px]">
+                                ({parsedMods.map(m => m.name).join(', ')})
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+                      <span className="text-xs text-slate-400">To'lov: <b>{order.payment_method}</b></span>
+                      <span className="font-black text-sm text-brand-600 dark:text-brand-400">
+                        {Number(order.total_amount).toLocaleString()} so'm
+                      </span>
+                    </div>
+
+                    {(order.promo_code || order.cashback_used > 0) && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {order.promo_code && (
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                            🎟 {order.promo_code} (-{Number(order.discount_amount || 0).toLocaleString()} so'm)
+                          </span>
+                        )}
+                        {order.cashback_used > 0 && (
+                          <span className="text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                            💰 -{Number(order.cashback_used).toLocaleString()} keshbek
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Courier Assign Selector */}
+                  <div className="space-y-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <label className="text-[11px] font-bold text-slate-500 block">Kuryer biriktirish:</label>
+                    <select
+                      value={order.courier_id || ''}
+                      onChange={(e) => handleAssignCourier(order.id, e.target.value)}
+                      className="min-h-[44px] w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer"
+                    >
+                      <option value="">-- Kuryer tanlang --</option>
+                      {couriers.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.status === 'free' ? '🟢 Bo\'sh' : '🟡 Band'})
+                        </option>
+                      ))}
+                    </select>
+                    {order.courier_name && (
+                      <span className="text-[11px] text-brand-600 dark:text-brand-400 font-bold block">
+                        Biriktirilgan: {order.courier_name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mobile Action Buttons */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setSelectedReceiptOrder(order)}
+                      className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer touch-manipulation shrink-0"
+                    >
+                      <FileText className="w-4 h-4 text-brand-500" />
+                      <span>Chek</span>
+                    </button>
+
+                    {order.status === 'new' && (
+                      <button
+                        onClick={() => handleStatusChange(order.id, 'confirmed')}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                      >
+                        Tasdiqlash
+                      </button>
+                    )}
+                    {order.status === 'confirmed' && (
+                      <button
+                        onClick={() => handleStatusChange(order.id, 'preparing')}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                      >
+                        Oshxonaga
+                      </button>
+                    )}
+                    {order.status === 'preparing' && (
+                      <button
+                        onClick={() => handleStatusChange(order.id, 'on_way')}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                      >
+                        Yo'lga chiqarish
+                      </button>
+                    )}
+                    {order.status === 'on_way' && (
+                      <button
+                        onClick={() => handleStatusChange(order.id, 'delivered')}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                      >
+                        Yetkazildi
+                      </button>
+                    )}
+                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                      <button
+                        onClick={() => handleStatusChange(order.id, 'cancelled')}
+                        className="min-h-[44px] px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl active:scale-95 cursor-pointer touch-manipulation shrink-0"
+                      >
+                        Bekor
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (>= md screens) */}
+          <div className="hidden md:block overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
                 <tr>
@@ -684,7 +886,7 @@ export default function AdminView({ setCurrentView }) {
                                 <span className="font-medium">• {i.product_name} x {i.quantity}</span>
                                 {parsedMods.length > 0 && (
                                   <span className="block text-[10px] text-amber-600 dark:text-amber-400 pl-3">
-                                    + {parsedMods.map(m => m.name).join(', ')}
+                                   + {parsedMods.map(m => m.name).join(', ')}
                                   </span>
                                 )}
                               </div>
@@ -726,7 +928,7 @@ export default function AdminView({ setCurrentView }) {
                         <select
                           value={order.courier_id || ''}
                           onChange={(e) => handleAssignCourier(order.id, e.target.value)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                          className="min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer"
                         >
                           <option value="">-- Kuryer tanlang --</option>
                           {couriers.map(c => (
@@ -747,7 +949,7 @@ export default function AdminView({ setCurrentView }) {
                         <div className="flex flex-col items-end gap-1.5">
                           <button
                             onClick={() => setSelectedReceiptOrder(order)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                            className="min-h-[36px] flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all active:scale-95 cursor-pointer touch-manipulation"
                             title="Fiskal chekni ko'rish / chiqarish"
                           >
                             <FileText className="w-3.5 h-3.5 text-brand-500" />
@@ -757,7 +959,7 @@ export default function AdminView({ setCurrentView }) {
                           {order.status === 'new' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'confirmed')}
-                              className="px-2.5 py-1 rounded-lg bg-blue-500 text-white font-bold text-xs hover:bg-blue-600"
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
                             >
                               Tasdiqlash
                             </button>
@@ -765,7 +967,7 @@ export default function AdminView({ setCurrentView }) {
                           {order.status === 'confirmed' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'preparing')}
-                              className="px-2.5 py-1 rounded-lg bg-purple-500 text-white font-bold text-xs hover:bg-purple-600"
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
                             >
                               Oshxonaga
                             </button>
@@ -773,7 +975,7 @@ export default function AdminView({ setCurrentView }) {
                           {order.status === 'preparing' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'on_way')}
-                              className="px-2.5 py-1 rounded-lg bg-orange-500 text-white font-bold text-xs hover:bg-orange-600"
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
                             >
                               Yo'lga chiqarish
                             </button>
@@ -781,7 +983,7 @@ export default function AdminView({ setCurrentView }) {
                           {order.status === 'on_way' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'delivered')}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-bold text-xs hover:bg-emerald-600"
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
                             >
                               Yetkazildi
                             </button>
@@ -789,7 +991,7 @@ export default function AdminView({ setCurrentView }) {
                           {order.status !== 'delivered' && order.status !== 'cancelled' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'cancelled')}
-                              className="text-[11px] text-rose-500 hover:underline"
+                              className="min-h-[36px] px-2 py-1 text-xs text-rose-500 hover:underline active:scale-95 cursor-pointer"
                             >
                               Bekor qilish
                             </button>
@@ -811,20 +1013,20 @@ export default function AdminView({ setCurrentView }) {
           ------------------------------------------------------------- */}
       {activeTab === 'menu' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">
               Restoran Taomlari Ro'yxati
             </h3>
             <button
               onClick={openProductModal}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all"
+              className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer select-none touch-manipulation w-fit"
             >
               <Plus className="w-4 h-4" />
               <span>Yangi taom qo'shish</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {products.map(p => (
               <div key={p.id} className="p-4 rounded-3xl glass-card flex gap-4 items-center">
                 <img
@@ -843,13 +1045,13 @@ export default function AdminView({ setCurrentView }) {
                     {Number(p.price).toLocaleString()} so'm
                   </p>
 
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => handleToggleProduct(p)}
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                      className={`min-h-[38px] text-[11px] font-bold px-3 py-1.5 rounded-xl active:scale-95 transition-all cursor-pointer select-none touch-manipulation ${
                         p.is_available === 1
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-rose-100 text-rose-700'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
                       }`}
                     >
                       {p.is_available === 1 ? 'Mavjud' : 'Tugagan'}
@@ -857,7 +1059,7 @@ export default function AdminView({ setCurrentView }) {
 
                     <button
                       onClick={() => handleDeleteProduct(p.id)}
-                      className="text-slate-400 hover:text-rose-500 p-1"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-90 transition-all cursor-pointer touch-manipulation"
                       title="O'chirish"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -875,22 +1077,22 @@ export default function AdminView({ setCurrentView }) {
           ------------------------------------------------------------- */}
       {activeTab === 'couriers' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">
               Kuryerlar Jamoasi
             </h3>
             <button
               onClick={() => setShowCourierModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all"
+              className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer select-none touch-manipulation w-fit"
             >
               <Plus className="w-4 h-4" />
               <span>Yangi kuryer qo'shish</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {couriers.map(c => (
-              <div key={c.id} className="p-6 rounded-3xl glass-card space-y-4">
+              <div key={c.id} className="p-5 sm:p-6 rounded-3xl glass-card space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-bold">
@@ -905,24 +1107,24 @@ export default function AdminView({ setCurrentView }) {
                   </div>
 
                   <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                    c.status === 'free' ? 'bg-emerald-100 text-emerald-700' :
-                    c.status === 'busy' ? 'bg-amber-100 text-amber-700' :
-                    'bg-slate-200 text-slate-600'
+                    c.status === 'free' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' :
+                    c.status === 'busy' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
+                    'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                   }`}>
                     {c.status.toUpperCase()}
                   </span>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Telefon:</span>
-                    <a href={`tel:${c.phone}`} className="font-semibold text-brand-500">{c.phone}</a>
+                    <a href={`tel:${c.phone}`} className="font-semibold text-brand-500 hover:underline">{c.phone}</a>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Telegram ID:</span>
                     <span className="font-mono text-slate-400">{c.telegram_id || 'Ulanmagan'}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Yetkazilgan jami:</span>
                     <span className="font-bold text-slate-900 dark:text-white">{c.total_delivered} ta</span>
                   </div>
@@ -932,24 +1134,24 @@ export default function AdminView({ setCurrentView }) {
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-2">
                   <button
                     onClick={() => handleCourierStatusChange(c.id, 'free')}
-                    className={`flex-1 py-1.5 rounded-xl text-xs font-bold ${
-                      c.status === 'free' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'
+                    className={`min-h-[44px] flex-1 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all cursor-pointer select-none touch-manipulation ${
+                      c.status === 'free' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     Bo'sh
                   </button>
                   <button
                     onClick={() => handleCourierStatusChange(c.id, 'busy')}
-                    className={`flex-1 py-1.5 rounded-xl text-xs font-bold ${
-                      c.status === 'busy' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'
+                    className={`min-h-[44px] flex-1 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all cursor-pointer select-none touch-manipulation ${
+                      c.status === 'busy' ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     Band
                   </button>
                   <button
                     onClick={() => handleCourierStatusChange(c.id, 'offline')}
-                    className={`flex-1 py-1.5 rounded-xl text-xs font-bold ${
-                      c.status === 'offline' ? 'bg-slate-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'
+                    className={`min-h-[44px] flex-1 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all cursor-pointer select-none touch-manipulation ${
+                      c.status === 'offline' ? 'bg-slate-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     Offline
@@ -978,14 +1180,14 @@ export default function AdminView({ setCurrentView }) {
             </div>
             <button
               onClick={() => setShowPromoModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all w-fit"
+              className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer select-none touch-manipulation w-fit"
             >
               <Plus className="w-4 h-4" />
               <span>Yangi promo-kod yaratish</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {promos.length === 0 ? (
               <div className="col-span-full text-center py-12 glass-card rounded-3xl">
                 <Gift className="w-12 h-12 text-slate-300 mx-auto mb-2" />
@@ -1003,7 +1205,7 @@ export default function AdminView({ setCurrentView }) {
                     </span>
                     <button
                       onClick={() => handleDeletePromo(p.id)}
-                      className="text-slate-400 hover:text-rose-500 p-1.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-90 transition-all cursor-pointer touch-manipulation"
                       title="O'chirish"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1147,8 +1349,8 @@ export default function AdminView({ setCurrentView }) {
           MODAL: ADD NEW PRODUCT
           ------------------------------------------------------------- */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up max-h-[90dvh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
             <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4">
               Yangi Taom / Mahsulot Qo'shish
             </h3>
@@ -1161,7 +1363,7 @@ export default function AdminView({ setCurrentView }) {
                   value={productForm.name}
                   onChange={e => setProductForm({ ...productForm, name: e.target.value })}
                   placeholder="Smart Burger..."
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                 />
               </div>
 
@@ -1185,7 +1387,7 @@ export default function AdminView({ setCurrentView }) {
                         key={c.id}
                         type="button"
                         onClick={() => setProductForm({ ...productForm, category_id: c.id })}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                        className={`min-h-[44px] flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold text-left transition-all active:scale-95 cursor-pointer touch-manipulation select-none ${
                           isSelected
                             ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 ring-2 ring-brand-500/40 font-bold shadow-sm'
                             : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-brand-300'
@@ -1203,7 +1405,7 @@ export default function AdminView({ setCurrentView }) {
                 <select
                   value={productForm.category_id}
                   onChange={e => setProductForm({ ...productForm, category_id: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
                 >
                   {activeCategories.map(c => (
                     <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
@@ -1220,7 +1422,7 @@ export default function AdminView({ setCurrentView }) {
                     value={productForm.price}
                     onChange={e => setProductForm({ ...productForm, price: e.target.value })}
                     placeholder="45000"
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>
                 <div>
@@ -1230,7 +1432,7 @@ export default function AdminView({ setCurrentView }) {
                     value={productForm.prep_time_min}
                     onChange={e => setProductForm({ ...productForm, prep_time_min: e.target.value })}
                     placeholder="15"
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>
               </div>
@@ -1242,7 +1444,7 @@ export default function AdminView({ setCurrentView }) {
                   value={productForm.description}
                   onChange={e => setProductForm({ ...productForm, description: e.target.value })}
                   placeholder="Tarkibi va masalliqlar..."
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm resize-none"
                 />
               </div>
 
@@ -1253,7 +1455,7 @@ export default function AdminView({ setCurrentView }) {
                   value={productForm.image_url}
                   onChange={e => setProductForm({ ...productForm, image_url: e.target.value })}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                 />
               </div>
 
@@ -1261,13 +1463,13 @@ export default function AdminView({ setCurrentView }) {
                 <button
                   type="button"
                   onClick={() => setShowProductModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-brand-500 text-white font-bold text-xs shadow-md hover:bg-brand-600"
+                  className="min-h-[44px] px-6 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Qo'shish
                 </button>
@@ -1281,8 +1483,8 @@ export default function AdminView({ setCurrentView }) {
           MODAL: ADD NEW COURIER
           ------------------------------------------------------------- */}
       {showCourierModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up max-h-[90dvh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
             <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4">
               Yangi Kuryer Qo'shish
             </h3>
@@ -1295,7 +1497,7 @@ export default function AdminView({ setCurrentView }) {
                   value={courierForm.name}
                   onChange={e => setCourierForm({ ...courierForm, name: e.target.value })}
                   placeholder="Ali Valiyev"
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                 />
               </div>
 
@@ -1307,7 +1509,7 @@ export default function AdminView({ setCurrentView }) {
                   value={courierForm.phone}
                   onChange={e => setCourierForm({ ...courierForm, phone: e.target.value })}
                   placeholder="+998 90 123 45 67"
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                 />
               </div>
 
@@ -1317,7 +1519,7 @@ export default function AdminView({ setCurrentView }) {
                   <select
                     value={courierForm.vehicle_type}
                     onChange={e => setCourierForm({ ...courierForm, vehicle_type: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm cursor-pointer"
                   >
                     <option value="Skuter">Skuter</option>
                     <option value="Velosiped">Velosiped</option>
@@ -1333,7 +1535,7 @@ export default function AdminView({ setCurrentView }) {
                     value={courierForm.telegram_id}
                     onChange={e => setCourierForm({ ...courierForm, telegram_id: e.target.value })}
                     placeholder="123456789"
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>
               </div>
@@ -1342,13 +1544,13 @@ export default function AdminView({ setCurrentView }) {
                 <button
                   type="button"
                   onClick={() => setShowCourierModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-brand-500 text-white font-bold text-xs shadow-md hover:bg-brand-600"
+                  className="min-h-[44px] px-6 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Qo'shish
                 </button>
@@ -1362,8 +1564,8 @@ export default function AdminView({ setCurrentView }) {
           MODAL: ADD NEW PROMO CODE
           ------------------------------------------------------------- */}
       {showPromoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-slide-up max-h-[90dvh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
             <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <Tag className="w-5 h-5 text-brand-500" />
               <span>Yangi Promo-kod Yaratish</span>
@@ -1377,7 +1579,7 @@ export default function AdminView({ setCurrentView }) {
                   value={promoForm.code}
                   onChange={e => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
                   placeholder="YANGIYIL2026"
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono uppercase tracking-wider"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono uppercase tracking-wider"
                 />
               </div>
 
@@ -1391,7 +1593,7 @@ export default function AdminView({ setCurrentView }) {
                     value={promoForm.discount_percent}
                     onChange={e => setPromoForm({ ...promoForm, discount_percent: e.target.value, discount_amount: 0 })}
                     placeholder="20"
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>
                 <div>
@@ -1402,7 +1604,7 @@ export default function AdminView({ setCurrentView }) {
                     value={promoForm.discount_amount}
                     onChange={e => setPromoForm({ ...promoForm, discount_amount: e.target.value, discount_percent: 0 })}
                     placeholder="15000"
-                    className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   />
                 </div>
               </div>
@@ -1415,7 +1617,7 @@ export default function AdminView({ setCurrentView }) {
                   value={promoForm.min_order_amount}
                   onChange={e => setPromoForm({ ...promoForm, min_order_amount: e.target.value })}
                   placeholder="50000"
-                  className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                 />
               </div>
 
@@ -1423,13 +1625,13 @@ export default function AdminView({ setCurrentView }) {
                 <button
                   type="button"
                   onClick={() => setShowPromoModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-brand-500 text-white font-bold text-xs shadow-md hover:bg-brand-600"
+                  className="min-h-[44px] px-6 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-all cursor-pointer touch-manipulation"
                 >
                   Yaratish
                 </button>

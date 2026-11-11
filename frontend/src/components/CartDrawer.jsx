@@ -168,19 +168,19 @@ export default function CartDrawer() {
                 </div>
 
                 {/* Right Quantity Stepper & Subtotal */}
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl p-0.5">
                     <button
                       onClick={() => {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, -1);
                       }}
-                      className="stepper-btn w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60"
+                      className="stepper-btn w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 active:scale-90 cursor-pointer touch-manipulation"
                       aria-label="Kamaytirish"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-xs font-black w-4 text-center text-white">
+                    <span className="text-xs font-black min-w-[20px] text-center text-white select-none">
                       {item.quantity}
                     </span>
                     <button
@@ -188,7 +188,7 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, 1);
                       }}
-                      className="stepper-btn w-7 h-7 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25"
+                      className="stepper-btn w-8 h-8 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25 active:scale-90 cursor-pointer touch-manipulation"
                       aria-label="Ko'paytirish"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -204,7 +204,7 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         removeFromCart(item.customKey || item.id);
                       }}
-                      className="btn-spring text-slate-500 hover:text-rose-400 p-1 rounded-md transition-colors"
+                      className="btn-spring min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors cursor-pointer active:scale-90 touch-manipulation"
                       title="O'chirish"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

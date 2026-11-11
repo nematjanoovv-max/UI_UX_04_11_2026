@@ -76,7 +76,8 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
           
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-900/80 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-900 transition-colors"
+            className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-slate-900/80 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-900 active:scale-90 transition-all cursor-pointer select-none"
+            title="Yopish"
           >
             <X className="w-4 h-4" />
           </button>
@@ -126,7 +127,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
                     <div
                       key={mod.id}
                       onClick={() => toggleModifier(mod)}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                      className={`min-h-[48px] p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none active:scale-98 touch-manipulation ${
                         isChecked
                           ? 'border-brand-500 bg-brand-500/15 ring-1 ring-brand-500/40'
                           : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
@@ -158,7 +159,10 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
         </div>
 
         {/* Footer with action */}
-        <div className="p-4 sm:p-5 pb-6 sm:pb-5 border-t border-slate-800 bg-[#0b0f19]/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0">
+        <div 
+          className="p-4 sm:p-5 border-t border-slate-800 bg-[#0b0f19]/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0"
+          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           <div>
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
               {t('total')}
@@ -170,7 +174,7 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
 
           <button
             onClick={handleConfirm}
-            className="btn-primary flex items-center gap-1.5 px-6 py-3 rounded-2xl text-xs sm:text-sm"
+            className="btn-primary min-h-[48px] flex items-center gap-1.5 px-6 py-3 rounded-2xl text-xs sm:text-sm active:scale-95 transition-all cursor-pointer select-none touch-manipulation font-bold"
           >
             <Plus className="w-4 h-4" />
             <span>{t('addModifiers')}</span>

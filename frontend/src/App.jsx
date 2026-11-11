@@ -192,7 +192,7 @@ export default function App() {
   }, [currentView, isCheckoutOpen, isCartOpen, cart, grandTotal, haptics]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 transition-colors overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full max-w-full flex flex-col bg-[#0b0f19] text-slate-100 transition-colors overflow-x-hidden pb-[env(safe-area-inset-bottom,0px)]">
       {/* Top Floating Promo Announcement Bar */}
       <AnnouncementBar />
 
@@ -207,8 +207,8 @@ export default function App() {
         setSearchQuery={setSearchQuery}
       />
 
-      {/* Main View Body */}
-      <main className="flex-1 pb-20 md:pb-8">
+      {/* Main View Body with ample bottom clearance for MobileBottomNav & DynamicIsland */}
+      <main className="flex-1 w-full max-w-full pb-28 sm:pb-24 md:pb-12">
         {currentView === 'client' && (
           <CustomerView
             searchQuery={searchQuery}

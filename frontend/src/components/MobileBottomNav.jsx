@@ -57,23 +57,23 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
         {/* 1. Menyu */}
         <button
           onClick={handleMenuClick}
-          className={`btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl ${
+          className={`btn-spring min-h-[44px] flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl active:scale-95 cursor-pointer select-none touch-manipulation ${
             currentView === 'client' 
               ? 'text-brand-400 bg-brand-500/15 border border-brand-500/30 font-extrabold scale-102' 
               : 'text-slate-400 hover:text-slate-200 font-medium'
           }`}
         >
           <Utensils className="w-5 h-5 mb-0.5" />
-          <span className="text-[11px]">{t('menu')}</span>
+          <span className="text-[11px] leading-tight">{t('menu')}</span>
         </button>
 
         {/* 2. Qidiruv (Search) */}
         <button
           onClick={handleSearchFocus}
-          className="btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium"
+          className="btn-spring min-h-[44px] flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl text-slate-400 hover:text-slate-200 font-medium active:scale-95 cursor-pointer select-none touch-manipulation"
         >
           <Search className="w-5 h-5 mb-0.5 text-amber-400" />
-          <span className="text-[11px]">{t('searchBtn') || 'Qidiruv'}</span>
+          <span className="text-[11px] leading-tight">{t('searchBtn') || 'Qidiruv'}</span>
         </button>
 
         {/* 3. Xarita / Buyurtma Kuzatuv */}
@@ -83,10 +83,10 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
             haptics?.light?.();
             setIsTrackerOpen(true);
           }}
-          className="btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-medium"
+          className="btn-spring min-h-[44px] flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl text-slate-400 hover:text-slate-200 font-medium active:scale-95 cursor-pointer select-none touch-manipulation"
         >
           <MapPin className="w-5 h-5 mb-0.5 text-sky-400" />
-          <span className="text-[11px]">{t('trackOrder')}</span>
+          <span className="text-[11px] leading-tight">{t('trackOrder')}</span>
         </button>
 
         {/* 4. Savat (Cart) */}
@@ -97,7 +97,7 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
             haptics?.medium?.();
             setIsCartOpen(true);
           }}
-          className="btn-spring relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl bg-gradient-to-r from-brand-600 to-amber-600 text-white font-black shadow-lg shadow-brand-500/30 border-t border-white/20"
+          className="btn-spring min-h-[44px] relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl bg-gradient-to-r from-brand-600 to-amber-600 text-white font-black shadow-lg shadow-brand-500/30 border-t border-white/20 active:scale-95 cursor-pointer select-none touch-manipulation"
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5" />
@@ -107,7 +107,7 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
               </span>
             )}
           </div>
-          <span className="text-[11px]">
+          <span className="text-[11px] leading-tight">
             {cartTotal > 0 ? `${(cartTotal / 1000).toFixed(0)}k` : t('cart')}
           </span>
         </button>
@@ -119,14 +119,14 @@ export default function MobileBottomNav({ currentView, setCurrentView }) {
             haptics?.selection?.();
             setCurrentView(currentView === 'admin' ? 'client' : 'admin');
           }}
-          className={`btn-spring flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl ${
+          className={`btn-spring min-h-[44px] flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl active:scale-95 cursor-pointer select-none touch-manipulation ${
             currentView === 'admin'
               ? 'text-amber-400 bg-amber-500/15 border border-amber-500/30 font-extrabold scale-102'
               : 'text-slate-400 hover:text-slate-200 font-medium'
           }`}
         >
           <ShieldAlert className="w-5 h-5 mb-0.5 text-amber-400" />
-          <span className="text-[11px]">Admin</span>
+          <span className="text-[11px] leading-tight">Admin</span>
         </button>
 
       </div>

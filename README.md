@@ -19,7 +19,11 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 
 ### 1. 🌐 Mijoz Web-Ilovasi (Web & Telegram WebApp)
 - **Obsidian Dark Dizayn:** Chuqur `#0B0F19` ranglar palitrasi, yuqori kontrastli zamonaviy tipografika.
-- **120Hz+ Ultra-Silliq Skroll:** Mobil qurilmalarda tepaga qaytib sakrab ketish (overscroll-bounce) muammolari bartaraf etilgan, momentum skroll fizikasiga ega interfeys.
+- **320px dan 1440px gacha 100% Moslashuvchanlik (Responsive):** Gorizontal skroll (overflow-x) to'liq yo'qotilgan, har qanday smartfon yoki noutbuk ekranida tabiiy joylashadi.
+- **Telegram WebApp & Mobil Viewport:** `min-h-[100dvh]` dinamik balandlik va pastki panel/savatchalar uchun `env(safe-area-inset-bottom)` safe-area qo'llab-quvvatlovi.
+- **Dynamic Island Stepper To'siqsiz Joylashuvi:** Asosiy konteynerda Dynamic Island va pastki navigatsiya uchun yetarli padding (`pb-28 sm:pb-24`) berilgan.
+- **44x44px Touch-Target Standarti:** Barcha interaktiv tugmalar (savatchaga qo'shish, +/-, tumanlar, to'lov turlari, promokod) kamida 44x44px bosish maydoniga ega.
+- **Mikro-Animatsiyalar:** Har bir tugmada `active:scale-95 transition-all duration-150` va teginish bilan javob qaytarish.
 - **Geolokatsiya va Tumanlar:** GPS orqali 1-bosishda manzilni aniqlash yoki Toshkentning tezkor tumanlarini tanlash.
 - **Interaktiv Savatcha va To'lov Gateway:** Naqd, Click, Payme va Uzum to'lov tizimlari simulyatsiyasi.
 - **Promokodlar va Keshbek Tizimi:** Chegirma promokodlari va xaridlardan yig'iladigan keshbek balansi.
@@ -36,15 +40,18 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
   - Maxfiy tasdiqlash kodlari mijoz brauzeri API javoblarida oshkor etilmaydi (faqat shaxsiy bot xabarida yetkaziladi).
 
 ### 3. 👑 Admin Dispetcherlik Markazi (`/admin`)
+- **Mobil Card-View:** Mobil ekranlarda noqulay gorizontal jadvallar o'rniga har bir buyurtma qulay kartochka shaklida aks etadi (mijoz, manzil, taomlar, 44px kuryer biriktirish, fiskal chek va status tugmalari). Katta ekranlarda esa ixcham jadval ko'rinishi faollashadi.
+- **CRUD Modallari:** Kichik ekranlarda ham oson to'ldiriladigan, `max-h-[90dvh]` skrollanadigan va xavfsiz soha hisobga olingan modal darchalar.
 - Markaziy tahliliy ko'rsatkichlar: umumiy tushum, faol va yetkazilgan buyurtmalar soni, bo'sh kuryerlar.
-- Buyurtmalar monitoringi va kuryer biriktirish.
-- Menyu va taomlar boshqaruvi (CRUD: yangi taom qo'shish, tahrirlash, o'chirish).
+- Menyu va taomlar boshqaruvi (CRUD: yangi taom qo'shish, tovar turi tanlash, tahrirlash, o'chirish).
 - Kuryerlar ro'yxati va ularning jonli holati (`free`, `busy`, `offline`).
 
 ### 4. 🛵 Kuryer Kabineti (`/courier`)
-- Kuryerlar uchun mobilga moslashtirilgan interfeys.
+- **Yirik Boshqaruv Tugmalari (52px+):** Yo'lda harakatlanayotgan kuryerlar uchun bir urishda bosiladigan ulkan **"Yo'lga chiqdim"** (olovrang gradient) va **"Yetkazib berdim"** (zumradrang gradient) tugmalari.
+- 1-Bosishda Yandex Navigator va Google Maps orqali yo'nalish ochish.
+- Mijozga 1-urishda qo'ng'iroq qilish (44px yashil tugma).
+- Kuryerlar uchun mobilga 100% moslashtirilgan interfeys.
 - Faqat o'ziga biriktirilgan faol buyurtmalarni ko'rish.
-- **"Yo'lga chiqdim"** va **"Yetkazib berdim"** tezkor boshqaruv tugmalari.
 
 ### 5. 🤖 Rasmiy Telegram Bot ([@Smart_delivery_fast_bot](https://t.me/Smart_delivery_fast_bot))
 - Doimiy pastki menyu (Persistent Keyboard) va WebApp Chat Menu Button (`🍔 Do'konni ochish`).
