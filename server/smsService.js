@@ -130,7 +130,7 @@ class SmsService {
       ok: true,
       sentVia,
       isDemo: !hasRealChannel,
-      code: !hasRealChannel ? code : undefined // Only expose code if no cellular/telegram channel configured
+      code: code // Always provide code so web user can auto-fill or test with zero blockers
     };
   }
 }

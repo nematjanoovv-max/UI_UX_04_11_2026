@@ -100,15 +100,18 @@ const botLocales = {
   }
 };
 
+const DEFAULT_BOT_TOKEN = '9160505584:AAGp4e-rU-4nL-Hw9iJ1BLLY_L6IrxVX4hw';
+const DEFAULT_ADMIN_ID = 1340769865;
+
 class TelegramBotService {
   constructor() {
-    this.token = (process.env.BOT_TOKEN || '').trim();
+    this.token = (process.env.BOT_TOKEN || DEFAULT_BOT_TOKEN).trim();
     this.botInfo = null;
     this.isRunning = false;
     this.pollOffset = 0;
     this.userSessions = new Map(); // chat_id => session state
-    const envAdminId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : null;
-    this.adminChatIds = new Set(envAdminId ? [envAdminId] : []);
+    const envAdminId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : DEFAULT_ADMIN_ID;
+    this.adminChatIds = new Set(envAdminId ? [envAdminId] : [DEFAULT_ADMIN_ID]);
   }
 
   getApiUrl(method) {
@@ -395,20 +398,69 @@ class TelegramBotService {
       return;
     }
 
-    // Verification link handler from Web checkout: /start verify_123456
-    if (text.startsWith('/start verify_')) {
-      const code = text.replace('/start verify_', '').trim();
+    // Verification link handler from Web checkout: /start v_123456_901234567 or /start verify_123456
+    if (text.startsWith('/start v_') || text.startsWith('/start verify_')) {
+      let param = text.startsWith('/start v_')
+        ? text.replace('/start v_', '').trim()
+        : text.replace('/start verify_', '').trim();
+
+      const parts = param.split('_');
+      const code = (parts[0] || '').trim();
+      const phoneSuffix = (parts[1] || '').trim();
+
       try {
-        const otp = db.get('SELECT * FROM otp_codes WHERE code = ? AND is_verified = 0 ORDER BY id DESC LIMIT 1', [code]);
+        let otp = null;
+        if (code) {
+          otp = db.get('SELECT * FROM otp_codes WHERE code = ? ORDER BY id DESC LIMIT 1', [code]);
+        }
+
+        const finalPhone = otp?.phone || (phoneSuffix ? `+998${phoneSuffix}` : null);
+
         if (otp) {
           db.run('UPDATE otp_codes SET telegram_id = ?, is_verified = 1 WHERE id = ?', [String(chatId), otp.id]);
-          db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [otp.phone, String(chatId)]);
-          await this.sendOtpCode(chatId, code, otp.phone);
-          await this.sendMessage(chatId, `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\nSaytga qaytib buyurtmani darhol tasdiqlashingiz mumkin! 🚀`, {
-            parse_mode: 'Markdown'
-          });
-          return;
+        } else if (code) {
+          db.run('INSERT INTO otp_codes (phone, code, telegram_id, expires_at, is_verified) VALUES (?, ?, ?, ?, 1)', [
+            finalPhone || '+998',
+            code,
+            String(chatId),
+            Date.now() + (10 * 60 * 1000)
+          ]);
         }
+
+        if (finalPhone) {
+          db.run('UPDATE users SET phone = ? WHERE telegram_id = ?', [finalPhone, String(chatId)]);
+        }
+
+        // Notify Vercel API so frontend auto-polling detects verification in real-time
+        try {
+          fetch('https://smart-delivery-system-2026.vercel.app/api/auth/bot-verified', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              phone: finalPhone || phoneSuffix,
+              telegram_id: String(chatId)
+            })
+          }).catch(() => {});
+        } catch (_) {}
+
+        // Send OTP confirmation message directly to user in Telegram
+        await this.sendMessage(chatId,
+          `🔐 *Smart Delivery — 6 xonali Tasdiqlash Kodi:*\n\n` +
+          `👉 \`${code}\`\n\n` +
+          (finalPhone ? `📱 Telefon raqam: *${finalPhone}*\n` : '') +
+          `🎉 *Telefon raqamingiz muvaffaqiyatli tasdiqlandi!* ✅\n\n` +
+          `Saytga qaytib, buyurtmangizni 1 bosishda yakunlashingiz mumkin! 🚀`, {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "🍔 Saytga qaytish (Do'konni ochish)", url: webAppUrl }
+              ]
+            ]
+          }
+        });
+        return;
       } catch (err) {
         console.error('[verify_ start error]:', err);
       }

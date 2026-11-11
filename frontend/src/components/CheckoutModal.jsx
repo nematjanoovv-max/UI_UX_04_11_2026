@@ -65,7 +65,7 @@ export default function CheckoutModal() {
       try {
         const res = await api.checkOtpStatus({
           phone: formData.customer_phone,
-          code: otpCode || undefined
+          code: otpCode || demoCode || undefined
         });
         if (res && res.verified) {
           setIsPhoneVerified(true);
@@ -74,10 +74,10 @@ export default function CheckoutModal() {
           showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
         }
       } catch (_) {}
-    }, 2500);
+    }, 1800);
 
     return () => clearInterval(interval);
-  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
+  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode, demoCode]);
 
   const handleRequestOtp = async () => {
     const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
@@ -373,6 +373,22 @@ export default function CheckoutModal() {
                     className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   />
                 </div>
+
+                <div className="mt-2.5">
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                    Telegram username <span className="text-slate-500 font-normal">(ixtiyoriy)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">@</span>
+                    <input
+                      type="text"
+                      value={formData.telegram_username.replace(/^@/, '')}
+                      onChange={e => setFormData({ ...formData, telegram_username: e.target.value ? `@${e.target.value.replace(/^@/, '')}` : '' })}
+                      placeholder="username (masalan: Nematjanovvvv)"
+                      className="w-full pl-8 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-600 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -411,29 +427,34 @@ export default function CheckoutModal() {
                           className="btn-primary flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-brand-500/25 disabled:opacity-50"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS tasdiqlash kodini olish'}</span>
+                          <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS / Telegram kodini olish'}</span>
                         </button>
                       </div>
                     ) : (
-                      <div className="p-3 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-inner space-y-2.5">
+                      <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700/80 shadow-inner space-y-3">
+                        {otpBotLink && (
+                          <a
+                            href={otpBotLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/40 text-xs font-bold transition-all shadow-sm group"
+                          >
+                            <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                              <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.92 9.07c-.14.65-.53.81-1.07.51l-2.95-2.17-1.42 1.37c-.16.16-.29.29-.6.29l.21-3.01 5.48-4.95c.24-.21-.05-.33-.37-.12l-6.77 4.26-2.92-.91c-.63-.2-.65-.63.13-.94l11.41-4.4c.53-.19.99.13.8.95z"/>
+                            </svg>
+                            <span>📲 Telegram botda kodni ko'rish / ochish</span>
+                          </a>
+                        )}
+
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-white">6 xonali tasdiqlash kodi:</span>
-                          {otpNeedStart && (
-                            <a
-                              href={otpBotLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-bold text-amber-400 underline hover:text-amber-300 text-[11px]"
-                            >
-                              Botda ochish 👉
-                            </a>
-                          )}
+                          <span className="text-[11px] text-slate-400">Telegram yoki SMS</span>
                         </div>
 
-                        {/* Demo/Fast code chip if available */}
+                        {/* Fast code chip if available */}
                         {demoCode && (
                           <div className="flex items-center justify-between p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs">
-                            <span className="text-amber-300 font-medium">Tasdiqlash kodi: <b className="font-mono">{demoCode}</b></span>
+                            <span className="text-amber-300 font-medium">Kodni tezkor kiritish: <b className="font-mono">{demoCode}</b></span>
                             <button
                               type="button"
                               onClick={() => {
@@ -457,7 +478,7 @@ export default function CheckoutModal() {
                               setOtpCode(val);
                               if (val.length === 6) handleVerifyOtp(val);
                             }}
-                            placeholder="&bull;&bull;&bull;&bull;&bull;&bull;"
+                            placeholder="● ● ● ● ● ●"
                             className="flex-1 px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-center text-lg font-black tracking-[0.4em] font-mono text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                           />
                           <button
@@ -470,9 +491,9 @@ export default function CheckoutModal() {
                           </button>
                         </div>
 
-                        {/* Resend button with countdown */}
+                        {/* Resend button with countdown & Bot auto-detect tip */}
                         <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-                          <span>Kod kelmadimi?</span>
+                          <span className="text-slate-500">Botda "START" bosilsa avtomatik tasdiqlanadi ⚡</span>
                           {otpCountdown > 0 ? (
                             <span className="text-slate-500 font-mono">Qayta yuborish ({otpCountdown}s)</span>
                           ) : (
