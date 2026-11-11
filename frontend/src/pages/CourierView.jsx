@@ -12,7 +12,8 @@ import {
   User,
   ShieldCheck,
   ShoppingBag,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Loader2
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
@@ -26,6 +27,8 @@ export default function CourierView({ setCurrentView }) {
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Load couriers
   const loadCouriers = async () => {
@@ -83,43 +86,54 @@ export default function CourierView({ setCurrentView }) {
 
   // Action: Accept / On Way
   const handleStartDelivery = async (orderId) => {
+    if (updatingOrderId) return;
+    setUpdatingOrderId(orderId);
     try {
       await api.updateOrderStatus(orderId, 'on_way');
       if (activeCourier) {
         await api.updateCourierStatus(activeCourier.id, 'busy');
       }
       showToast('🚀 Yo\'lga chiqdingiz! Mijozga xabar berildi.');
-      loadCourierOrders();
-      loadCouriers();
+      await loadCourierOrders();
+      await loadCouriers();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
   // Action: Complete Delivery
   const handleCompleteDelivery = async (orderId) => {
+    if (updatingOrderId) return;
+    setUpdatingOrderId(orderId);
     try {
       await api.updateOrderStatus(orderId, 'delivered');
       if (activeCourier) {
         await api.updateCourierStatus(activeCourier.id, 'free');
       }
       showToast('🎉 Buyurtma muvaffaqiyatli yetkazildi! Barakalla.');
-      loadCourierOrders();
-      loadCouriers();
+      await loadCourierOrders();
+      await loadCouriers();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
   // Status Switcher
   const handleStatusChange = async (newStatus) => {
-    if (!activeCourier) return;
+    if (!activeCourier || updatingStatus) return;
+    setUpdatingStatus(true);
     try {
       await api.updateCourierStatus(activeCourier.id, newStatus);
       showToast(`Holatingiz "${newStatus}" ga o'zgartirildi`);
-      loadCouriers();
+      await loadCouriers();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -193,7 +207,8 @@ export default function CourierView({ setCurrentView }) {
             <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => handleStatusChange('free')}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center ${
+                disabled={updatingStatus}
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center disabled:opacity-60 disabled:pointer-events-none ${
                   activeCourier.status === 'free'
                     ? 'bg-emerald-500 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -203,7 +218,8 @@ export default function CourierView({ setCurrentView }) {
               </button>
               <button
                 onClick={() => handleStatusChange('busy')}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center ${
+                disabled={updatingStatus}
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center disabled:opacity-60 disabled:pointer-events-none ${
                   activeCourier.status === 'busy'
                     ? 'bg-amber-500 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -213,7 +229,8 @@ export default function CourierView({ setCurrentView }) {
               </button>
               <button
                 onClick={() => handleStatusChange('offline')}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center ${
+                disabled={updatingStatus}
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center disabled:opacity-60 disabled:pointer-events-none ${
                   activeCourier.status === 'offline'
                     ? 'bg-slate-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -412,10 +429,15 @@ export default function CourierView({ setCurrentView }) {
                     {order.status !== 'on_way' ? (
                       <button
                         onClick={() => handleStartDelivery(order.id)}
-                        className="min-h-[52px] sm:min-h-[56px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 hover:from-brand-500 hover:to-amber-400 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-brand-500/30 active:scale-95 transition-all cursor-pointer select-none touch-manipulation"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[52px] sm:min-h-[56px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 hover:from-brand-500 hover:to-amber-400 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-brand-500/30 active:scale-95 transition-all cursor-pointer select-none touch-manipulation disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        <Bike className="w-5 h-5 shrink-0" />
-                        <span>Yo'lga chiqdim</span>
+                        {updatingOrderId === order.id ? (
+                          <Loader2 className="w-5 h-5 shrink-0 animate-spin" />
+                        ) : (
+                          <Bike className="w-5 h-5 shrink-0" />
+                        )}
+                        <span>{updatingOrderId === order.id ? "Yangilanmoqda..." : "Yo'lga chiqdim"}</span>
                       </button>
                     ) : (
                       <button
@@ -429,10 +451,15 @@ export default function CourierView({ setCurrentView }) {
 
                     <button
                       onClick={() => handleCompleteDelivery(order.id)}
-                      className="min-h-[52px] sm:min-h-[56px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/30 active:scale-95 transition-all cursor-pointer select-none touch-manipulation"
+                      disabled={updatingOrderId === order.id}
+                      className="min-h-[52px] sm:min-h-[56px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/30 active:scale-95 transition-all cursor-pointer select-none touch-manipulation disabled:opacity-60 disabled:pointer-events-none"
                     >
-                      <CheckCircle2 className="w-5 h-5 shrink-0" />
-                      <span>Yetkazib berdim</span>
+                      {updatingOrderId === order.id ? (
+                        <Loader2 className="w-5 h-5 shrink-0 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 shrink-0" />
+                      )}
+                      <span>{updatingOrderId === order.id ? "Yangilanmoqda..." : "Yetkazib berdim"}</span>
                     </button>
                   </div>
                 ) : (

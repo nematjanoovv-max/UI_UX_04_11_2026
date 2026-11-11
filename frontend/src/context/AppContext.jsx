@@ -117,16 +117,19 @@ export function AppProvider({ children }) {
   }, [cart]);
 
   const addToCart = (product, startRect = null) => {
+    if (!product || !product.id) return;
     haptics.medium();
     const key = product.customKey || product.id;
     setCart(prev => {
       const existing = prev.find(item => (item.customKey || item.id) === key);
       if (existing) {
+        const currentQty = Math.max(0, parseInt(existing.quantity, 10) || 0);
         return prev.map(item =>
-          (item.customKey || item.id) === key ? { ...item, quantity: item.quantity + 1 } : item
+          (item.customKey || item.id) === key ? { ...item, quantity: Math.min(99, currentQty + 1) } : item
         );
       }
-      return [...prev, { ...product, customKey: key, quantity: 1 }];
+      const initialPrice = Math.max(0, Number(product.price) || 0);
+      return [...prev, { ...product, price: initialPrice, customKey: key, quantity: 1 }];
     });
 
     if (startRect) {
@@ -139,11 +142,16 @@ export function AppProvider({ children }) {
   const updateQuantity = (keyOrId, delta) => {
     haptics.light();
     sounds.playClick();
+    const cleanDelta = parseInt(delta, 10);
+    if (isNaN(cleanDelta)) return;
+
     setCart(prev => {
       return prev.map(item => {
         if ((item.customKey || item.id) === keyOrId) {
-          const newQty = item.quantity + delta;
-          return newQty > 0 ? { ...item, quantity: newQty } : null;
+          const currentQty = Math.max(0, parseInt(item.quantity, 10) || 0);
+          const newQty = currentQty + cleanDelta;
+          if (newQty <= 0) return null;
+          return { ...item, quantity: Math.min(99, newQty) };
         }
         return item;
       }).filter(Boolean);
@@ -161,10 +169,17 @@ export function AppProvider({ children }) {
     setCart([]);
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartTotal = cart.reduce((sum, item) => {
+    const p = Math.max(0, Number(item.price) || 0);
+    const q = Math.max(0, parseInt(item.quantity, 10) || 0);
+    return sum + (p * q);
+  }, 0);
   const deliveryFee = cartTotal >= 150000 || cartTotal === 0 ? 0 : 15000;
-  const grandTotal = cartTotal + deliveryFee;
-  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const grandTotal = Math.max(0, cartTotal + deliveryFee);
+  const cartItemCount = cart.reduce((sum, item) => {
+    const q = Math.max(0, parseInt(item.quantity, 10) || 0);
+    return sum + q;
+  }, 0);
 
   // Cart Drawer open/close
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -181,12 +196,24 @@ export function AppProvider({ children }) {
   const showToast = (message, type = 'success') => {
     if (type === 'error') {
       haptics.error();
+      sounds.playError?.();
+    } else if (type === 'info') {
+      haptics.light();
     } else {
       haptics.success();
     }
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 3800);
   };
+
+  // Listen for background server retry / wake events
+  useEffect(() => {
+    const handleServerWake = (e) => {
+      showToast(e.detail?.message || "Server bilan aloqa o'rnatilmoqda...", 'info');
+    };
+    window.addEventListener('sd-server-wake', handleServerWake);
+    return () => window.removeEventListener('sd-server-wake', handleServerWake);
+  }, []);
 
   return (
     <AppContext.Provider value={{
@@ -225,12 +252,17 @@ export function AppProvider({ children }) {
       <FlyingCartOverlay flyingItems={flyingItems} />
       {/* Toast popup */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl transition-all duration-300 animate-slide-up ${
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl transition-all duration-300 animate-slide-up border ${
           toast.type === 'error'
-            ? 'bg-rose-600 text-white'
-            : 'bg-emerald-600 text-white'
+            ? 'bg-rose-600/95 text-white border-rose-500 shadow-rose-900/40'
+            : toast.type === 'info'
+            ? 'bg-sky-600/95 text-white border-sky-500 shadow-sky-900/40'
+            : 'bg-emerald-600/95 text-white border-emerald-500 shadow-emerald-900/40'
         }`}>
-          <span className="text-sm font-semibold">{toast.message}</span>
+          {toast.type === 'info' && <span className="animate-spin text-base">⏳</span>}
+          {toast.type === 'error' && <span className="text-base">⚠️</span>}
+          {toast.type === 'success' && <span className="text-base">✓</span>}
+          <span className="text-xs sm:text-sm font-bold">{toast.message}</span>
         </div>
       )}
     </AppContext.Provider>

@@ -27,10 +27,22 @@ async function fetchJson(endpoint, options = {}, retries = 1) {
 
     return await response.json();
   } catch (err) {
+    if (err.name === 'AbortError') {
+      throw err;
+    }
     if (retries > 0) {
-      // Auto-retry once after 1.5s in case backend was spinning up
+      // Notify UI that server is warming up or reconnecting
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('sd-server-wake', {
+          detail: { message: "Server bilan aloqa o'rnatilmoqda, iltimos kuting..." }
+        }));
+      }
       await new Promise(r => setTimeout(r, 1500));
       return fetchJson(endpoint, options, retries - 1);
+    }
+    // Format error message cleanly for end users
+    if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+      throw new Error("Internet aloqasini tekshiring yoki birozdan so'ng qayta urinib ko'ring.");
     }
     throw err;
   }
@@ -38,114 +50,131 @@ async function fetchJson(endpoint, options = {}, retries = 1) {
 
 export const api = {
   // Health
-  getHealth: () => fetchJson('/health'),
+  getHealth: (options = {}) => fetchJson('/health', options),
 
   // Categories
-  getCategories: () => fetchJson('/categories'),
-  createCategory: (data) => fetchJson('/categories', {
+  getCategories: (options = {}) => fetchJson('/categories', options),
+  createCategory: (data, options = {}) => fetchJson('/categories', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
 
   // Products
-  getProducts: (params = {}) => {
+  getProducts: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return fetchJson(`/products${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/products${qs ? `?${qs}` : ''}`, options);
   },
-  createProduct: (data) => fetchJson('/products', {
+  createProduct: (data, options = {}) => fetchJson('/products', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  updateProduct: (id, data) => fetchJson(`/products/${id}`, {
+  updateProduct: (id, data, options = {}) => fetchJson(`/products/${id}`, {
+    ...options,
     method: 'PUT',
     body: JSON.stringify(data)
   }),
-  deleteProduct: (id) => fetchJson(`/products/${id}`, {
+  deleteProduct: (id, options = {}) => fetchJson(`/products/${id}`, {
+    ...options,
     method: 'DELETE'
   }),
 
   // Orders
-  getOrders: (params = {}) => {
+  getOrders: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return fetchJson(`/orders${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/orders${qs ? `?${qs}` : ''}`, options);
   },
-  trackOrder: (query) => fetchJson(`/orders/track/${encodeURIComponent(query)}`),
-  createOrder: (orderData) => fetchJson('/orders', {
+  trackOrder: (query, options = {}) => fetchJson(`/orders/track/${encodeURIComponent(query)}`, options),
+  createOrder: (orderData, options = {}) => fetchJson('/orders', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(orderData)
   }),
-  updateOrderStatus: (id, status) => fetchJson(`/orders/${id}/status`, {
+  updateOrderStatus: (id, status, options = {}) => fetchJson(`/orders/${id}/status`, {
+    ...options,
     method: 'PATCH',
     body: JSON.stringify({ status })
   }),
-  assignCourier: (orderId, courierId) => fetchJson(`/orders/${orderId}/assign-courier`, {
+  assignCourier: (orderId, courierId, options = {}) => fetchJson(`/orders/${orderId}/assign-courier`, {
+    ...options,
     method: 'PATCH',
     body: JSON.stringify({ courier_id: courierId })
   }),
 
   // Couriers
-  getCouriers: (params = {}) => {
+  getCouriers: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return fetchJson(`/couriers${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/couriers${qs ? `?${qs}` : ''}`, options);
   },
-  createCourier: (data) => fetchJson('/couriers', {
+  createCourier: (data, options = {}) => fetchJson('/couriers', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  updateCourierStatus: (id, status) => fetchJson(`/couriers/${id}/status`, {
+  updateCourierStatus: (id, status, options = {}) => fetchJson(`/couriers/${id}/status`, {
+    ...options,
     method: 'PATCH',
     body: JSON.stringify({ status })
   }),
 
   // Stats
-  getStats: () => fetchJson('/stats'),
+  getStats: (options = {}) => fetchJson('/stats', options),
 
   // Promocodes
-  getPromos: () => fetchJson('/promocodes'),
-  validatePromo: (code, amount) => fetchJson('/promocodes/validate', {
+  getPromos: (options = {}) => fetchJson('/promocodes', options),
+  validatePromo: (code, amount, options = {}) => fetchJson('/promocodes/validate', {
+    ...options,
     method: 'POST',
     body: JSON.stringify({ code, amount })
   }),
-  createPromo: (data) => fetchJson('/promocodes', {
+  createPromo: (data, options = {}) => fetchJson('/promocodes', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  deletePromo: (id) => fetchJson(`/promocodes/${id}`, {
+  deletePromo: (id, options = {}) => fetchJson(`/promocodes/${id}`, {
+    ...options,
     method: 'DELETE'
   }),
 
   // Cashback
-  getUserCashback: (params = {}) => {
+  getUserCashback: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return fetchJson(`/users/cashback${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/users/cashback${qs ? `?${qs}` : ''}`, options);
   },
 
   // Reviews
-  getReviews: () => fetchJson('/reviews'),
-  submitReview: (data) => fetchJson('/reviews', {
+  getReviews: (options = {}) => fetchJson('/reviews', options),
+  submitReview: (data, options = {}) => fetchJson('/reviews', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
 
   // SMS & Telegram 6-Digit OTP Verification
-  sendOtp: (data) => fetchJson('/auth/send-otp', {
+  sendOtp: (data, options = {}) => fetchJson('/auth/send-otp', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  verifyOtp: (data) => fetchJson('/auth/verify-otp', {
+  verifyOtp: (data, options = {}) => fetchJson('/auth/verify-otp', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  checkOtpStatus: (params = {}) => {
+  checkOtpStatus: (params = {}, options = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return fetchJson(`/auth/check-otp-status${qs ? `?${qs}` : ''}`);
+    return fetchJson(`/auth/check-otp-status${qs ? `?${qs}` : ''}`, options);
   },
   // Backward compatibility
-  sendTelegramOtp: (data) => fetchJson('/auth/send-otp', {
+  sendTelegramOtp: (data, options = {}) => fetchJson('/auth/send-otp', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  verifyTelegramOtp: (data) => fetchJson('/auth/verify-otp', {
+  verifyTelegramOtp: (data, options = {}) => fetchJson('/auth/verify-otp', {
+    ...options,
     method: 'POST',
     body: JSON.stringify(data)
   })

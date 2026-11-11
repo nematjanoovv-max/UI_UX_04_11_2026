@@ -1,25 +1,64 @@
 // =====================================================================
 // SMART DELIVERY 2026 — Web Audio API Procedural Sound & Haptics Engine
-// Zero external assets required; generates studio-grade micro-sounds
+// Ultra-optimized Singleton Web Audio Engine (Zero memory leaks)
 // =====================================================================
+
+let sharedAudioContext = null;
+let isAudioUnlocked = false;
+
+// Safe unlock on first user gesture (touch/click) without creating multiple contexts
+function initAudioUnlock() {
+  if (typeof window === 'undefined') return;
+  const unlock = () => {
+    try {
+      if (!sharedAudioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          sharedAudioContext = new AudioContextClass();
+        }
+      }
+      if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
+        sharedAudioContext.resume().catch(() => {});
+      }
+      isAudioUnlocked = true;
+    } catch (_) {}
+    window.removeEventListener('touchstart', unlock, true);
+    window.removeEventListener('touchend', unlock, true);
+    window.removeEventListener('click', unlock, true);
+  };
+
+  window.addEventListener('touchstart', unlock, { capture: true, once: true, passive: true });
+  window.addEventListener('touchend', unlock, { capture: true, once: true, passive: true });
+  window.addEventListener('click', unlock, { capture: true, once: true, passive: true });
+}
+
+initAudioUnlock();
 
 class SoundEffectsEngine {
   constructor() {
-    this.audioCtx = null;
-    this.muted = localStorage.getItem('sd_sound_muted') === 'true';
+    this.muted = typeof window !== 'undefined' ? localStorage.getItem('sd_sound_muted') === 'true' : false;
   }
 
+  // Pure Singleton getter - NEVER creates duplicate AudioContext
   getAudioContext() {
-    if (!this.audioCtx && typeof window !== 'undefined') {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) {
-        this.audioCtx = new AudioContextClass();
+    try {
+      if (typeof window === 'undefined') return null;
+
+      if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          sharedAudioContext = new AudioContextClass();
+        }
       }
+
+      if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
+        sharedAudioContext.resume().catch(() => {});
+      }
+
+      return sharedAudioContext;
+    } catch (_) {
+      return null;
     }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume().catch(() => {});
-    }
-    return this.audioCtx;
   }
 
   isMuted() {
@@ -28,7 +67,9 @@ class SoundEffectsEngine {
 
   setMuted(mute) {
     this.muted = !!mute;
-    localStorage.setItem('sd_sound_muted', this.muted ? 'true' : 'false');
+    try {
+      localStorage.setItem('sd_sound_muted', this.muted ? 'true' : 'false');
+    } catch (_) {}
   }
 
   toggleMute() {
@@ -50,6 +91,7 @@ class SoundEffectsEngine {
         }
         if ('vibrate' in navigator) {
           if (type === 'success') navigator.vibrate([20, 50, 30]);
+          else if (type === 'error') navigator.vibrate([40, 60, 40]);
           else if (type === 'heavy') navigator.vibrate(30);
           else navigator.vibrate(15);
         }
@@ -59,11 +101,12 @@ class SoundEffectsEngine {
 
   // 1. POP (Bubbly pop when item is added to cart)
   playPop() {
-    this.triggerHaptic('light');
-    if (this.muted) return;
     try {
+      this.triggerHaptic('light');
+      if (this.muted) return;
+
       const ctx = this.getAudioContext();
-      if (!ctx) return;
+      if (!ctx || ctx.state !== 'running') return;
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -86,11 +129,12 @@ class SoundEffectsEngine {
 
   // 2. COIN / CHIME (Metallic chime when promo applied or cashback used)
   playCoin() {
-    this.triggerHaptic('medium');
-    if (this.muted) return;
     try {
+      this.triggerHaptic('medium');
+      if (this.muted) return;
+
       const ctx = this.getAudioContext();
-      if (!ctx) return;
+      if (!ctx || ctx.state !== 'running') return;
 
       const now = ctx.currentTime;
       [987.77, 1318.51].forEach((freq, idx) => {
@@ -115,14 +159,14 @@ class SoundEffectsEngine {
 
   // 3. SUCCESS / FANFARE (Order confirmed or payment succeeded)
   playSuccess() {
-    this.triggerHaptic('success');
-    if (this.muted) return;
     try {
+      this.triggerHaptic('success');
+      if (this.muted) return;
+
       const ctx = this.getAudioContext();
-      if (!ctx) return;
+      if (!ctx || ctx.state !== 'running') return;
 
       const now = ctx.currentTime;
-      // C5, E5, G5, C6 triumphant chord
       const chords = [523.25, 659.25, 783.99, 1046.50];
       chords.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
@@ -146,11 +190,12 @@ class SoundEffectsEngine {
 
   // 4. CLICK (Subtle tick on button/tab tap)
   playClick() {
-    this.triggerHaptic('light');
-    if (this.muted) return;
     try {
+      this.triggerHaptic('light');
+      if (this.muted) return;
+
       const ctx = this.getAudioContext();
-      if (!ctx) return;
+      if (!ctx || ctx.state !== 'running') return;
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -168,6 +213,34 @@ class SoundEffectsEngine {
 
       osc.start(now);
       osc.stop(now + 0.03);
+    } catch (_) {}
+  }
+
+  // 5. ERROR (Subtle low buzz when validation fails)
+  playError() {
+    try {
+      this.triggerHaptic('error');
+      if (this.muted) return;
+
+      const ctx = this.getAudioContext();
+      if (!ctx || ctx.state !== 'running') return;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      const now = ctx.currentTime;
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.linearRampToValueAtTime(110, now + 0.15);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.17);
     } catch (_) {}
   }
 }

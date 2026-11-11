@@ -58,27 +58,46 @@ export default function CheckoutModal() {
 
   // Polling to auto-detect verification when user taps bot Start link
   useEffect(() => {
-    if (!otpSent || isPhoneVerified || !formData.customer_phone) return;
+    if (!isCheckoutOpen || !otpSent || isPhoneVerified || !formData.customer_phone) return;
+
+    let isPolling = false;
+    const abortController = new AbortController();
 
     const interval = setInterval(async () => {
+      if (isPolling) return; // Prevent concurrent overlapping requests
+      isPolling = true;
+
       try {
-        const res = await api.checkOtpStatus({
-          phone: formData.customer_phone,
-          code: otpCode || undefined
-        });
+        const res = await api.checkOtpStatus(
+          {
+            phone: formData.customer_phone,
+            code: otpCode || undefined
+          },
+          { signal: abortController.signal }
+        );
         if (res && res.verified) {
           setIsPhoneVerified(true);
           setOtpSent(false);
           sounds.playSuccess();
           showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
         }
-      } catch (_) {}
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          // ignore transient poll error
+        }
+      } finally {
+        isPolling = false;
+      }
     }, 1800);
 
-    return () => clearInterval(interval);
-  }, [otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
+    return () => {
+      clearInterval(interval);
+      abortController.abort();
+    };
+  }, [isCheckoutOpen, otpSent, isPhoneVerified, formData.customer_phone, otpCode]);
 
   const handleRequestOtp = async () => {
+    if (isSendingOtp) return;
     const rawDigits = formData.customer_phone.replace(/[^0-9]/g, '');
     if (rawDigits.length < 9) {
       showToast('Iltimos, to\'liq telefon raqamingizni kiriting (+998 90 123 45 67)', 'error');
@@ -113,6 +132,7 @@ export default function CheckoutModal() {
   };
 
   const handleVerifyOtp = async (codeToVerify) => {
+    if (isVerifyingOtp) return;
     const code = String(codeToVerify || otpCode).trim();
     if (code.length !== 6) {
       showToast('Iltimos, 6 xonali kodni to\'liq kiriting', 'error');
@@ -134,7 +154,7 @@ export default function CheckoutModal() {
         showToast('Telefon raqamingiz muvaffaqiyatli tasdiqlandi! ✅', 'success');
       }
     } catch (err) {
-      sounds.playPop();
+      sounds.playError?.();
       showToast(err.message || 'Kod noto\'g\'ri', 'error');
     } finally {
       setIsVerifyingOtp(false);
@@ -178,7 +198,7 @@ export default function CheckoutModal() {
 
   // Promo validation handler
   const handleApplyPromo = async () => {
-    if (!promoCodeInput.trim()) return;
+    if (isApplyingPromo || !promoCodeInput.trim()) return;
     setIsApplyingPromo(true);
     try {
       const res = await api.validatePromo(promoCodeInput.trim(), cartTotal);
@@ -207,6 +227,7 @@ export default function CheckoutModal() {
 
   // Geolocation API handler
   const handleGetLocation = () => {
+    if (isLocating) return;
     if (!navigator.geolocation) {
       showToast('Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi', 'error');
       return;
@@ -236,6 +257,7 @@ export default function CheckoutModal() {
   // Pre-submit validation
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!formData.customer_name.trim()) {
       showToast('Iltimos, ismingizni kiriting', 'error');
       return;
@@ -264,6 +286,7 @@ export default function CheckoutModal() {
 
   // Final order creation
   const executeOrderCreation = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const orderPayload = {
@@ -406,9 +429,9 @@ export default function CheckoutModal() {
                           type="button"
                           onClick={handleRequestOtp}
                           disabled={isSendingOtp || formData.customer_phone.replace(/[^0-9]/g, '').length < 9}
-                          className="btn-primary min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white shadow-md shadow-brand-500/25 disabled:opacity-50 active:scale-95 cursor-pointer select-none touch-manipulation"
+                          className="btn-primary min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black text-white shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none active:scale-95 cursor-pointer select-none touch-manipulation"
                         >
-                          <Send className="w-4 h-4" />
+                          {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                           <span>{isSendingOtp ? 'Yuborilmoqda...' : '📩 SMS / Telegram kodini olish'}</span>
                         </button>
                       </div>
@@ -450,9 +473,16 @@ export default function CheckoutModal() {
                             type="button"
                             onClick={() => handleVerifyOtp(otpCode)}
                             disabled={isVerifyingOtp || otpCode.length !== 6}
-                            className="btn-primary min-h-[44px] min-w-[90px] px-4 py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md shadow-brand-500/25 disabled:opacity-50 shrink-0 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center"
+                            className="btn-primary min-h-[44px] min-w-[100px] px-4 py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:pointer-events-none shrink-0 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center gap-1.5"
                           >
-                            {isVerifyingOtp ? '...' : 'Tasdiqlash'}
+                            {isVerifyingOtp ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>...</span>
+                              </>
+                            ) : (
+                              'Tasdiqlash'
+                            )}
                           </button>
                         </div>
 
@@ -564,10 +594,17 @@ export default function CheckoutModal() {
                   <button
                     type="button"
                     onClick={handleApplyPromo}
-                    disabled={isApplyingPromo}
-                    className="btn-spring min-h-[44px] min-w-[80px] px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs shadow-md shadow-amber-500/25 border-t border-white/20 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center"
+                    disabled={isApplyingPromo || !promoCodeInput.trim()}
+                    className="btn-spring min-h-[44px] min-w-[80px] px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-xs shadow-md shadow-amber-500/25 border-t border-white/20 active:scale-95 cursor-pointer select-none touch-manipulation flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:pointer-events-none"
                   >
-                    {isApplyingPromo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('apply')}
+                    {isApplyingPromo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>...</span>
+                      </>
+                    ) : (
+                      t('apply')
+                    )}
                   </button>
                 </div>
               )}
@@ -667,7 +704,7 @@ export default function CheckoutModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary btn-shimmer w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl text-sm disabled:opacity-50 mt-2"
+                className="btn-primary btn-shimmer w-full min-h-[50px] flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl text-sm font-bold disabled:opacity-60 disabled:pointer-events-none active:scale-95 cursor-pointer select-none touch-manipulation mt-2"
               >
                 {isSubmitting ? (
                   <>

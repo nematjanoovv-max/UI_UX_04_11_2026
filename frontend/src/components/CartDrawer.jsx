@@ -175,12 +175,12 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, -1);
                       }}
-                      className="stepper-btn w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 active:scale-90 cursor-pointer touch-manipulation"
+                      className="stepper-btn min-w-[36px] min-h-[36px] w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 active:scale-90 cursor-pointer touch-manipulation flex items-center justify-center select-none"
                       aria-label="Kamaytirish"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-xs font-black min-w-[20px] text-center text-white select-none">
+                    <span className="text-xs font-black min-w-[22px] text-center text-white select-none">
                       {item.quantity}
                     </span>
                     <button
@@ -188,7 +188,7 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         updateQuantity(item.customKey || item.id, 1);
                       }}
-                      className="stepper-btn w-8 h-8 rounded-lg bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25 active:scale-90 cursor-pointer touch-manipulation"
+                      className="stepper-btn min-w-[36px] min-h-[36px] w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-r from-brand-500 to-amber-500 text-white shadow-sm shadow-brand-500/30 border-t border-white/25 active:scale-90 cursor-pointer touch-manipulation flex items-center justify-center select-none"
                       aria-label="Ko'paytirish"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -204,10 +204,10 @@ export default function CartDrawer() {
                         if (sounds?.playClick) sounds.playClick();
                         removeFromCart(item.customKey || item.id);
                       }}
-                      className="btn-spring min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors cursor-pointer active:scale-90 touch-manipulation"
+                      className="btn-spring min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-500 hover:text-rose-400 p-1.5 rounded-xl transition-colors cursor-pointer active:scale-90 touch-manipulation select-none"
                       title="O'chirish"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -218,7 +218,10 @@ export default function CartDrawer() {
 
         {/* Footer Summary & Checkout Button */}
         {cart.length > 0 && (
-          <div className="p-4 sm:p-5 pb-6 sm:pb-5 border-t border-slate-800/80 bg-[#0b0f19]/95 backdrop-blur-md space-y-2.5 shrink-0">
+          <div 
+            className="p-4 sm:p-5 border-t border-slate-800/80 bg-[#0b0f19]/95 backdrop-blur-md space-y-2.5 shrink-0"
+            style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
+          >
             <div className="space-y-1 text-xs">
               <div className="flex justify-between text-slate-400">
                 <span>{t('subtotal')}:</span>

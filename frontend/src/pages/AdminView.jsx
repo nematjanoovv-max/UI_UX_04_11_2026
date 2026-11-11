@@ -23,7 +23,8 @@ import {
   Tag,
   Star,
   FileText,
-  Gift
+  Gift,
+  Loader2
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
@@ -59,6 +60,10 @@ export default function AdminView({ setCurrentView }) {
   const [categories, setCategories] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [isCreatingCourier, setIsCreatingCourier] = useState(false);
+  const [isCreatingPromo, setIsCreatingPromo] = useState(false);
 
   const activeCategories = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORIES;
 
@@ -167,23 +172,31 @@ export default function AdminView({ setCurrentView }) {
 
   // Order Status Change
   const handleStatusChange = async (orderId, newStatus) => {
+    if (updatingOrderId) return;
+    setUpdatingOrderId(orderId);
     try {
       await api.updateOrderStatus(orderId, newStatus);
       showToast(`Buyurtma statusi "${newStatus}" ga o'zgartirildi`);
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
   // Assign Courier to Order
   const handleAssignCourier = async (orderId, courierId) => {
+    if (updatingOrderId) return;
+    setUpdatingOrderId(orderId);
     try {
       await api.assignCourier(orderId, courierId ? Number(courierId) : null);
       showToast('Kuryer biriktirildi va unga bildirishnoma yuborildi!');
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -214,6 +227,8 @@ export default function AdminView({ setCurrentView }) {
   // Create Product Submit
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+    if (isCreatingProduct) return;
+    setIsCreatingProduct(true);
     try {
       const selectedCatId = Number(productForm.category_id) || activeCategories[0]?.id || 6;
       await api.createProduct({
@@ -225,23 +240,29 @@ export default function AdminView({ setCurrentView }) {
       setShowProductModal(false);
       setProductForm({ name: '', category_id: selectedCatId, price: '', description: '', image_url: '', prep_time_min: 15, is_available: 1 });
       showToast('Yangi taom muvaffaqiyatli qo\'shildi!');
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setIsCreatingProduct(false);
     }
   };
 
   // Create Courier Submit
   const handleCreateCourier = async (e) => {
     e.preventDefault();
+    if (isCreatingCourier) return;
+    setIsCreatingCourier(true);
     try {
       await api.createCourier(courierForm);
       setShowCourierModal(false);
       setCourierForm({ name: '', phone: '+998 ', telegram_id: '', vehicle_type: 'Skuter' });
       showToast('Yangi kuryer qo\'shildi!');
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setIsCreatingCourier(false);
     }
   };
 
@@ -259,7 +280,8 @@ export default function AdminView({ setCurrentView }) {
   // Create Promo Code Submit
   const handleCreatePromo = async (e) => {
     e.preventDefault();
-    if (!promoForm.code.trim()) return;
+    if (isCreatingPromo || !promoForm.code.trim()) return;
+    setIsCreatingPromo(true);
     try {
       await api.createPromo({
         code: promoForm.code.trim().toUpperCase(),
@@ -270,9 +292,11 @@ export default function AdminView({ setCurrentView }) {
       setShowPromoModal(false);
       setPromoForm({ code: '', discount_percent: 15, discount_amount: 0, min_order_amount: 40000 });
       showToast('Yangi promo-kod yaratildi!');
-      loadAllData();
+      await loadAllData();
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setIsCreatingPromo(false);
     }
   };
 
@@ -733,8 +757,9 @@ export default function AdminView({ setCurrentView }) {
                     <label className="text-[11px] font-bold text-slate-500 block">Kuryer biriktirish:</label>
                     <select
                       value={order.courier_id || ''}
+                      disabled={updatingOrderId === order.id}
                       onChange={(e) => handleAssignCourier(order.id, e.target.value)}
-                      className="min-h-[44px] w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer"
+                      className="min-h-[44px] w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                     >
                       <option value="">-- Kuryer tanlang --</option>
                       {couriers.map(c => (
@@ -763,39 +788,44 @@ export default function AdminView({ setCurrentView }) {
                     {order.status === 'new' && (
                       <button
                         onClick={() => handleStatusChange(order.id, 'confirmed')}
-                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        Tasdiqlash
+                        {updatingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Tasdiqlash</span>}
                       </button>
                     )}
                     {order.status === 'confirmed' && (
                       <button
                         onClick={() => handleStatusChange(order.id, 'preparing')}
-                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        Oshxonaga
+                        {updatingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Oshxonaga</span>}
                       </button>
                     )}
                     {order.status === 'preparing' && (
                       <button
                         onClick={() => handleStatusChange(order.id, 'on_way')}
-                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        Yo'lga chiqarish
+                        {updatingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Yo'lga chiqarish</span>}
                       </button>
                     )}
                     {order.status === 'on_way' && (
                       <button
                         onClick={() => handleStatusChange(order.id, 'delivered')}
-                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[44px] flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs active:scale-95 cursor-pointer touch-manipulation shadow-md flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        Yetkazildi
+                        {updatingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Yetkazildi</span>}
                       </button>
                     )}
                     {order.status !== 'delivered' && order.status !== 'cancelled' && (
                       <button
                         onClick={() => handleStatusChange(order.id, 'cancelled')}
-                        className="min-h-[44px] px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl active:scale-95 cursor-pointer touch-manipulation shrink-0"
+                        disabled={updatingOrderId === order.id}
+                        className="min-h-[44px] px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl active:scale-95 cursor-pointer touch-manipulation shrink-0 disabled:opacity-60 disabled:pointer-events-none"
                       >
                         Bekor
                       </button>
@@ -927,8 +957,9 @@ export default function AdminView({ setCurrentView }) {
                       <td className="p-4 align-top">
                         <select
                           value={order.courier_id || ''}
+                          disabled={updatingOrderId === order.id}
                           onChange={(e) => handleAssignCourier(order.id, e.target.value)}
-                          className="min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer"
+                          className="min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                         >
                           <option value="">-- Kuryer tanlang --</option>
                           {couriers.map(c => (
@@ -959,39 +990,44 @@ export default function AdminView({ setCurrentView }) {
                           {order.status === 'new' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'confirmed')}
-                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
+                              disabled={updatingOrderId === order.id}
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation flex items-center gap-1 disabled:opacity-60 disabled:pointer-events-none"
                             >
-                              Tasdiqlash
+                              {updatingOrderId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Tasdiqlash</span>}
                             </button>
                           )}
                           {order.status === 'confirmed' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'preparing')}
-                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
+                              disabled={updatingOrderId === order.id}
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation flex items-center gap-1 disabled:opacity-60 disabled:pointer-events-none"
                             >
-                              Oshxonaga
+                              {updatingOrderId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Oshxonaga</span>}
                             </button>
                           )}
                           {order.status === 'preparing' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'on_way')}
-                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
+                              disabled={updatingOrderId === order.id}
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation flex items-center gap-1 disabled:opacity-60 disabled:pointer-events-none"
                             >
-                              Yo'lga chiqarish
+                              {updatingOrderId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Yo'lga chiqarish</span>}
                             </button>
                           )}
                           {order.status === 'on_way' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'delivered')}
-                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation"
+                              disabled={updatingOrderId === order.id}
+                              className="min-h-[36px] px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer touch-manipulation flex items-center gap-1 disabled:opacity-60 disabled:pointer-events-none"
                             >
-                              Yetkazildi
+                              {updatingOrderId === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Yetkazildi</span>}
                             </button>
                           )}
                           {order.status !== 'delivered' && order.status !== 'cancelled' && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'cancelled')}
-                              className="min-h-[36px] px-2 py-1 text-xs text-rose-500 hover:underline active:scale-95 cursor-pointer"
+                              disabled={updatingOrderId === order.id}
+                              className="min-h-[36px] px-2 py-1 text-xs text-rose-500 hover:underline active:scale-95 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                             >
                               Bekor qilish
                             </button>

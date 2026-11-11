@@ -60,10 +60,21 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - Foydalanuvchi GIF/stiker tashlaganda avtomatik asosiy menyuga yo'naltirish.
 - Kuryerlar uchun kuryer buyruqlari (`/courier`) orqali buyurtmalarni boshqarish.
 
-### 6. ⚡ 24/7 Uxlab Qolishdan Himoya (Keep-Alive)
+### 6. ⚡ 24/7 Uxlab Qolishdan Himoya (Keep-Alive) & Server Uyg'onishi
 - **Render Ichki Self-Ping:** Server har 9 daqiqada o'zini-o'zi uyg'otadi.
 - **GitHub Actions Avto-Kuzatuv:** Har 10 daqiqada doimiy `/api/health` so'rovlari yuborilib, Render bepul serveri uxlab qolishi oldi olinadi.
-- **Frontend Avto-Qayta Urinish:** Server uyg'onish holatida bo'lsa, mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi.
+- **Frontend Avto-Qayta Urinish va Info-Toast:** Server uyg'onish holatida bo'lsa (cold-start), mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
+
+### 7. 🛡 Barqarorlik, Double-Click Himoyasi va Web Audio Optimizatsiyasi
+- **Double-Click (Qo'shaloq bosilish) va Loading Holatlari:**
+  - Buyurtma berish (`POST /api/orders`), OTP yuborish/tasdiqlash, promokod tekshirish, kuryer biriktirish va buyurtma holatini yangilash tugmalariga qat'iy holat muhofazasi (`disabled:opacity-60 disabled:pointer-events-none`) o'rnatildi.
+  - Tugma bosilganda darhol `Loader2` aylanuvchi spinneri aks etib, serverdan javob qaytmaguncha qayta bosilish bloklanadi.
+- **Savatcha Hisob-Kitob Xavfsizligi (Anti-NaN & Anti-Negative):**
+  - `updateQuantity` va `addToCart` funksiyalari to'liq sanitizatsiya qilinib, `Math.max(0, parseInt(..., 10) || 0)` orqali 0 dan 99 oralig'ida qat'iy cheklandi. Tezkor bosishlarda manfiy son yoki `NaN` chiqishi to'liq bartaraf etildi.
+- **Xotira Sizib Chiqishidan Himoya (Memory-Safe OTP Polling):**
+  - `/api/auth/check-otp-status` 1.8s polling mexanizmi `AbortController` va yagona polling bayrog'iga ulandi. Foydalanuvchi modalni yopsa, sahifani tark etsa yoki tasdiqlash yakunlansa, barcha taymerlar va faol HTTP ulanishlar darhol tozalanishi (`clearInterval` & `abort()`) kafolatlandi.
+- **Yagona Web Audio Context (Singleton Engine):**
+  - Har tugma bosilganda yangi `AudioContext` ochilib mobil brauzerni qotirishining oldi olindi. Singleton kontekst birinchi teginishda faollashtiriladi (`resume()`), va barcha tovush effektlari `try/catch` bilan himoyalanib, audio xatosi dastur ishlashiga hech qachon to'sqinlik qilmaydi.
 
 ---
 
