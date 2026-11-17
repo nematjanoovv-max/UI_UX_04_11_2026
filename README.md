@@ -71,49 +71,67 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - **GitHub Actions 24/7 Avto-Kuzatuv:** `.github/workflows/keep-alive.yml` ish oqimi har 5 daqiqada (`*/5 * * * *`) ikkala xizmatni tekshirib, uzluksiz uyg'oq holatda saqlaydi.
 - **Frontend Avto-Qayta Urinish va Info-Toast:** Agar tasodifiy tarmoq uzilishi bo'lsa, mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
 
-### 7. 🍔 Fast Food Katta Menyu (26 xil taom) & Bot Integratsiyasi (Eng So'nggi Yangilanish)
-- **6 x 4 Kengaytirilgan Fast Food Turlari (24 ta asosiy taom + 2 ta klassik):**
-  - **🍗 6 ta KFC / Tovuq:**
+### 7. 🍔 Fast Food Katta Menyu (36 xil taom) & Bot Integratsiyasi (Eng So'nggi Yangilanish)
+- **8 x 4 Kengaytirilgan Fast Food Turlari (32 ta asosiy taom + 4 ta pizza & gazaklar = 36 taom, jami menyu 46 ta):**
+  - **🍗 8 ta KFC / Tovuq:**
     1. KFC Qarsildoq Qanotlar (Hot Wings, 6 dona) — 38,000 so'm
     2. KFC Tovuq Strips (Crispy Strips, 5 dona) — 36,000 so'm
     3. KFC Original Basket (Family Bucket, 8 dona + fri) — 85,000 so'm
     4. KFC Tovuqli Zinger Burger — 42,000 so'm
     5. KFC Qarsildoq Oyoqchalar (Drumsticks, 4 dona) — 45,000 so'm
     6. KFC Box Master Tovuqli Tvister — 34,000 so'm
-  - **🍔 6 ta Gamburger:**
+    7. KFC Popcorn Bayts (Crispy Bites, 15 dona) — 32,000 so'm
+    8. KFC Barbeque Smokey Strips (6 dona) — 39,000 so'm
+  - **🍔 8 ta Gamburger:**
     1. Smart Burger Max (Dabl Bifshteks) — 48,000 so'm
     2. Klassik Chizburger Cheddar — 38,000 so'm
     3. Barbeque Smokey Bifshteks Burger — 52,000 so'm
     4. Maxsus Truffle Bifshteks Burger — 62,000 so'm
     5. Dabl Bacon Monster Burger — 58,000 so'm
     6. Chili Halapenyo Olovli Burger — 44,000 so'm
-  - **🌯 6 ta Lavash:**
+    7. Klassik Gamburger Original — 34,000 so'm
+    8. Qo'ziqorinli Mushroom Burger — 46,000 so'm
+  - **🌯 8 ta Lavash & Shaurma:**
     1. Klassik Mol Go'shtli Lavash — 35,000 so'm
     2. Tovuqli Pishloqli Lavash — 33,000 so'm
     3. Tandir Lavash Speshal — 39,000 so'm
     4. Mini Shaurma Lavash (2 dona) — 30,000 so'm
     5. Maxsus Dabl Pishloqli Lavash XL — 42,000 so'm
     6. Achchiq Doner Lavash Halapenyo bilan — 37,000 so'm
-  - **🌭 6 ta Hotdog:**
+    7. Pishloqli Mini Lavash (2 dona) — 31,000 so'm
+    8. Shirali Tovuqli Shaurma Pita — 32,000 so'm
+  - **🌭 8 ta Hot-Dog:**
     1. Klassik Daniya Hot-Dog — 24,000 so'm
     2. Frantsuzcha Pishloqli Baget Hot-Dog — 28,000 so'm
     3. Dabl Sosiskali Grill Hot-Dog — 32,000 so'm
     4. Chili Halapenyo Achchiq Hot-Dog — 29,000 so'm
     5. Bavarcha Ovchi Sosiskali Hot-Dog — 31,000 so'm
     6. Katta Pishloqli Hot-Dog Jumbo XL — 34,000 so'm
-  - **🍕🍟 Qo'shimcha:** Pizza Pepperoni XL (33sm, 78,000 so'm) va Oltin Kartoshka Fri & Sous (22,000 so'm).
-- **🤖 Telegram Botda To'liq Ko'rinish & Bo'limlarga Ajratilgan Menyu:**
-  - Botda "🍔 Fast Food" tanlanganda yoki `/fastfood` buyrug'i yuborilganda chiroyli turlar menyusi ochiladi: `🍗 KFC & Tovuq (6 xil)`, `🍔 Gamburgerlar (6 xil)`, `🌯 Lavash & Shaurma (6 xil)`, `🌭 Hot-Doglar (6 xil)`, `🍕 Pizza & Fri`.
-  - **Tezkor matnli buyruqlar:** Bot chatiga shunchaki `kfc`, `burger`, `lavash`, `hotdog` yoki `fastfood` deb yozilsa, bot darhol o'sha turdagi taomlarni fotosurati va narxi bilan chiqarib beradi.
-  - Har bir taom kartochkasi tagida to'g'ridan-to'g'ri `➕ Savatga qo'shish` inline-tugmasi mavjud.
+    7. Meksikancha Salsa Hot-Dog — 27,000 so'm
+    8. Pishloqli Bekonli Duman Hot-Dog — 33,000 so'm
+  - **🍕🍟 4 ta Pizza & Gazaklar:**
+    1. Pizza Pepperoni XL (33sm) — 78,000 so'm
+    2. Oltin Kartoshka Fri & Sous — 22,000 so'm
+    3. Pizza Margarita Double Cheese (33sm) — 68,000 so'm
+    4. Qarsildoq Motsarella Qalamchalari (6 dona) — 26,000 so'm
+- **🤖 Telegram Botda To'liq Ko'rinish & Sub-Kategoriya Navigatsiyasi:**
+  - Botda "🍔 Fast Food" tanlanganda yoki `/fastfood` buyrug'i yuborilganda interaktiv sub-menyu ochiladi: `🍗 KFC & Tovuq (8 xil)`, `🍔 Gamburgerlar (8 xil)`, `🌯 Lavash & Shaurma (8 xil)`, `🌭 Hot-Doglar (8 xil)`, `🍕 Pizza & Gazaklar (4 xil)`.
+  - **Tezkor matnli buyruqlar:** Bot chatiga shunchaki `kfc`, `burger`, `lavash`, `hotdog`, `pizza`, `fri` yoki `fastfood` deb yozilsa, bot darhol tegishli taomlarni fotosuratlari va narxi bilan chiqarib beradi.
+  - Har bir taom kartochkasi ostida to'g'ridan-to'g'ri `➕ Savatga qo'shish` inline-tugmasi mavjud.
+  - Vercel Serverless Edge Webhook fotosuratlarni yuborishda `sendPhoto` xatolikka uchraganda avtomatik `sendMessage` ga o'tib, botning uzluksiz ishlashini ta'minlaydi.
 - **🌐 WebApp & Saytda Interaktiv Sub-Kategoriya Chiplari:**
-  - Saytda Fast Food bo'limi ustida qulay filtrlash chiplari o'rnatildi (`Barchasi`, `🍗 KFC & Tovuq`, `🍔 Gamburgerlar`, `🌯 Lavash & Shaurma`, `🌭 Hot-Doglar`, `🍕 Pizza & Fri`). Foydalanuvchi bir teginishda xohlagan taom turini ajratib ko'ra oladi.
-- **100% Tekshirilgan HD Fotosuratlar:** Barcha 26 ta taom uchun Unsplash professional food-suratlari saralanib, avtomatlashtirilgan test skripti orqali `HTTP 200 OK` (image/jpeg) ekanligi tasdiqlandi.
+  - Saytda Fast Food bo'limi ustida qulay filtrlash chiplari o'rnatildi (`Barchasi (36)`, `🍗 KFC & Tovuq (8)`, `🍔 Gamburgerlar (8)`, `🌯 Lavash & Shaurma (8)`, `🌭 Hot-Doglar (8)`, `🍕 Pizza & Gazaklar (4)`). Bir teginishda xohlagan taom turini ajratib ko'rish mumkin.
+- **🖼️ 100% Tekshirilgan HD Fotosuratlar & Shimmer Loading:**
+  - Barcha 36 ta taom uchun Unsplash Retina HD fotosuratlari (`w=800&auto=format&fit=crop&q=85`) saralanib, avtomatlashtirilgan test orqali `HTTP 200 OK` ekanligi tasdiqlandi.
+  - Kartochkalarda rasm yuklanguncha Shimmer Skeleton spinneri, rasm yuklangach esa yumshoq o'tish (fade-in & scale), kinematik pastki qoraytirish (gradient vignette), reyting (⭐ 4.9) va tayyorlanish vaqti belgilari o'rnatildi.
 - **Interaktiv Retsept Sozlash (Modifiers):**
   - *KFC:* Ekstra achchiq sous (Hot BBQ), Erigan pishloqli dip sous, Sarimsoqli oq sous (Garlic).
   - *Lavash:* Qo'shimcha pishloq (Motsarella), Achchiq halapenyo qalampiri, Qo'shimcha go'sht (50g).
   - *Hotdog:* Halapenyo achchiq qalampir, Qo'shimcha qarsildoq piyoz, Erigan cheddar pishloq.
   - *Burger:* Qo'shimcha pishloq (Cheddar), Maxsus achchiq sous, Qo'shimcha go'sht kotleti.
+  - *Pizza & Gazaklar:* Qo'shimcha pishloqli sous, BBQ sous, Katta porsiya (+50%), Pishloqli qobiq.
+  - *Milliy taomlar:* Qo'shimcha go'sht, Qazi, Achchiq laziz sous (Laza), Smetana.
+  - *Salatlar:* Qo'shimcha tovuq filesi, Parmezan pishlog'i, Suxariklar.
 
 ### 7. 🛡 Barqarorlik, Double-Click Himoyasi va Web Audio Optimizatsiyasi
 - **Double-Click (Qo'shaloq bosilish) va Loading Holatlari:**

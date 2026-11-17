@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Clock, Plus, Minus, Check, Sparkles } from 'lucide-react';
+import { Clock, Plus, Minus, Check, Sparkles, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import ProductCustomizerModal from './ProductCustomizerModal';
 
 function ProductCard({ product }) {
   const { cart, addToCart, updateQuantity, showToast, t, language } = useApp();
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [tiltStyle, setTiltStyle] = useState({});
   const [glowPos, setGlowPos] = useState({ x: 50, y: 50, opacity: 0 });
 
@@ -70,30 +71,55 @@ function ProductCard({ product }) {
       style={tiltStyle}
       className="group relative flex flex-col rounded-2xl sm:rounded-3xl overflow-hidden glass-card transition-shadow duration-200 hover:shadow-xl hover:border-brand-500/40 will-change-transform bg-slate-900/80 border border-slate-800"
     >
-      {/* Product Image */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-800">
+      {/* Product Image with Shimmer Loading & Gradient Vignette */}
+      <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-950">
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-slate-800/90 animate-pulse flex items-center justify-center z-1">
+            <div className="w-5 h-5 rounded-full border-2 border-brand-500/30 border-t-brand-400 animate-spin" />
+          </div>
+        )}
         <img
-          src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
+          src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=85'}
           alt={product.name}
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
+            e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=85';
+            setImageLoaded(true);
           }}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            !isAvailable ? 'grayscale opacity-60' : ''
-          }`}
+          className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-108 ${
+            imageLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-95 blur-xs'
+          } ${!isAvailable ? 'grayscale opacity-60' : ''}`}
           loading="lazy"
+          decoding="async"
         />
+
+        {/* Cinematic Bottom Vignette Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none" />
         
-        {/* Prep Time Badge */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-xs font-semibold shadow-sm">
+        {/* Prep Time Badge (Top Left) */}
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-xs font-semibold shadow-md border border-white/10">
           <Clock className="w-3 h-3 text-amber-400" />
-          <span>{product.prep_time_min || 15}m</span>
+          <span>{product.prep_time_min || 12}m</span>
         </div>
+
+        {/* Rating Badge (Top Right) */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-amber-300 text-[10px] sm:text-xs font-bold shadow-md border border-amber-500/20">
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+          <span>4.9</span>
+        </div>
+
+        {/* Modifier Indicator Chip (Bottom Right of Image) */}
+        {hasModifiers && isAvailable && (
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-brand-500/80 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold shadow-md border border-white/20">
+            <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+            <span>Retsept</span>
+          </div>
+        )}
 
         {/* Unavailable overlay */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-2">
             <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold text-[10px] uppercase tracking-wider shadow">
               {t('notAvailable')}
             </span>

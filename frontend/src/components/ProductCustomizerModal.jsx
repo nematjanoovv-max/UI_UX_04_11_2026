@@ -89,11 +89,11 @@ export default function ProductCustomizerModal({ product, isOpen, onClose, onAdd
         {/* Header with image */}
         <div className="relative h-32 sm:h-44 w-full bg-slate-900 shrink-0 overflow-hidden">
           <img
-            src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'}
+            src={product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=85'}
             alt={product.name}
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600';
+              e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=85';
             }}
             className="w-full h-full object-cover"
           />

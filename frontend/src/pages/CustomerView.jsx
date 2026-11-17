@@ -423,11 +423,11 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
                     <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-3 pt-1 -mx-1 px-1">
                       {[
                         { id: 'all', label: 'Barchasi', count: catProducts.length },
-                        { id: 'kfc', label: '🍗 KFC & Tovuq', count: catProducts.filter(p => !p.name.includes('Lavash') && (p.name.includes('KFC') || p.name.includes('Tovuq') || p.name.includes('Strips') || p.name.includes('Tvister') || p.name.includes('Qanot') || p.name.includes('Oyoqcha'))).length },
+                        { id: 'kfc', label: '🍗 KFC & Tovuq', count: catProducts.filter(p => !p.name.includes('Lavash') && (p.name.includes('KFC') || p.name.includes('Tovuq') || p.name.includes('Strips') || p.name.includes('Tvister') || p.name.includes('Qanot') || p.name.includes('Oyoqcha') || p.name.includes('Bayts'))).length },
                         { id: 'burger', label: '🍔 Gamburgerlar', count: catProducts.filter(p => (p.name.includes('Burger') || p.name.includes('Chizburger')) && !p.name.includes('Zinger')).length },
                         { id: 'lavash', label: '🌯 Lavash & Shaurma', count: catProducts.filter(p => p.name.includes('Lavash') || p.name.includes('Shaurma') || p.name.includes('Doner')).length },
                         { id: 'hotdog', label: '🌭 Hot-Doglar', count: catProducts.filter(p => p.name.includes('Hot-Dog') || p.name.includes('Hotdog')).length },
-                        { id: 'pizza', label: '🍕 Pizza & Fri', count: catProducts.filter(p => p.name.includes('Pizza') || p.name.includes('Fri')).length },
+                        { id: 'pizza', label: '🍕 Pizza & Gazaklar', count: catProducts.filter(p => p.name.includes('Pizza') || p.name.includes('Fri') || p.name.includes('Motsarella')).length },
                       ].map(sub => (
                         <button
                           key={sub.id}
@@ -456,11 +456,11 @@ export default function CustomerView({ searchQuery, setSearchQuery, setCurrentVi
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
                     {(cat.name === 'Fast Food' && fastFoodSub !== 'all'
                       ? catProducts.filter(p => {
-                          if (fastFoodSub === 'kfc') return !p.name.includes('Lavash') && (p.name.includes('KFC') || p.name.includes('Tovuq') || p.name.includes('Strips') || p.name.includes('Tvister') || p.name.includes('Qanot') || p.name.includes('Oyoqcha'));
+                          if (fastFoodSub === 'kfc') return !p.name.includes('Lavash') && (p.name.includes('KFC') || p.name.includes('Tovuq') || p.name.includes('Strips') || p.name.includes('Tvister') || p.name.includes('Qanot') || p.name.includes('Oyoqcha') || p.name.includes('Bayts'));
                           if (fastFoodSub === 'burger') return (p.name.includes('Burger') || p.name.includes('Chizburger')) && !p.name.includes('Zinger');
                           if (fastFoodSub === 'lavash') return p.name.includes('Lavash') || p.name.includes('Shaurma') || p.name.includes('Doner');
                           if (fastFoodSub === 'hotdog') return p.name.includes('Hot-Dog') || p.name.includes('Hotdog');
-                          if (fastFoodSub === 'pizza') return p.name.includes('Pizza') || p.name.includes('Fri');
+                          if (fastFoodSub === 'pizza') return p.name.includes('Pizza') || p.name.includes('Fri') || p.name.includes('Motsarella');
                           return true;
                         })
                       : catProducts

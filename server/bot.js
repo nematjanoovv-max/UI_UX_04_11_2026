@@ -607,6 +607,13 @@ class TelegramBotService {
         return;
       }
     }
+    if (['pizza', 'pitsa', 'fri', 'kartoshka fri', 'motsarella'].includes(cleanText) || cleanText.startsWith('/pizza')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodSubSection(chatId, cat.id, 'pizza');
+        return;
+      }
+    }
     if (['fast food', 'fastfood', 'fast-food'].includes(cleanText) || cleanText.startsWith('/fastfood')) {
       const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
       if (cat) {
@@ -1205,29 +1212,29 @@ class TelegramBotService {
     const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
     const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
 
-    const totalCount = db.get('SELECT COUNT(*) as cnt FROM products WHERE category_id = ? AND is_available = 1', [categoryId])?.cnt || 26;
+    const totalCount = db.get('SELECT COUNT(*) as cnt FROM products WHERE category_id = ? AND is_available = 1', [categoryId])?.cnt || 36;
 
     await this.sendMessage(chatId, `🍔 *Fast Food — Katta Yangilangan Menyu (${totalCount} xil taom):* 🍟\n\n` +
       `Barcha sarxil taomlar turlar bo'yicha ajratildi. O'zingizga ma'qul bo'limni tanlang:\n\n` +
-      `🍗 *KFC & Tovuq* (6 xil) — Qanotlar, stripslar, basket, zinger burger, oyoqchalar va tvister\n` +
-      `🍔 *Gamburgerlar* (6 xil) — Smart Burger Max, Chizburger, Barbeque, Truffle, Monster va Chili\n` +
-      `🌯 *Lavash & Shaurma* (6 xil) — Klassik mol go'shtli, tovuqli pishloqli, tandir, shaurma, dabl pishloqli va doner\n` +
-      `🌭 *Hot-Doglar* (6 xil) — Daniya, Frantsuzcha baget, Dabl grill, Chili halapenyo, Bavarcha va Jumbo XL\n` +
-      `🍕 *Pizza & Gazaklar* (2 xil) — Pepperoni XL va Oltin fri\n\n` +
+      `🍗 *KFC & Tovuq* (8 xil) — Qanotlar, stripslar, basket, zinger burger, oyoqchalar, tvister, popcorn bayts va BBQ strips\n` +
+      `🍔 *Gamburgerlar* (8 xil) — Smart Burger Max, Chizburger, Barbeque, Truffle, Monster, Chili, Klassik va Mushroom Burger\n` +
+      `🌯 *Lavash & Shaurma* (8 xil) — Klassik mol go'shtli, tovuqli pishloqli, tandir, shaurma, dabl pishloqli, doner, mini lavash va achchiq lavash\n` +
+      `🌭 *Hot-Doglar* (8 xil) — Daniya, Frantsuzcha baget, Dabl grill, Chili halapenyo, Bavarcha, Jumbo XL, Meksikancha salsa va Bekonli hot-dog\n` +
+      `🍕 *Pizza & Gazaklar* (4 xil) — Pepperoni XL, Margarita Double Cheese, Oltin fri va Motsarella qalamchalari\n\n` +
       `👇 *Quyidagi tugmalardan birini bosing:*`, {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
           [
-            { text: '🍗 KFC & Tovuq (6 xil)', callback_data: `ff_kfc_${categoryId}` },
-            { text: '🍔 Gamburgerlar (6 xil)', callback_data: `ff_burger_${categoryId}` }
+            { text: '🍗 KFC & Tovuq (8 xil)', callback_data: `ff_kfc_${categoryId}` },
+            { text: '🍔 Gamburgerlar (8 xil)', callback_data: `ff_burger_${categoryId}` }
           ],
           [
-            { text: '🌯 Lavash & Shaurma (6 xil)', callback_data: `ff_lavash_${categoryId}` },
-            { text: '🌭 Hot-Doglar (6 xil)', callback_data: `ff_hotdog_${categoryId}` }
+            { text: '🌯 Lavash & Shaurma (8 xil)', callback_data: `ff_lavash_${categoryId}` },
+            { text: '🌭 Hot-Doglar (8 xil)', callback_data: `ff_hotdog_${categoryId}` }
           ],
           [
-            { text: '🍕 Pizza & Fri (2 xil)', callback_data: `ff_pizza_${categoryId}` },
+            { text: '🍕 Pizza & Gazaklar (4 xil)', callback_data: `ff_pizza_${categoryId}` },
             { text: '📋 Barchasini ko\'rish', callback_data: `ff_all_${categoryId}` }
           ],
           [
@@ -1247,7 +1254,7 @@ class TelegramBotService {
     let title = '🍔 Fast Food taomlari';
 
     if (subType === 'kfc') {
-      query += " AND (name LIKE '%KFC%' OR name LIKE '%Tovuq%' OR name LIKE '%Strips%' OR name LIKE '%Qanot%' OR name LIKE '%Tvister%' OR name LIKE '%Oyoqcha%') AND name NOT LIKE '%Lavash%'";
+      query += " AND (name LIKE '%KFC%' OR name LIKE '%Tovuq%' OR name LIKE '%Strips%' OR name LIKE '%Qanot%' OR name LIKE '%Tvister%' OR name LIKE '%Oyoqcha%' OR name LIKE '%Bayts%') AND name NOT LIKE '%Lavash%'";
       title = '🍗 KFC & Qarsildoq Tovuq taomlari';
     } else if (subType === 'burger') {
       query += " AND (name LIKE '%Burger%' OR name LIKE '%Chizburger%') AND name NOT LIKE '%Zinger%'";
@@ -1259,8 +1266,8 @@ class TelegramBotService {
       query += " AND (name LIKE '%Hot-Dog%' OR name LIKE '%Hotdog%')";
       title = '🌭 Sara Hot-Doglar to\'plami';
     } else if (subType === 'pizza') {
-      query += " AND (name LIKE '%Pizza%' OR name LIKE '%Fri%')";
-      title = '🍕 Pizza & Kartoshka Fri';
+      query += " AND (name LIKE '%Pizza%' OR name LIKE '%Fri%' OR name LIKE '%Motsarella%')";
+      title = '🍕 Pizza & Mazali Gazaklar';
     }
 
     const products = db.query(query, [categoryId]);
