@@ -187,9 +187,15 @@ class TelegramBotService {
 
         // Ensure Webhook is always active and points to high-availability Vercel endpoint
         try {
-          const webhookUrl = process.env.WEBHOOK_URL || 'https://smart-delivery-system-2026.vercel.app/api/telegram-webhook';
+          const webhookUrl = (process.env.WEBHOOK_URL && !process.env.WEBHOOK_URL.includes('onrender.com'))
+            ? process.env.WEBHOOK_URL
+            : 'https://smart-delivery-system-2026.vercel.app/api/telegram-webhook';
           console.log(`[BOT] Webhook o'rnatilmoqda: ${webhookUrl}`);
-          await this.callApi('setWebhook', { url: webhookUrl });
+          await this.callApi('setWebhook', {
+            url: webhookUrl,
+            drop_pending_updates: false,
+            allowed_updates: ['message', 'callback_query']
+          });
         } catch (_) {}
 
         return { ok: true, botInfo: this.botInfo };

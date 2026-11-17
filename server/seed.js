@@ -7,7 +7,7 @@ function seedDatabase(force = false) {
   const productsCount = db.get('SELECT COUNT(*) as cnt FROM products').cnt;
   const couriersCount = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
 
-  if (!force && categoriesCount >= 4 && productsCount >= 12 && couriersCount >= 3) {
+  if (!force && categoriesCount >= 5 && productsCount >= 26 && couriersCount >= 3) {
     console.log('[SEED] Ma\'lumotlar bazasi allaqachon to\'ldirilgan.');
     return;
   }
@@ -45,13 +45,53 @@ function seedDatabase(force = false) {
   const catDesserts = db.get('SELECT id FROM categories WHERE name = ?', ['Shirinliklar']).id;
   const catSalads = db.get('SELECT id FROM categories WHERE name = ?', ['Salatlar & Gazaklar'])?.id || catFastFood;
 
-  // 2. Mahsulotlar (kamida 12 ta sifatli taom)
+  // 2. Mahsulotlar (kamida 26 ta sara taom)
   const products = [
-    // Fast Food
+    // --- FAST FOOD: 4 KFC, 4 Gamburger, 4 Lavash, 4 Hotdog (+ Pizza & Fri) ---
+
+    // 1. KFC (4 dona)
     {
       category_id: catFastFood,
-      name: 'Smart Burger Max',
-      description: 'Shirali mol go\'shti kotleti, erigan cheddr pishlog\'i, yangi pomidor, karam bargi va mualliflik sousi bilan maxsus qora nonda.',
+      name: 'KFC Qarsildoq Qanotlar (Hot Wings)',
+      description: 'Sirli 11 xil ziravor bilan o\'ta qarsildoq qilib qovurilgan achchiq tovuq qanotlari (6 dona), sarimsoqli sous bilan.',
+      price: 38000,
+      image_url: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 12,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'KFC Tovuq Strips (Crispy Strips)',
+      description: 'Yumshoq tovuq lahm filesidan tayyorlangan oltinrang qarsildoq stripslar (5 dona), shirin-nordon sous bilan birga.',
+      price: 36000,
+      image_url: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'KFC Original Basket (Family Bucket)',
+      description: 'Katta oilaviy basket to\'plam: 8 dona qarsildoq tovuq bo\'laklari, katta porsiya fri va 2 xil mualliflik sousi.',
+      price: 85000,
+      image_url: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 18,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'KFC Tovuqli Zinger Burger',
+      description: 'Qarsildoq achchiq tovuq filesi, yangi aysberg salat bargi, marinadlangan bodring va maxsus zinger sous.',
+      price: 42000,
+      image_url: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 12,
+      is_available: 1
+    },
+
+    // 2. Gamburger (4 dona)
+    {
+      category_id: catFastFood,
+      name: 'Smart Burger Max (Dabl Bifshteks)',
+      description: 'Shirali mol go\'shti kotleti, erigan cheddar pishlog\'i, yangi pomidor, karam bargi va mualliflik sousi bilan.',
       price: 48000,
       image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
       prep_time_min: 15,
@@ -59,13 +99,109 @@ function seedDatabase(force = false) {
     },
     {
       category_id: catFastFood,
-      name: 'Crispy Chicken Burger',
-      description: 'Qarsildoq tovuq filesi, aysberg salat bargi, tuzlangan bodring va sarimsoqli mayonez sousi bilan.',
-      price: 42000,
-      image_url: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=600&auto=format&fit=crop&q=80',
+      name: 'Klassik Chizburger Cheddar',
+      description: 'Ikki qavat erigan haqiqiy cheddar pishlog\'i, mayin mol go\'shti kotleti, xantal va maxsus burger sousi bilan.',
+      price: 38000,
+      image_url: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80',
       prep_time_min: 12,
       is_available: 1
     },
+    {
+      category_id: catFastFood,
+      name: 'Barbeque Smokey Bifshteks Burger',
+      description: 'Grilda pishirilgan mol go\'shti kotleti, karamellangan piyoz, dudlangan bekon va quyuq xushbo\'y BBQ sous.',
+      price: 52000,
+      image_url: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 15,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Maxsus Truffle Bifshteks Burger',
+      description: 'Premium qora non, marmar mol go\'shti kotleti, truffle xushbo\'y moyi, yangi rukola va parmezan pishlog\'i bilan.',
+      price: 62000,
+      image_url: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 16,
+      is_available: 1
+    },
+
+    // 3. Lavash (4 dona)
+    {
+      category_id: catFastFood,
+      name: 'Klassik Mol Go\'shtli Lavash',
+      description: 'Yupqa xamirda marinadlangan mayin mol go\'shti bo\'laklari, yangi pomidor, bodring, fri va oq sarimsoqli sous.',
+      price: 35000,
+      image_url: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Tovuqli Pishloqli Lavash',
+      description: 'Grilda pishirilgan tovuq filesi, mo\'l erigan motsarella va cheddar pishlog\'i, yangi ko\'katlar va mayin sous.',
+      price: 33000,
+      image_url: 'https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Tandir Lavash Speshal',
+      description: 'Tandir pechida qovurilgan maxsus xamir, dudlangan sara go\'sht, qizil piyoz va maxsus pomidorli achchiq sous.',
+      price: 39000,
+      image_url: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 14,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Mini Shaurma Lavash (2 dona)',
+      description: 'Qarsildoq ikki dona mini lavash, marinadlangan tovuq go\'shti, mayda karam salati va klassik sharqona sous.',
+      price: 30000,
+      image_url: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 8,
+      is_available: 1
+    },
+
+    // 4. Hotdog (4 dona)
+    {
+      category_id: catFastFood,
+      name: 'Klassik Daniya Hot-Dog',
+      description: 'Yumshoq bug\'da pishgan bulochka, gril mol sosiskasi, qarsildoq qovurilgan piyoz, ketchunez va ditskaya xantal.',
+      price: 24000,
+      image_url: 'https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 8,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Frantsuzcha Pishloqli Baget Hot-Dog',
+      description: 'Qarsildoq frantsuzcha baget nonda pishloqli dudlangan sosiska, erigan cheddar sousi va yangi ziravorlar.',
+      price: 28000,
+      image_url: 'https://images.unsplash.com/photo-1626082895617-2c6de34f6af3?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Dabl Sosiskali Grill Hot-Dog',
+      description: 'Ikkita yirik dudlangan sosiska, marinadlangan tuzlangan bodring, aysberg va ikki xil sous bilan to\'yimli porsiya.',
+      price: 32000,
+      image_url: 'https://images.unsplash.com/photo-1541214113241-21578d2d9b62?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Chili Halapenyo Achchiq Hot-Dog',
+      description: 'Achchiq olovli chili sosiskasi, achchiq halapenyo bo\'laklari, meksikancha sous va qizil piyoz bilan o\'tkir ta\'m.',
+      price: 29000,
+      image_url: 'https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 9,
+      is_available: 1
+    },
+
+    // Qo'shimcha Fast Food klassiklari
     {
       category_id: catFastFood,
       name: 'Pizza Pepperoni XL (33sm)',
@@ -184,6 +320,11 @@ function seedDatabase(force = false) {
     }
   ];
 
+  // Eski almashtirilgan nomlarni tozalash
+  try {
+    db.run("DELETE FROM products WHERE name = 'Crispy Chicken Burger'");
+  } catch (_) {}
+
   for (const p of products) {
     const existing = db.get('SELECT id FROM products WHERE name = ?', [p.name]);
     if (!existing) {
@@ -191,6 +332,12 @@ function seedDatabase(force = false) {
         INSERT INTO products (category_id, name, description, price, image_url, prep_time_min, is_available)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `, [p.category_id, p.name, p.description, p.price, p.image_url, p.prep_time_min, p.is_available]);
+    } else {
+      db.run(`
+        UPDATE products 
+        SET category_id = ?, description = ?, price = ?, image_url = ?, prep_time_min = ?, is_available = ?
+        WHERE id = ?
+      `, [p.category_id, p.description, p.price, p.image_url, p.prep_time_min, p.is_available, existing.id]);
     }
   }
 
@@ -352,6 +499,21 @@ function seedDatabase(force = false) {
       { id: 'sauce', name: 'Maxsus achchiq sous', price: 3000 },
       { id: 'double_meat', name: "Qo'shimcha go'sht kotleti", price: 14000 }
     ]);
+    const kfcMods = JSON.stringify([
+      { id: 'kfc_spicy', name: "Ekstra achchiq sous (Hot BBQ)", price: 3000 },
+      { id: 'kfc_cheese', name: "Erigan pishloqli dip sous", price: 5000 },
+      { id: 'kfc_garlic', name: "Sarimsoqli oq sous (Garlic)", price: 3000 }
+    ]);
+    const lavashMods = JSON.stringify([
+      { id: 'lavash_extra_cheese', name: "Qo'shimcha pishloq (Motsarella)", price: 5000 },
+      { id: 'lavash_jalapeno', name: "Achchiq halapenyo qalampiri", price: 3000 },
+      { id: 'lavash_extra_meat', name: "Qo'shimcha go'sht (50g)", price: 10000 }
+    ]);
+    const hotdogMods = JSON.stringify([
+      { id: 'hotdog_jalapeno', name: "Halapenyo achchiq qalampir", price: 3000 },
+      { id: 'hotdog_crispy_onion', name: "Qo'shimcha qarsildoq piyoz", price: 2000 },
+      { id: 'hotdog_melted_cheese', name: "Erigan cheddar pishloq", price: 4000 }
+    ]);
     const pizzaMods = JSON.stringify([
       { id: 'extra_cheese', name: "Qo'shimcha Motsarella", price: 8000 },
       { id: 'jalapeno', name: 'Halapenyo achchiq qalampir', price: 4000 },
@@ -371,6 +533,9 @@ function seedDatabase(force = false) {
     ]);
 
     db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Burger%'", [burgerMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%KFC%'", [kfcMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Lavash%' OR name LIKE '%Shaurma%'", [lavashMods]);
+    db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Hot-Dog%' OR name LIKE '%Hotdog%'", [hotdogMods]);
     db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Pizza%'", [pizzaMods]);
     db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Osh%' OR name LIKE '%Kabob%'", [oshMods]);
     db.run("UPDATE products SET modifiers = ? WHERE name LIKE '%Cola%' OR name LIKE '%Moxito%' OR name LIKE '%Sharbat%'", [drinkMods]);

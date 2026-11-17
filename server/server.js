@@ -1151,25 +1151,30 @@ app.get('*', (req, res, next) => {
   });
 });
 
-// Keep-Alive Self-Ping: Prevents Render free tier from sleeping after 15 minutes
-const keepAliveTargetUrl = EXTERNAL_URL || 'https://smart-delivery-system-sy6e.onrender.com';
-const KEEP_ALIVE_INTERVAL_MS = 9 * 60 * 1000; // Ping every 9 minutes
+// Keep-Alive Self-Ping: 24/7 Anti-Sleep monitor (Pings every 5 minutes to prevent cold starts)
+const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000; // Ping every 5 minutes
+const keepAliveTargets = [
+  'https://smart-delivery-system-sy6e.onrender.com/api/health',
+  'https://smart-delivery-system-2026.vercel.app/api/health'
+];
 
 function startKeepAlivePing() {
-  console.log(`[KeepAlive] Scheduled self-ping to ${keepAliveTargetUrl}/api/health every 9 minutes`);
+  console.log(`[KeepAlive] 24/7 monitor faollashtirildi (har 5 daqiqada ${keepAliveTargets.length} ta xizmat ping qilinadi)`);
   setInterval(async () => {
-    try {
-      const pingUrl = `${keepAliveTargetUrl}/api/health`;
-      const pingRes = await fetch(pingUrl, {
-        headers: { 'User-Agent': 'SmartDeliveryKeepAlive/1.0' }
-      });
-      if (pingRes.ok) {
-        console.log(`[KeepAlive] ✅ Ping successful at ${new Date().toISOString()} (HTTP ${pingRes.status})`);
-      } else {
-        console.warn(`[KeepAlive] ⚠️ Ping returned status ${pingRes.status}`);
+    for (const target of keepAliveTargets) {
+      try {
+        const pingRes = await fetch(target, {
+          headers: { 'User-Agent': 'SmartDeliveryKeepAlive/2.0' },
+          signal: AbortSignal.timeout(15000)
+        });
+        if (pingRes.ok) {
+          console.log(`[KeepAlive] ✅ Ping muvaffaqiyatli: ${target} (HTTP ${pingRes.status})`);
+        } else {
+          console.warn(`[KeepAlive] ⚠️ Ping javobi: ${target} -> ${pingRes.status}`);
+        }
+      } catch (err) {
+        console.warn(`[KeepAlive] Ping ogohlantirish (${target}): ${err.message}`);
       }
-    } catch (err) {
-      console.warn(`[KeepAlive] Ping error: ${err.message}`);
     }
   }, KEEP_ALIVE_INTERVAL_MS);
 }

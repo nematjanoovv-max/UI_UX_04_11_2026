@@ -2,8 +2,8 @@ name: 24/7 High-Availability Keep-Alive Monitor
 
 on:
   schedule:
-    # Run every 10 minutes to guarantee zero spin-down across all services
-    - cron: '*/10 * * * *'
+    # Run every 5 minutes to guarantee zero spin-down across all services
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:

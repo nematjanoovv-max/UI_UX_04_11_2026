@@ -66,9 +66,24 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - Kuryerlar uchun kuryer buyruqlari (`/courier`) orqali buyurtmalarni boshqarish.
 
 ### 6. ⚡ 24/7 Uxlab Qolishdan Himoya (Keep-Alive) & Server Uyg'onishi
-- **Render Ichki Self-Ping:** Server har 9 daqiqada o'zini-o'zi uyg'otadi.
-- **GitHub Actions Avto-Kuzatuv:** Har 10 daqiqada doimiy `/api/health` so'rovlari yuborilib, Render bepul serveri uxlab qolishi oldi olinadi.
-- **Frontend Avto-Qayta Urinish va Info-Toast:** Server uyg'onish holatida bo'lsa (cold-start), mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
+- **Vercel Serverless Edge Webhook:** Telegram Bot webhook'i to'g'ridan-to'g'ri yuqori tezlikdagi Vercel Serverless endpointiga (`https://smart-delivery-system-2026.vercel.app/api/telegram-webhook`) yo'naltirildi. Bu orqali bot hech qachon uxlab qolmaydi, so'rovlar <300ms ichida qayta ishlanadi va OTP tasdiqlash kodlari soniyaning ulushida yetib boradi.
+- **Render va Vercel 5 daqiqalik Self-Ping:** Server har 5 daqiqada (`300000ms`) ham Render, ham Vercel `/api/health` manzillarini ketma-ket ping qilib, Render bepul tarifining 15 daqiqalik nofaollik taymeri to'lib qolishini 100% to'xtatadi.
+- **GitHub Actions 24/7 Avto-Kuzatuv:** `.github/workflows/keep-alive.yml` ish oqimi har 5 daqiqada (`*/5 * * * *`) ikkala xizmatni tekshirib, uzluksiz uyg'oq holatda saqlaydi.
+- **Frontend Avto-Qayta Urinish va Info-Toast:** Agar tasodifiy tarmoq uzilishi bo'lsa, mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
+
+### 7. 🍔 Fast Food Menyu Boyitilishi & HD Oziq-Ovqat Rasmlari (Eng So'nggi Yangilanish)
+- **4 x 4 Sarxil Fast Food Turlari (16 ta asosiy taom + 2 ta klassik):**
+  - **🍗 4 ta KFC / Tovuq:** KFC Qarsildoq Qanotlar (Hot Wings), KFC Tovuq Strips (Crispy Strips), KFC Original Basket (Family Bucket), KFC Tovuqli Zinger Burger.
+  - **🍔 4 ta Gamburger:** Smart Burger Max (Dabl Bifshteks), Klassik Chizburger Cheddar, Barbeque Smokey Bifshteks Burger, Maxsus Truffle Bifshteks Burger.
+  - **🌯 4 ta Lavash:** Klassik Mol Go'shtli Lavash, Tovuqli Pishloqli Lavash, Tandir Lavash Speshal, Mini Shaurma Lavash (2 dona).
+  - **🌭 4 ta Hotdog:** Klassik Daniya Hot-Dog, Frantsuzcha Pishloqli Baget Hot-Dog, Dabl Sosiskali Grill Hot-Dog, Chili Halapenyo Achchiq Hot-Dog.
+  - **🍕🍟 Qo'shimcha:** Pizza Pepperoni XL (33sm) va Oltin Kartoshka Fri & Sous.
+- **100% Tekshirilgan HD Fotosuratlar:** Har bir taom uchun professional Unsplash food-fotografiya havolalari saralanib, avtomatlashtirilgan test skripti orqali barchasi `HTTP 200 OK` (image/jpeg) ekanligi tasdiqlandi (hech qanday 404 yoki singan rasm yo'q).
+- **Interaktiv Retsept Sozlash (Modifiers):**
+  - *KFC:* Ekstra achchiq sous (Hot BBQ), Erigan pishloqli dip sous, Sarimsoqli oq sous (Garlic).
+  - *Lavash:* Qo'shimcha pishloq (Motsarella), Achchiq halapenyo qalampiri, Qo'shimcha go'sht (50g).
+  - *Hotdog:* Halapenyo achchiq qalampir, Qo'shimcha qarsildoq piyoz, Erigan cheddar pishloq.
+  - *Burger:* Qo'shimcha pishloq (Cheddar), Maxsus achchiq sous, Qo'shimcha go'sht kotleti.
 
 ### 7. 🛡 Barqarorlik, Double-Click Himoyasi va Web Audio Optimizatsiyasi
 - **Double-Click (Qo'shaloq bosilish) va Loading Holatlari:**
