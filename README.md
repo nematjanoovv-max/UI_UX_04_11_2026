@@ -71,14 +71,44 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - **GitHub Actions 24/7 Avto-Kuzatuv:** `.github/workflows/keep-alive.yml` ish oqimi har 5 daqiqada (`*/5 * * * *`) ikkala xizmatni tekshirib, uzluksiz uyg'oq holatda saqlaydi.
 - **Frontend Avto-Qayta Urinish va Info-Toast:** Agar tasodifiy tarmoq uzilishi bo'lsa, mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
 
-### 7. 🍔 Fast Food Menyu Boyitilishi & HD Oziq-Ovqat Rasmlari (Eng So'nggi Yangilanish)
-- **4 x 4 Sarxil Fast Food Turlari (16 ta asosiy taom + 2 ta klassik):**
-  - **🍗 4 ta KFC / Tovuq:** KFC Qarsildoq Qanotlar (Hot Wings), KFC Tovuq Strips (Crispy Strips), KFC Original Basket (Family Bucket), KFC Tovuqli Zinger Burger.
-  - **🍔 4 ta Gamburger:** Smart Burger Max (Dabl Bifshteks), Klassik Chizburger Cheddar, Barbeque Smokey Bifshteks Burger, Maxsus Truffle Bifshteks Burger.
-  - **🌯 4 ta Lavash:** Klassik Mol Go'shtli Lavash, Tovuqli Pishloqli Lavash, Tandir Lavash Speshal, Mini Shaurma Lavash (2 dona).
-  - **🌭 4 ta Hotdog:** Klassik Daniya Hot-Dog, Frantsuzcha Pishloqli Baget Hot-Dog, Dabl Sosiskali Grill Hot-Dog, Chili Halapenyo Achchiq Hot-Dog.
-  - **🍕🍟 Qo'shimcha:** Pizza Pepperoni XL (33sm) va Oltin Kartoshka Fri & Sous.
-- **100% Tekshirilgan HD Fotosuratlar:** Har bir taom uchun professional Unsplash food-fotografiya havolalari saralanib, avtomatlashtirilgan test skripti orqali barchasi `HTTP 200 OK` (image/jpeg) ekanligi tasdiqlandi (hech qanday 404 yoki singan rasm yo'q).
+### 7. 🍔 Fast Food Katta Menyu (26 xil taom) & Bot Integratsiyasi (Eng So'nggi Yangilanish)
+- **6 x 4 Kengaytirilgan Fast Food Turlari (24 ta asosiy taom + 2 ta klassik):**
+  - **🍗 6 ta KFC / Tovuq:**
+    1. KFC Qarsildoq Qanotlar (Hot Wings, 6 dona) — 38,000 so'm
+    2. KFC Tovuq Strips (Crispy Strips, 5 dona) — 36,000 so'm
+    3. KFC Original Basket (Family Bucket, 8 dona + fri) — 85,000 so'm
+    4. KFC Tovuqli Zinger Burger — 42,000 so'm
+    5. KFC Qarsildoq Oyoqchalar (Drumsticks, 4 dona) — 45,000 so'm
+    6. KFC Box Master Tovuqli Tvister — 34,000 so'm
+  - **🍔 6 ta Gamburger:**
+    1. Smart Burger Max (Dabl Bifshteks) — 48,000 so'm
+    2. Klassik Chizburger Cheddar — 38,000 so'm
+    3. Barbeque Smokey Bifshteks Burger — 52,000 so'm
+    4. Maxsus Truffle Bifshteks Burger — 62,000 so'm
+    5. Dabl Bacon Monster Burger — 58,000 so'm
+    6. Chili Halapenyo Olovli Burger — 44,000 so'm
+  - **🌯 6 ta Lavash:**
+    1. Klassik Mol Go'shtli Lavash — 35,000 so'm
+    2. Tovuqli Pishloqli Lavash — 33,000 so'm
+    3. Tandir Lavash Speshal — 39,000 so'm
+    4. Mini Shaurma Lavash (2 dona) — 30,000 so'm
+    5. Maxsus Dabl Pishloqli Lavash XL — 42,000 so'm
+    6. Achchiq Doner Lavash Halapenyo bilan — 37,000 so'm
+  - **🌭 6 ta Hotdog:**
+    1. Klassik Daniya Hot-Dog — 24,000 so'm
+    2. Frantsuzcha Pishloqli Baget Hot-Dog — 28,000 so'm
+    3. Dabl Sosiskali Grill Hot-Dog — 32,000 so'm
+    4. Chili Halapenyo Achchiq Hot-Dog — 29,000 so'm
+    5. Bavarcha Ovchi Sosiskali Hot-Dog — 31,000 so'm
+    6. Katta Pishloqli Hot-Dog Jumbo XL — 34,000 so'm
+  - **🍕🍟 Qo'shimcha:** Pizza Pepperoni XL (33sm, 78,000 so'm) va Oltin Kartoshka Fri & Sous (22,000 so'm).
+- **🤖 Telegram Botda To'liq Ko'rinish & Bo'limlarga Ajratilgan Menyu:**
+  - Botda "🍔 Fast Food" tanlanganda yoki `/fastfood` buyrug'i yuborilganda chiroyli turlar menyusi ochiladi: `🍗 KFC & Tovuq (6 xil)`, `🍔 Gamburgerlar (6 xil)`, `🌯 Lavash & Shaurma (6 xil)`, `🌭 Hot-Doglar (6 xil)`, `🍕 Pizza & Fri`.
+  - **Tezkor matnli buyruqlar:** Bot chatiga shunchaki `kfc`, `burger`, `lavash`, `hotdog` yoki `fastfood` deb yozilsa, bot darhol o'sha turdagi taomlarni fotosurati va narxi bilan chiqarib beradi.
+  - Har bir taom kartochkasi tagida to'g'ridan-to'g'ri `➕ Savatga qo'shish` inline-tugmasi mavjud.
+- **🌐 WebApp & Saytda Interaktiv Sub-Kategoriya Chiplari:**
+  - Saytda Fast Food bo'limi ustida qulay filtrlash chiplari o'rnatildi (`Barchasi`, `🍗 KFC & Tovuq`, `🍔 Gamburgerlar`, `🌯 Lavash & Shaurma`, `🌭 Hot-Doglar`, `🍕 Pizza & Fri`). Foydalanuvchi bir teginishda xohlagan taom turini ajratib ko'ra oladi.
+- **100% Tekshirilgan HD Fotosuratlar:** Barcha 26 ta taom uchun Unsplash professional food-suratlari saralanib, avtomatlashtirilgan test skripti orqali `HTTP 200 OK` (image/jpeg) ekanligi tasdiqlandi.
 - **Interaktiv Retsept Sozlash (Modifiers):**
   - *KFC:* Ekstra achchiq sous (Hot BBQ), Erigan pishloqli dip sous, Sarimsoqli oq sous (Garlic).
   - *Lavash:* Qo'shimcha pishloq (Motsarella), Achchiq halapenyo qalampiri, Qo'shimcha go'sht (50g).

@@ -7,7 +7,7 @@ function seedDatabase(force = false) {
   const productsCount = db.get('SELECT COUNT(*) as cnt FROM products').cnt;
   const couriersCount = db.get('SELECT COUNT(*) as cnt FROM couriers').cnt;
 
-  if (!force && categoriesCount >= 5 && productsCount >= 26 && couriersCount >= 3) {
+  if (!force && categoriesCount >= 5 && productsCount >= 34 && couriersCount >= 3) {
     console.log('[SEED] Ma\'lumotlar bazasi allaqachon to\'ldirilgan.');
     return;
   }
@@ -45,11 +45,11 @@ function seedDatabase(force = false) {
   const catDesserts = db.get('SELECT id FROM categories WHERE name = ?', ['Shirinliklar']).id;
   const catSalads = db.get('SELECT id FROM categories WHERE name = ?', ['Salatlar & Gazaklar'])?.id || catFastFood;
 
-  // 2. Mahsulotlar (kamida 26 ta sara taom)
+  // 2. Mahsulotlar (kamida 34 ta sara taom)
   const products = [
-    // --- FAST FOOD: 4 KFC, 4 Gamburger, 4 Lavash, 4 Hotdog (+ Pizza & Fri) ---
+    // --- FAST FOOD: 6 KFC, 6 Gamburger, 6 Lavash, 6 Hotdog (+ Pizza & Fri) ---
 
-    // 1. KFC (4 dona)
+    // 1. KFC & Tovuq (6 dona)
     {
       category_id: catFastFood,
       name: 'KFC Qarsildoq Qanotlar (Hot Wings)',
@@ -86,8 +86,26 @@ function seedDatabase(force = false) {
       prep_time_min: 12,
       is_available: 1
     },
+    {
+      category_id: catFastFood,
+      name: 'KFC Qarsildoq Oyoqchalar (Drumsticks 4 dona)',
+      description: 'Oltinrang qarsildoq maxsus qobiqda qovurilgan mayin tovuq oyoqchalari (4 dona), xushbo\'y sarimsoqli sous bilan.',
+      price: 45000,
+      image_url: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 14,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'KFC Box Master Tovuqli Tvister',
+      description: 'Qarsildoq tovuq stripslari, erigan pishloq, yangi pomidor va aysberg bargi bilan o\'ralgan maxsus KFC tvister lavashi.',
+      price: 34000,
+      image_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
 
-    // 2. Gamburger (4 dona)
+    // 2. Gamburger (6 dona)
     {
       category_id: catFastFood,
       name: 'Smart Burger Max (Dabl Bifshteks)',
@@ -124,8 +142,26 @@ function seedDatabase(force = false) {
       prep_time_min: 16,
       is_available: 1
     },
+    {
+      category_id: catFastFood,
+      name: 'Dabl Bacon Monster Burger',
+      description: 'Ikkita qalin shirali go\'sht kotleti, qovurilgan bekon, erigan ikki qavat cheddar va dudlangan sous.',
+      price: 58000,
+      image_url: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 16,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Chili Halapenyo Olovli Burger',
+      description: 'Gril mol go\'shti, achchiq chili qaylasi, achchiq halapenyo bo\'laklari, qizil piyoz va erigan pishloq bilan o\'tkir ta\'m.',
+      price: 44000,
+      image_url: 'https://images.unsplash.com/photo-1582196016295-f8c8bd4b3a99?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 12,
+      is_available: 1
+    },
 
-    // 3. Lavash (4 dona)
+    // 3. Lavash (6 dona)
     {
       category_id: catFastFood,
       name: 'Klassik Mol Go\'shtli Lavash',
@@ -162,8 +198,26 @@ function seedDatabase(force = false) {
       prep_time_min: 8,
       is_available: 1
     },
+    {
+      category_id: catFastFood,
+      name: 'Maxsus Dabl Pishloqli Lavash XL',
+      description: 'Ikki barobar ko\'p motsarella va gouda pishlog\'i, nozik mol go\'shti, bodring va qarsildoq fri bilan to\'yimli XL lavash.',
+      price: 42000,
+      image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 12,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Achchiq Doner Lavash Halapenyo bilan',
+      description: 'Olovli achchiq sous, lahm go\'sht bo\'laklari, yangi pomidor va achchiq qalampir bilan doner uslubidagi lavash.',
+      price: 37000,
+      image_url: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
+      is_available: 1
+    },
 
-    // 4. Hotdog (4 dona)
+    // 4. Hotdog (6 dona)
     {
       category_id: catFastFood,
       name: 'Klassik Daniya Hot-Dog',
@@ -198,6 +252,24 @@ function seedDatabase(force = false) {
       price: 29000,
       image_url: 'https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=600&auto=format&fit=crop&q=80',
       prep_time_min: 9,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Bavarcha Ovchi Sosiskali Hot-Dog',
+      description: 'Haqiqiy bavarcha dudlangan ovchi sosiskasi, donador xantal, tuzlangan bodring va qarsildoq piyoz.',
+      price: 31000,
+      image_url: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 9,
+      is_available: 1
+    },
+    {
+      category_id: catFastFood,
+      name: 'Katta Pishloqli Hot-Dog Jumbo XL',
+      description: 'Maxsus katta uzun bulochka, shirali mol sosiskasi, ustidan quyilgan qaynoq erigan cheddar pishloq sousi.',
+      price: 34000,
+      image_url: 'https://images.unsplash.com/photo-1512152272829-e3139592d56f?w=600&auto=format&fit=crop&q=80',
+      prep_time_min: 10,
       is_available: 1
     },
 

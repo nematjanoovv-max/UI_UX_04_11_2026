@@ -577,6 +577,44 @@ class TelegramBotService {
       return;
     }
 
+    // Direct Fast Food Shortcuts (KFC, Burger, Lavash, Hotdog)
+    const cleanText = text.toLowerCase().trim();
+    if (['kfc', 'tovuq', 'wings', 'strips', 'zinger', 'tvister'].includes(cleanText) || cleanText.startsWith('/kfc')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodSubSection(chatId, cat.id, 'kfc');
+        return;
+      }
+    }
+    if (['burger', 'gamburger', 'chizburger', 'cheeseburger'].includes(cleanText) || cleanText.startsWith('/burger')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodSubSection(chatId, cat.id, 'burger');
+        return;
+      }
+    }
+    if (['lavash', 'shaurma', 'doner', 'shawarma'].includes(cleanText) || cleanText.startsWith('/lavash')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodSubSection(chatId, cat.id, 'lavash');
+        return;
+      }
+    }
+    if (['hotdog', 'hot-dog', 'hot dog', 'sosiska'].includes(cleanText) || cleanText.startsWith('/hotdog')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodSubSection(chatId, cat.id, 'hotdog');
+        return;
+      }
+    }
+    if (['fast food', 'fastfood', 'fast-food'].includes(cleanText) || cleanText.startsWith('/fastfood')) {
+      const cat = db.get("SELECT id FROM categories WHERE name = 'Fast Food'");
+      if (cat) {
+        await this.sendFastFoodMenu(chatId, cat.id);
+        return;
+      }
+    }
+
     if (text === '🛒 Savatcha' || text === '🛒 Корзина' || text === '🛒 Cart' || text === '/cart') {
       await this.sendCartSummary(chatId, session);
       return;
@@ -811,7 +849,25 @@ class TelegramBotService {
     // Category navigation
     if (data.startsWith('cat_')) {
       const catId = Number(data.split('_')[1]);
-      await this.sendProductsByCategory(chatId, catId);
+      const category = db.get('SELECT name FROM categories WHERE id = ?', [catId]);
+      if (category && category.name === 'Fast Food') {
+        await this.sendFastFoodMenu(chatId, catId);
+      } else {
+        await this.sendProductsByCategory(chatId, catId);
+      }
+      return;
+    }
+
+    // Fast Food Sub-category navigation: ff_<subtype>_<catId>
+    if (data.startsWith('ff_')) {
+      const parts = data.split('_');
+      const subType = parts[1];
+      const catId = Number(parts[2]);
+      if (subType === 'all') {
+        await this.sendProductsByCategory(chatId, catId);
+      } else {
+        await this.sendFastFoodSubSection(chatId, catId, subType);
+      }
       return;
     }
 
@@ -1109,13 +1165,20 @@ class TelegramBotService {
       ];
 
       if (p.image_url) {
-        await this.callApi('sendPhoto', {
-          chat_id: chatId,
-          photo: p.image_url,
-          caption,
-          parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard }
-        });
+        try {
+          await this.callApi('sendPhoto', {
+            chat_id: chatId,
+            photo: p.image_url,
+            caption,
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard }
+          });
+        } catch (_) {
+          await this.sendMessage(chatId, caption, {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard }
+          });
+        }
       } else {
         await this.sendMessage(chatId, caption, {
           parse_mode: 'Markdown',
@@ -1129,6 +1192,125 @@ class TelegramBotService {
         inline_keyboard: [
           [{ text: '🛒 Savatchaga o\'tish', callback_data: 'view_cart' }],
           [{ text: '⬅️ Kategoriyalarga qaytish', callback_data: 'back_to_cats' }]
+        ]
+      }
+    });
+  }
+
+  // ----------------------------------------------------------------------
+  // DEDICATED FAST FOOD SUB-CATEGORIES (KFC, Gamburger, Lavash, Hotdog)
+  // ----------------------------------------------------------------------
+  async sendFastFoodMenu(chatId, categoryId) {
+    const db = getDb();
+    const rawBaseUrl = process.env.FRONTEND_URL || 'https://smart-delivery-system-2026.vercel.app';
+    const webAppUrl = rawBaseUrl.includes('?') ? rawBaseUrl : `${rawBaseUrl}?v=2026.3`;
+
+    const totalCount = db.get('SELECT COUNT(*) as cnt FROM products WHERE category_id = ? AND is_available = 1', [categoryId])?.cnt || 26;
+
+    await this.sendMessage(chatId, `🍔 *Fast Food — Katta Yangilangan Menyu (${totalCount} xil taom):* 🍟\n\n` +
+      `Barcha sarxil taomlar turlar bo'yicha ajratildi. O'zingizga ma'qul bo'limni tanlang:\n\n` +
+      `🍗 *KFC & Tovuq* (6 xil) — Qanotlar, stripslar, basket, zinger burger, oyoqchalar va tvister\n` +
+      `🍔 *Gamburgerlar* (6 xil) — Smart Burger Max, Chizburger, Barbeque, Truffle, Monster va Chili\n` +
+      `🌯 *Lavash & Shaurma* (6 xil) — Klassik mol go'shtli, tovuqli pishloqli, tandir, shaurma, dabl pishloqli va doner\n` +
+      `🌭 *Hot-Doglar* (6 xil) — Daniya, Frantsuzcha baget, Dabl grill, Chili halapenyo, Bavarcha va Jumbo XL\n` +
+      `🍕 *Pizza & Gazaklar* (2 xil) — Pepperoni XL va Oltin fri\n\n` +
+      `👇 *Quyidagi tugmalardan birini bosing:*`, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🍗 KFC & Tovuq (6 xil)', callback_data: `ff_kfc_${categoryId}` },
+            { text: '🍔 Gamburgerlar (6 xil)', callback_data: `ff_burger_${categoryId}` }
+          ],
+          [
+            { text: '🌯 Lavash & Shaurma (6 xil)', callback_data: `ff_lavash_${categoryId}` },
+            { text: '🌭 Hot-Doglar (6 xil)', callback_data: `ff_hotdog_${categoryId}` }
+          ],
+          [
+            { text: '🍕 Pizza & Fri (2 xil)', callback_data: `ff_pizza_${categoryId}` },
+            { text: '📋 Barchasini ko\'rish', callback_data: `ff_all_${categoryId}` }
+          ],
+          [
+            { text: '🚀 WebApp-da to\'liq menyu', web_app: { url: webAppUrl } }
+          ],
+          [
+            { text: '⬅️ Asosiy kategoriyalar', callback_data: 'back_to_cats' }
+          ]
+        ]
+      }
+    });
+  }
+
+  async sendFastFoodSubSection(chatId, categoryId, subType) {
+    const db = getDb();
+    let query = 'SELECT * FROM products WHERE category_id = ? AND is_available = 1';
+    let title = '🍔 Fast Food taomlari';
+
+    if (subType === 'kfc') {
+      query += " AND (name LIKE '%KFC%' OR name LIKE '%Tovuq%' OR name LIKE '%Strips%' OR name LIKE '%Qanot%' OR name LIKE '%Tvister%' OR name LIKE '%Oyoqcha%') AND name NOT LIKE '%Lavash%'";
+      title = '🍗 KFC & Qarsildoq Tovuq taomlari';
+    } else if (subType === 'burger') {
+      query += " AND (name LIKE '%Burger%' OR name LIKE '%Chizburger%') AND name NOT LIKE '%Zinger%'";
+      title = '🍔 Maxsus Gamburgerlar va Chizburgerlar';
+    } else if (subType === 'lavash') {
+      query += " AND (name LIKE '%Lavash%' OR name LIKE '%Shaurma%' OR name LIKE '%Doner%')";
+      title = '🌯 Mazali Lavash & Shaurmalar';
+    } else if (subType === 'hotdog') {
+      query += " AND (name LIKE '%Hot-Dog%' OR name LIKE '%Hotdog%')";
+      title = '🌭 Sara Hot-Doglar to\'plami';
+    } else if (subType === 'pizza') {
+      query += " AND (name LIKE '%Pizza%' OR name LIKE '%Fri%')";
+      title = '🍕 Pizza & Kartoshka Fri';
+    }
+
+    const products = db.query(query, [categoryId]);
+
+    if (products.length === 0) {
+      await this.sendMessage(chatId, 'Ushbu bo\'limda taomlar topilmadi.');
+      return;
+    }
+
+    await this.sendMessage(chatId, `✨ *${title} (${products.length} xil):*`, { parse_mode: 'Markdown' });
+
+    for (const p of products) {
+      const caption = `*${p.name}*\n\n` +
+        `📝 ${p.description || ''}\n` +
+        `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
+        `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
+
+      const inline_keyboard = [
+        [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
+      ];
+
+      if (p.image_url) {
+        try {
+          await this.callApi('sendPhoto', {
+            chat_id: chatId,
+            photo: p.image_url,
+            caption,
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard }
+          });
+        } catch (_) {
+          await this.sendMessage(chatId, caption, {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard }
+          });
+        }
+      } else {
+        await this.sendMessage(chatId, caption, {
+          parse_mode: 'Markdown',
+          reply_markup: { inline_keyboard }
+        });
+      }
+    }
+
+    await this.sendMessage(chatId, `Tanlab bo'lgach savatchaga o'ting yoki boshqa bo'limni tanlang:`, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🛒 Savatchaga o\'tish', callback_data: 'view_cart' }],
+          [{ text: '🍔 Fast Food boshqa bo\'limlari', callback_data: `cat_${categoryId}` }],
+          [{ text: '⬅️ Asosiy menyu', callback_data: 'back_to_cats' }]
         ]
       }
     });
