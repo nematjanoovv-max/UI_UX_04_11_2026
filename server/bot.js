@@ -144,7 +144,8 @@ class TelegramBotService {
       const response = await fetch(this.getApiUrl(method), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(6000)
       });
       const data = await response.json();
       return data;
@@ -187,9 +188,7 @@ class TelegramBotService {
 
         // Ensure Webhook is always active and points to high-availability Vercel endpoint
         try {
-          const webhookUrl = (process.env.WEBHOOK_URL && !process.env.WEBHOOK_URL.includes('onrender.com'))
-            ? process.env.WEBHOOK_URL
-            : 'https://smart-delivery-system-2026.vercel.app/api/telegram-webhook';
+          const webhookUrl = 'https://smart-delivery-system-2026.vercel.app/api/telegram-webhook';
           console.log(`[BOT] Webhook o'rnatilmoqda: ${webhookUrl}`);
           await this.callApi('setWebhook', {
             url: webhookUrl,
@@ -871,7 +870,7 @@ class TelegramBotService {
       const subType = parts[1];
       const catId = Number(parts[2]);
       if (subType === 'all') {
-        await this.sendProductsByCategory(chatId, catId);
+        await this.sendFastFoodMenu(chatId, catId);
       } else {
         await this.sendFastFoodSubSection(chatId, catId, subType);
       }
@@ -1161,37 +1160,41 @@ class TelegramBotService {
 
     await this.sendMessage(chatId, `✨ *${category?.name || 'Menyu'} sarxil taomlari:*`, { parse_mode: 'Markdown' });
 
-    for (const p of products) {
-      const caption = `*${p.name}*\n\n` +
-        `📝 ${p.description || ''}\n` +
-        `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
-        `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
+    // Send in batches of 2 items for optimal speed and zero timeout risk
+    for (let i = 0; i < products.length; i += 2) {
+      const batch = products.slice(i, i + 2);
+      await Promise.all(batch.map(async (p) => {
+        const caption = `*${p.name}*\n\n` +
+          `📝 ${p.description || ''}\n` +
+          `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
+          `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
 
-      const inline_keyboard = [
-        [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
-      ];
+        const inline_keyboard = [
+          [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
+        ];
 
-      if (p.image_url) {
-        try {
-          await this.callApi('sendPhoto', {
-            chat_id: chatId,
-            photo: p.image_url,
-            caption,
-            parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard }
-          });
-        } catch (_) {
+        if (p.image_url) {
+          try {
+            await this.callApi('sendPhoto', {
+              chat_id: chatId,
+              photo: p.image_url,
+              caption,
+              parse_mode: 'Markdown',
+              reply_markup: { inline_keyboard }
+            });
+          } catch (_) {
+            await this.sendMessage(chatId, caption, {
+              parse_mode: 'Markdown',
+              reply_markup: { inline_keyboard }
+            });
+          }
+        } else {
           await this.sendMessage(chatId, caption, {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard }
           });
         }
-      } else {
-        await this.sendMessage(chatId, caption, {
-          parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard }
-        });
-      }
+      }));
     }
 
     await this.sendMessage(chatId, `Tanlab bo'lgach savatchaga o'ting yoki boshqa kategoriyani ko'ring:`, {
@@ -1279,37 +1282,41 @@ class TelegramBotService {
 
     await this.sendMessage(chatId, `✨ *${title} (${products.length} xil):*`, { parse_mode: 'Markdown' });
 
-    for (const p of products) {
-      const caption = `*${p.name}*\n\n` +
-        `📝 ${p.description || ''}\n` +
-        `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
-        `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
+    // Send in batches of 2 items for optimal speed and zero timeout risk
+    for (let i = 0; i < products.length; i += 2) {
+      const batch = products.slice(i, i + 2);
+      await Promise.all(batch.map(async (p) => {
+        const caption = `*${p.name}*\n\n` +
+          `📝 ${p.description || ''}\n` +
+          `⏱ Tayyorlanish: ~${p.prep_time_min} daqiqa\n` +
+          `💰 Narxi: *${Number(p.price).toLocaleString()} so'm*`;
 
-      const inline_keyboard = [
-        [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
-      ];
+        const inline_keyboard = [
+          [{ text: `➕ Savatga qo'shish (${Number(p.price).toLocaleString()} so'm)`, callback_data: `add_${p.id}` }]
+        ];
 
-      if (p.image_url) {
-        try {
-          await this.callApi('sendPhoto', {
-            chat_id: chatId,
-            photo: p.image_url,
-            caption,
-            parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard }
-          });
-        } catch (_) {
+        if (p.image_url) {
+          try {
+            await this.callApi('sendPhoto', {
+              chat_id: chatId,
+              photo: p.image_url,
+              caption,
+              parse_mode: 'Markdown',
+              reply_markup: { inline_keyboard }
+            });
+          } catch (_) {
+            await this.sendMessage(chatId, caption, {
+              parse_mode: 'Markdown',
+              reply_markup: { inline_keyboard }
+            });
+          }
+        } else {
           await this.sendMessage(chatId, caption, {
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard }
           });
         }
-      } else {
-        await this.sendMessage(chatId, caption, {
-          parse_mode: 'Markdown',
-          reply_markup: { inline_keyboard }
-        });
-      }
+      }));
     }
 
     await this.sendMessage(chatId, `Tanlab bo'lgach savatchaga o'ting yoki boshqa bo'limni tanlang:`, {

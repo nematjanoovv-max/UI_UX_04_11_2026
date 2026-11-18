@@ -21,15 +21,24 @@ jobs:
           VERCEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://smart-delivery-system-2026.vercel.app/api/health)
           echo "Vercel API HTTP Status: $VERCEL_STATUS"
 
-          echo "2. Pinging Render Backend..."
-          RENDER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health)
-          echo "Render Backend HTTP Status: $RENDER_STATUS"
+          echo "2. Enforcing Telegram Bot Webhook to Vercel Serverless..."
+          WEBHOOK_INFO=$(curl -s --max-time 15 https://api.telegram.org/bot9160505584:AAGp4e-rU-4nL-Hw9iJ1BLLY_L6IrxVX4hw/getWebhookInfo)
+          CURRENT_URL=$(echo "$WEBHOOK_INFO" | grep -o '"url":"[^"]*' | cut -d'"' -f4)
+          EXPECTED_URL="https://smart-delivery-system-2026.vercel.app/api/telegram-webhook"
 
-          if [ "$VERCEL_STATUS" -eq 200 ] && [ "$RENDER_STATUS" -eq 200 ]; then
-            echo "✅ All Smart Delivery services are online, healthy, and awake!"
+          if [ "$CURRENT_URL" != "$EXPECTED_URL" ]; then
+            echo "⚠️ Webhook URL was: '$CURRENT_URL'. Re-setting to '$EXPECTED_URL'..."
+            curl -s -X POST https://api.telegram.org/bot9160505584:AAGp4e-rU-4nL-Hw9iJ1BLLY_L6IrxVX4hw/setWebhook \
+              -H "Content-Type: application/json" \
+              -d '{"url":"https://smart-delivery-system-2026.vercel.app/api/telegram-webhook","allowed_updates":["message","callback_query"]}'
           else
-            echo "⚠️ Warning: Detected status Vercel=$VERCEL_STATUS, Render=$RENDER_STATUS. Retrying in 5s..."
+            echo "✅ Telegram Webhook is correctly set to Vercel: $CURRENT_URL"
+          fi
+
+          if [ "$VERCEL_STATUS" -eq 200 ]; then
+            echo "✅ Vercel production API & Bot are online, healthy, and awake!"
+          else
+            echo "⚠️ Warning: Detected status Vercel=$VERCEL_STATUS. Retrying in 5s..."
             sleep 5
-            curl -s --max-time 45 https://smart-delivery-system-2026.vercel.app/api/health
-            curl -s --max-time 45 https://smart-delivery-system-sy6e.onrender.com/api/health
+            curl -s --max-time 30 https://smart-delivery-system-2026.vercel.app/api/health
           fi

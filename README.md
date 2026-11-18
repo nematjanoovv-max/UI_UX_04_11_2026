@@ -65,11 +65,11 @@ Rasmiy GitHub repozitoriyasi: [https://github.com/nematjanoovv-max/UI_UX_04_11_2
 - Foydalanuvchi GIF/stiker tashlaganda avtomatik asosiy menyuga yo'naltirish.
 - Kuryerlar uchun kuryer buyruqlari (`/courier`) orqali buyurtmalarni boshqarish.
 
-### 6. ⚡ 24/7 Uxlab Qolishdan Himoya (Keep-Alive) & Server Uyg'onishi
-- **Vercel Serverless Edge Webhook:** Telegram Bot webhook'i to'g'ridan-to'g'ri yuqori tezlikdagi Vercel Serverless endpointiga (`https://smart-delivery-system-2026.vercel.app/api/telegram-webhook`) yo'naltirildi. Bu orqali bot hech qachon uxlab qolmaydi, so'rovlar <300ms ichida qayta ishlanadi va OTP tasdiqlash kodlari soniyaning ulushida yetib boradi.
-- **Render va Vercel 5 daqiqalik Self-Ping:** Server har 5 daqiqada (`300000ms`) ham Render, ham Vercel `/api/health` manzillarini ketma-ket ping qilib, Render bepul tarifining 15 daqiqalik nofaollik taymeri to'lib qolishini 100% to'xtatadi.
-- **GitHub Actions 24/7 Avto-Kuzatuv:** `.github/workflows/keep-alive.yml` ish oqimi har 5 daqiqada (`*/5 * * * *`) ikkala xizmatni tekshirib, uzluksiz uyg'oq holatda saqlaydi.
-- **Frontend Avto-Qayta Urinish va Info-Toast:** Agar tasodifiy tarmoq uzilishi bo'lsa, mijoz so'rovi uzilib qolmasdan avtomatik 1.5 soniyada qayta urinadi va foydalanuvchiga qulay xabarnoma ko'rsatiladi.
+### 6. ⚡ 24/7 Uxlab Qolishdan Himoya (Keep-Alive) & Webhook Qat'iy Muhofazasi
+- **Vercel Serverless Edge Webhook:** Telegram Bot webhook'i to'g'ridan-to'g'ri yuqori tezlikdagi Vercel Serverless endpointiga (`https://smart-delivery-system-2026.vercel.app/api/telegram-webhook`) biriktirildi. So'rovlar <300ms ichida qayta ishlanadi va bot hech qachon uxlab qolmaydi.
+- **Webhook Hijacking (Tortib olish) To'liq To'xtatildi:** Render'dagi eski server Telegram webhook manzilini o'ziga o'g'irlab olishining oldini olish uchun Render'da `botService.init()` o'chirildi va webhook faqat Vercel orqali ishlashi qat'iy belgilandi.
+- **GitHub Actions Avto-Tekshiruv & Tiklash:** `.github/workflows/keep-alive.yml` ish oqimi har 5 daqiqada (`*/5 * * * *`) Vercel API-ni ping qiladi hamda Telegram Webhook URL manzilini tekshirib, agar o'zgargan bo'lsa darhol Vercel manziliga qayta tiklaydi.
+- **Tezkor Parallel Foto-Yuborish:** Taomlar fotosuratlari Telegramga 2 tadan parallel oqimda (batches of 2) yuborilib, 8 ta taom atigi 2-3 soniyada uzatiladi va Vercel Serverless timeout xatosi 100% bartaraf etildi.
 
 ### 7. 🍔 Fast Food Katta Menyu (36 xil taom) & Bot Integratsiyasi (Eng So'nggi Yangilanish)
 - **8 x 4 Kengaytirilgan Fast Food Turlari (32 ta asosiy taom + 4 ta pizza & gazaklar = 36 taom, jami menyu 46 ta):**

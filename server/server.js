@@ -1154,7 +1154,6 @@ app.get('*', (req, res, next) => {
 // Keep-Alive Self-Ping: 24/7 Anti-Sleep monitor (Pings every 5 minutes to prevent cold starts)
 const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000; // Ping every 5 minutes
 const keepAliveTargets = [
-  'https://smart-delivery-system-sy6e.onrender.com/api/health',
   'https://smart-delivery-system-2026.vercel.app/api/health'
 ];
 
@@ -1182,7 +1181,10 @@ function startKeepAlivePing() {
 // Start Server and Telegram Bot
 app.listen(PORT, async () => {
   console.log(`[SERVER] Smart Delivery backend running on port ${PORT}`);
-  await botService.init(EXTERNAL_URL);
+  // Only initialize Telegram Bot webhook if NOT running on Render (Render must not hijack Webhook)
+  if (!process.env.RENDER) {
+    await botService.init();
+  }
   startKeepAlivePing();
 });
 
